@@ -15,9 +15,9 @@
     .carousel-wrap {
       position: relative;
       width: 100%;
-      height: 75vh;
-      min-height: 480px;
-      max-height: 780px;
+      height: 68vh;
+      min-height: 440px;
+      max-height: 680px;
       overflow: hidden;
       background: var(--dark);
     }
@@ -39,7 +39,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
+      object-position: center 30%;
       display: block;
     }
 
@@ -187,7 +187,7 @@
       width: 100%;
       height: 100%;
       object-fit: cover;
-      object-position: center top;
+      object-position: center 30%;
       display: block;
       transition: transform 0.5s ease;
     }
@@ -310,6 +310,17 @@
       .photo-item:nth-child(8) { grid-column: span 2; }
     }
 
+    /* Static header for gallery page */
+    body { padding-top: 0 !important; }
+    header {
+      position: relative !important;
+      top: auto !important;
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      background: rgba(13,19,33,1) !important;
+    }
+    .carousel-wrap { height: 72vh; }
+
     @media (max-width: 640px) {
       .carousel-wrap { height: 55vh; min-height: 340px; }
       .carousel-btn { width: 40px; height: 40px; font-size: 1rem; }
@@ -362,13 +373,10 @@
 <div class="carousel-wrap" id="carousel">
 
   <div class="carousel-slide active">
-    <img src="images/IMG_3469.jpg" alt="Nitro Sports Academy" />
+    <img src="images/IMG_3493.jpg" alt="Coach Pedro with student at Nitro" />
   </div>
   <div class="carousel-slide">
-    <img src="images/IMG_3493.jpg" alt="Coach Pedro with student" />
-  </div>
-  <div class="carousel-slide">
-    <img src="images/IMG_3507.jpg" alt="Training at Nitro" />
+    <img src="images/IMG_4039.jpg" alt="Coach Pedro coaching" />
   </div>
   <div class="carousel-slide">
     <img src="images/gallery_1.jpg" alt="Players at Nitro Sports Academy" />
@@ -377,22 +385,25 @@
     <img src="images/IMG_3802.jpg" alt="Nitro Sports Academy facility" />
   </div>
   <div class="carousel-slide">
-    <img src="images/IMG_4039.jpg" alt="Coach Pedro coaching" />
-  </div>
-  <div class="carousel-slide">
     <img src="images/IMG_3417.jpg" alt="Young athletes training" />
   </div>
   <div class="carousel-slide">
     <img src="images/IMG_4275.jpg" alt="Batting cage training" />
   </div>
   <div class="carousel-slide">
+    <img src="images/IMG_3507.jpg" alt="Training at Nitro" />
+  </div>
+  <div class="carousel-slide">
     <img src="images/IMG_4666.jpg" alt="Nitro Sports Academy players" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_2220.jpg" alt="Nitro Sports Academy" />
   </div>
   <div class="carousel-slide">
     <img src="images/IMG_4803.jpg" alt="Training session at Nitro" />
   </div>
   <div class="carousel-slide">
-    <img src="images/IMG_2220.jpg" alt="Nitro Sports Academy" />
+    <img src="images/IMG_3469.jpg" alt="At the Academy" />
   </div>
 
   <button class="carousel-btn prev" id="carousel-prev" aria-label="Previous">&#8592;</button>
