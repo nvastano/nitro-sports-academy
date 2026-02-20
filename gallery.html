@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gallery — Nitro Sports Academy</title>
+  <meta name="description" content="Photos from Nitro Sports Academy — players, coaches, and the facility in Spring Hill, TN." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <style>
+    /* ============ GALLERY PAGE STYLES ============ */
+
+    /* Hero Carousel */
+    .carousel-wrap {
+      position: relative;
+      width: 100%;
+      height: 75vh;
+      min-height: 480px;
+      max-height: 780px;
+      overflow: hidden;
+      background: var(--dark);
+    }
+
+    .carousel-slide {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.9s ease;
+      z-index: 0;
+    }
+
+    .carousel-slide.active {
+      opacity: 1;
+      z-index: 1;
+    }
+
+    .carousel-slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+    }
+
+    .carousel-slide::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(13,19,33,0.3) 0%,
+        rgba(13,19,33,0.1) 40%,
+        rgba(13,19,33,0.6) 80%,
+        rgba(13,19,33,0.95) 100%
+      );
+    }
+
+    /* Carousel Controls */
+    .carousel-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      background: rgba(13,19,33,0.6);
+      border: 2px solid rgba(255,255,255,0.15);
+      color: var(--white);
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+      backdrop-filter: blur(8px);
+    }
+
+    .carousel-btn:hover {
+      background: var(--blue);
+      border-color: var(--blue);
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .carousel-btn.prev { left: 24px; }
+    .carousel-btn.next { right: 24px; }
+
+    /* Carousel Dots */
+    .carousel-dots {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+
+    .carousel-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      border: none;
+    }
+
+    .carousel-dot.active {
+      background: var(--gold);
+      transform: scale(1.3);
+    }
+
+    /* Carousel Caption */
+    .carousel-caption {
+      position: absolute;
+      bottom: 56px;
+      left: 0; right: 0;
+      z-index: 10;
+      text-align: center;
+      padding: 0 60px;
+      pointer-events: none;
+    }
+
+    .carousel-caption p {
+      font-family: var(--font-condensed);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.75);
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* Slide Counter */
+    .carousel-counter {
+      position: absolute;
+      top: 110px;
+      right: 28px;
+      z-index: 10;
+      font-family: var(--font-condensed);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: rgba(255,255,255,0.5);
+      background: rgba(13,19,33,0.5);
+      padding: 4px 12px;
+      border-radius: 100px;
+      backdrop-filter: blur(8px);
+    }
+
+    /* ============ PHOTO GRID ============ */
+    .gallery-grid-section {
+      background: var(--dark);
+      padding: 70px 60px 90px;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 50px;
+    }
+
+    .photo-item {
+      position: relative;
+      overflow: hidden;
+      border-radius: 4px;
+      cursor: pointer;
+      background: var(--dark-mid);
+    }
+
+    /* Vary grid item sizes for visual interest */
+    .photo-item:nth-child(1) { grid-column: span 2; aspect-ratio: 16/9; }
+    .photo-item:nth-child(2) { aspect-ratio: 4/5; }
+    .photo-item:nth-child(3) { aspect-ratio: 4/5; }
+    .photo-item:nth-child(4) { aspect-ratio: 4/5; }
+    .photo-item:nth-child(5) { grid-column: span 2; aspect-ratio: 16/9; }
+    .photo-item:nth-child(6) { aspect-ratio: 4/5; }
+    .photo-item:nth-child(7) { aspect-ratio: 4/5; }
+    .photo-item:nth-child(8) { grid-column: span 2; aspect-ratio: 16/9; }
+    .photo-item:nth-child(9) { aspect-ratio: 1; }
+    .photo-item:nth-child(10) { aspect-ratio: 1; }
+    .photo-item:nth-child(11) { aspect-ratio: 1; }
+
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+
+    .photo-item:hover img { transform: scale(1.06); }
+
+    .photo-item-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(13,19,33,0.7) 0%, transparent 50%);
+      opacity: 0;
+      transition: opacity 0.3s;
+      display: flex;
+      align-items: flex-end;
+      padding: 16px;
+    }
+
+    .photo-item:hover .photo-item-overlay { opacity: 1; }
+
+    .photo-item-overlay span {
+      font-family: var(--font-condensed);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--gold);
+    }
+
+    /* Lightbox */
+    .lightbox {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.93);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      cursor: pointer;
+    }
+
+    .lightbox.open { display: flex; }
+
+    .lightbox-inner {
+      position: relative;
+      max-width: 90vw;
+      max-height: 90vh;
+      cursor: default;
+    }
+
+    .lightbox-inner img {
+      max-width: 90vw;
+      max-height: 88vh;
+      object-fit: contain;
+      border-radius: 4px;
+      display: block;
+    }
+
+    .lightbox-close {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      background: rgba(255,255,255,0.1);
+      border: none;
+      color: var(--white);
+      font-size: 1.6rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      z-index: 2001;
+    }
+
+    .lightbox-close:hover { background: var(--blue); }
+
+    .lightbox-nav {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.08);
+      border: none;
+      color: var(--white);
+      font-size: 1.4rem;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background 0.2s;
+      z-index: 2001;
+    }
+
+    .lightbox-nav:hover { background: var(--blue); }
+    .lightbox-nav.lb-prev { left: 16px; }
+    .lightbox-nav.lb-next { right: 16px; }
+
+    /* Autoplay progress bar */
+    .carousel-progress {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      height: 3px;
+      background: var(--gold);
+      z-index: 10;
+      width: 0%;
+      transition: width linear;
+    }
+
+    @media (max-width: 1024px) {
+      .gallery-grid-section { padding: 60px 32px; }
+      .photo-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .photo-item:nth-child(1),
+      .photo-item:nth-child(5),
+      .photo-item:nth-child(8) { grid-column: span 2; }
+    }
+
+    @media (max-width: 640px) {
+      .carousel-wrap { height: 55vh; min-height: 340px; }
+      .carousel-btn { width: 40px; height: 40px; font-size: 1rem; }
+      .carousel-btn.prev { left: 12px; }
+      .carousel-btn.next { right: 12px; }
+      .gallery-grid-section { padding: 50px 16px 70px; }
+      .photo-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+      .photo-item:nth-child(1),
+      .photo-item:nth-child(5),
+      .photo-item:nth-child(8) { grid-column: span 2; }
+      .photo-item:nth-child(n) { aspect-ratio: 4/3; }
+      .lightbox-nav { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header id="main-header">
+  <a class="logo-wrap" href="index.html">
+    <span style="font-family:'Oswald',sans-serif; font-size:1.3rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#fff;">
+      <span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY
+    </span>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="history.html">History</a>
+    <a href="ourteam.html">Our Team</a>
+    <a href="lessons.html">Lessons</a>
+    <a href="membership.html">Membership</a>
+    <a href="gallery.html" class="active">Gallery</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="https://nitrosportsacademy.com" target="_blank" class="btn-nav">Book Now ↗</a>
+  </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="history.html">History</a>
+  <a href="ourteam.html">Our Team</a>
+  <a href="lessons.html">Lessons</a>
+  <a href="membership.html">Membership</a>
+  <a href="gallery.html" class="active">Gallery</a>
+  <a href="contact.html">Contact Us</a>
+</nav>
+
+<!-- ============ HERO CAROUSEL ============ -->
+<div class="carousel-wrap" id="carousel">
+
+  <div class="carousel-slide active">
+    <img src="images/IMG_3469.jpg" alt="Nitro Sports Academy" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_3493.jpg" alt="Coach Pedro with student" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_3507.jpg" alt="Training at Nitro" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/gallery_1.jpg" alt="Players at Nitro Sports Academy" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_3802.jpg" alt="Nitro Sports Academy facility" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_4039.jpg" alt="Coach Pedro coaching" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_3417.jpg" alt="Young athletes training" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_4275.jpg" alt="Batting cage training" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_4666.jpg" alt="Nitro Sports Academy players" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_4803.jpg" alt="Training session at Nitro" />
+  </div>
+  <div class="carousel-slide">
+    <img src="images/IMG_2220.jpg" alt="Nitro Sports Academy" />
+  </div>
+
+  <button class="carousel-btn prev" id="carousel-prev" aria-label="Previous">&#8592;</button>
+  <button class="carousel-btn next" id="carousel-next" aria-label="Next">&#8594;</button>
+
+  <div class="carousel-caption">
+    <p>Developing athletes of character, confidence, and skill — Spring Hill, TN</p>
+  </div>
+
+  <div class="carousel-dots" id="carousel-dots"></div>
+  <div class="carousel-counter" id="carousel-counter">1 / 11</div>
+  <div class="carousel-progress" id="carousel-progress"></div>
+</div>
+
+<!-- ============ PAGE HEADER ============ -->
+<section style="background: var(--dark-mid); padding: 60px 60px 50px; border-bottom: 1px solid rgba(43,79,168,0.2);">
+  <div class="max-w">
+    <div class="section-label">Photos &amp; Moments</div>
+    <h1 class="section-title" style="font-size: clamp(2rem, 4vw, 3.2rem);">Life at <span class="text-gold">Nitro</span></h1>
+    <p class="text-silver" style="max-width: 580px; font-size: 1.05rem; line-height: 1.7;">From first swings to personal bests — these are the moments that make Nitro Sports Academy more than just a facility. It's a community.</p>
+  </div>
+</section>
+
+<!-- ============ PHOTO GRID ============ -->
+<section class="gallery-grid-section">
+  <div class="max-w">
+    <div class="section-label">Browse All Photos</div>
+    <h2 class="section-title">Our <span class="text-blue">Community</span> in Action</h2>
+    <div class="photo-grid" id="photo-grid">
+
+      <div class="photo-item" data-index="0">
+        <img src="images/IMG_3469.jpg" alt="Nitro Sports Academy" loading="lazy" />
+        <div class="photo-item-overlay"><span>⚾ At the Academy</span></div>
+      </div>
+
+      <div class="photo-item" data-index="1">
+        <img src="images/IMG_3493.jpg" alt="Coach Pedro with student" loading="lazy" />
+        <div class="photo-item-overlay"><span>🏆 Personal Best</span></div>
+      </div>
+
+      <div class="photo-item" data-index="2">
+        <img src="images/IMG_3507.jpg" alt="Training at Nitro" loading="lazy" />
+        <div class="photo-item-overlay"><span>⚡ Training Hard</span></div>
+      </div>
+
+      <div class="photo-item" data-index="3">
+        <img src="images/gallery_1.jpg" alt="Players at Nitro" loading="lazy" />
+        <div class="photo-item-overlay"><span>👥 Team Vibes</span></div>
+      </div>
+
+      <div class="photo-item" data-index="4">
+        <img src="images/IMG_3802.jpg" alt="Nitro facility" loading="lazy" />
+        <div class="photo-item-overlay"><span>🏟️ Our Facility</span></div>
+      </div>
+
+      <div class="photo-item" data-index="5">
+        <img src="images/IMG_4039.jpg" alt="Coach Pedro coaching" loading="lazy" />
+        <div class="photo-item-overlay"><span>🎯 Focused</span></div>
+      </div>
+
+      <div class="photo-item" data-index="6">
+        <img src="images/IMG_3417.jpg" alt="Young athletes" loading="lazy" />
+        <div class="photo-item-overlay"><span>🌟 Future Stars</span></div>
+      </div>
+
+      <div class="photo-item" data-index="7">
+        <img src="images/IMG_4275.jpg" alt="Batting cage training" loading="lazy" />
+        <div class="photo-item-overlay"><span>⚾ Cage Work</span></div>
+      </div>
+
+      <div class="photo-item" data-index="8">
+        <img src="images/IMG_4666.jpg" alt="Players at Nitro" loading="lazy" />
+        <div class="photo-item-overlay"><span>💪 Putting in Work</span></div>
+      </div>
+
+      <div class="photo-item" data-index="9">
+        <img src="images/IMG_4803.jpg" alt="Training session" loading="lazy" />
+        <div class="photo-item-overlay"><span>🎯 Skill Building</span></div>
+      </div>
+
+      <div class="photo-item" data-index="10">
+        <img src="images/IMG_2220.jpg" alt="Nitro Sports Academy" loading="lazy" />
+        <div class="photo-item-overlay"><span>❤️ Love the Game</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-banner">
+  <h2>Want to Be Part of the Nitro Family?</h2>
+  <p>Join the growing community of athletes training at Nitro Sports Academy in Spring Hill, TN.</p>
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap; position:relative;">
+    <a href="lessons.html" class="btn btn-gold">View Lessons</a>
+    <a href="contact.html" class="btn btn-outline" style="border-color:rgba(255,255,255,0.5);">Contact Us</a>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lb-close">✕</button>
+  <button class="lightbox-nav lb-prev" id="lb-prev">&#8592;</button>
+  <div class="lightbox-inner">
+    <img src="" alt="" id="lb-img" />
+  </div>
+  <button class="lightbox-nav lb-next" id="lb-next">&#8594;</button>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-family:'Oswald',sans-serif; font-size:1.1rem; font-weight:700; text-transform:uppercase; color:#fff; margin-bottom:16px;"><span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY</div>
+      <p>A premier baseball and softball training facility dedicated to developing athletes at every level.</p>
+      <div class="social-links" style="margin-top:20px;">
+        <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank" class="social-link" title="Facebook">📘</a>
+        <a href="https://nitrosportsacademy.com" target="_blank" class="social-link" title="Website">🌐</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="history.html">Our History</a>
+      <a href="ourteam.html">Our Team</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="membership.html">Membership</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Programs</h4>
+      <a href="lessons.html">Private Lessons</a>
+      <a href="lessons.html">Group Sessions</a>
+      <a href="lessons.html">Pitching Training</a>
+      <a href="lessons.html">Hitting Clinics</a>
+      <a href="membership.html">Open Cage Access</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank">Facebook</a>
+      <a href="https://nitrosportsacademy.com" target="_blank">Online Store</a>
+      <a href="contact.html">Send a Message</a>
+      <p style="margin-top:12px; font-size:0.85rem;">📍 Spring Hill, TN</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Nitro Sports Academy. All rights reserved.</p>
+    <p>Built with ❤️ for the love of the game.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  // ============ CAROUSEL ============
+  const slides = document.querySelectorAll('.carousel-slide');
+  const dotsContainer = document.getElementById('carousel-dots');
+  const counter = document.getElementById('carousel-counter');
+  const progress = document.getElementById('carousel-progress');
+  const INTERVAL = 4500;
+  let current = 0;
+  let timer;
+  let progressTimer;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('button');
+    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+    dot.setAttribute('aria-label', `Slide ${i + 1}`);
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  });
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsContainer.children[current].classList.remove('active');
+    current = (n + slides.length) % slides.length;
+    slides[current].classList.add('active');
+    dotsContainer.children[current].classList.add('active');
+    counter.textContent = `${current + 1} / ${slides.length}`;
+    resetProgress();
+  }
+
+  function resetProgress() {
+    clearTimeout(progressTimer);
+    progress.style.transition = 'none';
+    progress.style.width = '0%';
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        progress.style.transition = `width ${INTERVAL}ms linear`;
+        progress.style.width = '100%';
+      });
+    });
+  }
+
+  function startAuto() {
+    clearInterval(timer);
+    timer = setInterval(() => goTo(current + 1), INTERVAL);
+    resetProgress();
+  }
+
+  document.getElementById('carousel-prev').addEventListener('click', () => {
+    goTo(current - 1);
+    startAuto();
+  });
+
+  document.getElementById('carousel-next').addEventListener('click', () => {
+    goTo(current + 1);
+    startAuto();
+  });
+
+  // Pause on hover
+  const carouselEl = document.getElementById('carousel');
+  carouselEl.addEventListener('mouseenter', () => {
+    clearInterval(timer);
+    clearTimeout(progressTimer);
+    progress.style.transition = 'none';
+  });
+  carouselEl.addEventListener('mouseleave', startAuto);
+
+  // Touch swipe
+  let touchStartX = 0;
+  carouselEl.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  carouselEl.addEventListener('touchend', e => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) { goTo(diff > 0 ? current + 1 : current - 1); startAuto(); }
+  });
+
+  startAuto();
+
+  // ============ LIGHTBOX ============
+  const allImages = Array.from(document.querySelectorAll('.photo-item img'));
+  const lightbox = document.getElementById('lightbox');
+  const lbImg = document.getElementById('lb-img');
+  let lbCurrent = 0;
+
+  function openLightbox(index) {
+    lbCurrent = index;
+    lbImg.src = allImages[index].src;
+    lbImg.alt = allImages[index].alt;
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  function lbNav(dir) {
+    lbCurrent = (lbCurrent + dir + allImages.length) % allImages.length;
+    lbImg.src = allImages[lbCurrent].src;
+    lbImg.alt = allImages[lbCurrent].alt;
+  }
+
+  document.querySelectorAll('.photo-item').forEach((item, i) => {
+    item.addEventListener('click', () => openLightbox(i));
+  });
+
+  document.getElementById('lb-close').addEventListener('click', closeLightbox);
+  document.getElementById('lb-prev').addEventListener('click', e => { e.stopPropagation(); lbNav(-1); });
+  document.getElementById('lb-next').addEventListener('click', e => { e.stopPropagation(); lbNav(1); });
+
+  lightbox.addEventListener('click', e => {
+    if (e.target === lightbox) closeLightbox();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (!lightbox.classList.contains('open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
+  });
+</script>
+</body>
+</html>
