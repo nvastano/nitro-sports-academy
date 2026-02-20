@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Our Facility — Nitro Sports Academy</title>
+  <meta name="description" content="Tour the Nitro Sports Academy facility in Spring Hill, TN — 3 batting cages, a dedicated pitching lane, pro-grade turf, and everything you need to train year-round." />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <style>
+
+    /* ===== FACILITY HERO ===== */
+    .facility-hero {
+      position: relative;
+      height: 70vh;
+      min-height: 480px;
+      max-height: 700px;
+      overflow: hidden;
+    }
+
+    .facility-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 40%;
+      display: block;
+    }
+
+    .facility-hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to bottom,
+        rgba(13,19,33,0.35) 0%,
+        rgba(13,19,33,0.1) 35%,
+        rgba(13,19,33,0.75) 75%,
+        rgba(13,19,33,1) 100%
+      );
+    }
+
+    .facility-hero-text {
+      position: absolute;
+      bottom: 60px;
+      left: 0; right: 0;
+      z-index: 2;
+      padding: 0 60px;
+    }
+
+    .facility-hero-text h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.8rem, 6vw, 5rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      color: var(--white);
+      line-height: 1;
+      margin-bottom: 12px;
+    }
+
+    .facility-hero-text p {
+      font-size: 1.1rem;
+      color: var(--silver-light);
+      max-width: 560px;
+      line-height: 1.65;
+    }
+
+    /* ===== STATS BAR ===== */
+    .facility-stats {
+      background: var(--blue);
+      padding: 28px 60px;
+      display: flex;
+      justify-content: center;
+      gap: 0;
+    }
+
+    .fac-stat {
+      text-align: center;
+      padding: 0 48px;
+      border-right: 1px solid rgba(255,255,255,0.2);
+    }
+
+    .fac-stat:last-child { border-right: none; }
+
+    .fac-stat-num {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--white);
+      line-height: 1;
+    }
+
+    .fac-stat-label {
+      font-family: var(--font-condensed);
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-top: 4px;
+    }
+
+    /* ===== INTRO SECTION ===== */
+    .facility-intro {
+      padding: 80px 60px;
+      background: var(--dark);
+    }
+
+    .facility-intro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .facility-intro-text h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 20px;
+    }
+
+    .facility-intro-text p {
+      color: var(--silver-light);
+      line-height: 1.75;
+      margin-bottom: 16px;
+      font-size: 1rem;
+    }
+
+    .facility-intro-img {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .facility-intro-img img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      object-position: center 30%;
+      display: block;
+    }
+
+    .facility-intro-img::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border: 2px solid rgba(43,79,168,0.4);
+      border-radius: 6px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* ===== FEATURE BLOCKS ===== */
+    .facility-features {
+      background: var(--dark-mid);
+      padding: 80px 60px;
+      border-top: 1px solid rgba(43,79,168,0.15);
+      border-bottom: 1px solid rgba(43,79,168,0.15);
+    }
+
+    .features-3col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 32px;
+      margin-top: 50px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .fac-feature-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(43,79,168,0.2);
+      border-radius: 6px;
+      overflow: hidden;
+      transition: transform 0.3s ease, border-color 0.3s;
+    }
+
+    .fac-feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(43,79,168,0.5);
+    }
+
+    .fac-feature-card img {
+      width: 100%;
+      aspect-ratio: 4/3;
+      object-fit: cover;
+      object-position: center 25%;
+      display: block;
+    }
+
+    .fac-feature-body {
+      padding: 24px 26px 28px;
+    }
+
+    .fac-feature-body h3 {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--white);
+      margin-bottom: 10px;
+    }
+
+    .fac-feature-body p {
+      font-size: 0.9rem;
+      color: var(--silver-light);
+      line-height: 1.65;
+    }
+
+    .fac-tag {
+      display: inline-block;
+      font-family: var(--font-condensed);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      background: rgba(232,184,75,0.1);
+      border: 1px solid rgba(232,184,75,0.25);
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== FULL-WIDTH FEATURE ===== */
+    .facility-wide {
+      position: relative;
+      padding: 90px 60px;
+      background: var(--dark);
+      overflow: hidden;
+    }
+
+    .facility-wide-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 70px;
+      align-items: center;
+    }
+
+    .facility-wide-img {
+      position: relative;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .facility-wide-img img {
+      width: 100%;
+      aspect-ratio: 3/2;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+
+    .facility-wide-text h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 2.8vw, 2.4rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.1;
+      margin-bottom: 18px;
+    }
+
+    .facility-wide-text p {
+      color: var(--silver-light);
+      line-height: 1.75;
+      margin-bottom: 16px;
+    }
+
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 22px 0 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.95rem;
+      color: var(--silver-light);
+      line-height: 1.5;
+    }
+
+    .checklist li::before {
+      content: '✓';
+      font-family: var(--font-condensed);
+      font-weight: 700;
+      font-size: 0.9rem;
+      color: var(--gold);
+      background: rgba(232,184,75,0.1);
+      border: 1px solid rgba(232,184,75,0.3);
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    @media (max-width: 1024px) {
+      .facility-hero-text { padding: 0 32px; }
+      .facility-stats { padding: 24px 32px; gap: 0; }
+      .fac-stat { padding: 0 28px; }
+      .facility-intro, .facility-features, .facility-wide { padding: 60px 32px; }
+      .facility-intro-grid, .facility-wide-inner { grid-template-columns: 1fr; gap: 40px; }
+      .features-3col { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .facility-hero { height: 55vh; }
+      .facility-hero-text { bottom: 40px; padding: 0 20px; }
+      .facility-stats { flex-wrap: wrap; padding: 20px; gap: 16px; }
+      .fac-stat { border-right: none; padding: 0 20px; }
+      .facility-intro, .facility-features, .facility-wide { padding: 50px 20px; }
+      .features-3col { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header id="main-header">
+  <a class="logo-wrap" href="index.html">
+    <span style="font-family:'Oswald',sans-serif; font-size:1.3rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#fff;">
+      <span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY
+    </span>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="facility.html" class="active">Facility</a>
+    <a href="ourteam.html">Our Team</a>
+    <a href="lessons.html">Lessons</a>
+    <a href="membership.html">Membership</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="contact.html">Contact Us</a>
+    <a href="https://nitrosportsacademy.com" target="_blank" class="btn-nav">Book Now ↗</a>
+  </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="facility.html" class="active">Facility</a>
+  <a href="ourteam.html">Our Team</a>
+  <a href="lessons.html">Lessons</a>
+  <a href="membership.html">Membership</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="contact.html">Contact Us</a>
+</nav>
+
+<!-- ===== HERO ===== -->
+<div class="facility-hero">
+  <img src="images/IMG_6971.jpg" alt="Nitro Sports Academy — full facility view" />
+  <div class="facility-hero-text">
+    <div class="section-label" style="margin-bottom:12px;">Spring Hill, TN</div>
+    <h1>Our <span style="color:var(--gold);">Facility</span></h1>
+    <p>A purpose-built indoor training environment designed for serious baseball and softball players of every age and skill level — open year-round, rain or shine.</p>
+  </div>
+</div>
+
+<!-- ===== STATS BAR ===== -->
+<div class="facility-stats">
+  <div class="fac-stat">
+    <div class="fac-stat-num">3</div>
+    <div class="fac-stat-label">Batting Cages</div>
+  </div>
+  <div class="fac-stat">
+    <div class="fac-stat-num">1</div>
+    <div class="fac-stat-label">Pitching Lane</div>
+  </div>
+  <div class="fac-stat">
+    <div class="fac-stat-num">2</div>
+    <div class="fac-stat-label">Sports Supported</div>
+  </div>
+  <div class="fac-stat">
+    <div class="fac-stat-num">365</div>
+    <div class="fac-stat-label">Days a Year</div>
+  </div>
+</div>
+
+<!-- ===== INTRO ===== -->
+<section class="facility-intro">
+  <div class="facility-intro-grid">
+    <div class="facility-intro-text">
+      <div class="section-label">Built to Train</div>
+      <h2 class="section-title">Where <span class="text-gold">Reps</span> Get Made</h2>
+      <p>Nitro Sports Academy is a fully enclosed, climate-controlled indoor training facility in Spring Hill, Tennessee. We built this space from the ground up with one purpose in mind: to give every athlete — from the youngest beginner to the most competitive high schooler — a place to develop their game every single day.</p>
+      <p>The facility features three full-length batting cages with pro-grade artificial turf, a dedicated pitching lane, proper home plate setups, and a full inventory of training equipment including pitching machines, ball carts, and radar guns. Whether you're here for a private lesson or just to put in your own reps, everything you need is ready to go.</p>
+      <p>No excuses. No off-season. Just reps.</p>
+    </div>
+    <div class="facility-intro-img">
+      <img src="images/IMG_6966.jpg" alt="Batting cage with home plate and pitching machine at Nitro Sports Academy" />
+    </div>
+  </div>
+</section>
+
+<!-- ===== 3 FEATURE CARDS ===== -->
+<section class="facility-features">
+  <div style="max-width:1200px; margin:0 auto;">
+    <div class="section-label">What's Inside</div>
+    <h2 class="section-title">Everything You Need to <span class="text-blue">Get Better</span></h2>
+    <div class="features-3col">
+
+      <div class="fac-feature-card">
+        <img src="images/IMG_6966.jpg" alt="Batting cage at Nitro" />
+        <div class="fac-feature-body">
+          <div class="fac-tag">⚾ Baseball &amp; Softball</div>
+          <h3>3 Full-Length Batting Cages</h3>
+          <p>Three side-by-side batting cages, each with pro-grade artificial turf, a regulation home plate mat, and batter's box markings. Cages are set up for both baseball and softball use — easily configurable for tee work, front toss, or machine pitching at any speed.</p>
+        </div>
+      </div>
+
+      <div class="fac-feature-card">
+        <img src="images/IMG_6967.jpg" alt="Softball training equipment at Nitro" />
+        <div class="fac-feature-body">
+          <div class="fac-tag">🎯 Pitching &amp; Training Tools</div>
+          <h3>Pro Training Equipment</h3>
+          <p>We invest in the right tools — pitching machines, ball carts stocked with baseballs and softballs, radar guns, pitching targets, and training aids. Every piece of equipment is maintained and ready so athletes can focus entirely on their development.</p>
+        </div>
+      </div>
+
+      <div class="fac-feature-card">
+        <img src="images/IMG_6968.jpg" alt="Dedicated pitching lane at Nitro Sports Academy" />
+        <div class="fac-feature-body">
+          <div class="fac-tag">⚡ Pitching Specialist Area</div>
+          <h3>Dedicated Pitching Lane</h3>
+          <p>Our separate pitching lane gives pitchers a dedicated space to work on mechanics, release point, and velocity development away from hitters. With proper mound distance and high-quality flooring, it's the ideal environment for serious pitching instruction at any level.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== WIDE FEATURE — FULL OVERVIEW ===== -->
+<section class="facility-wide">
+  <div class="facility-wide-inner">
+    <div class="facility-wide-img">
+      <img src="images/IMG_6971.jpg" alt="Full overview of Nitro Sports Academy cages" />
+    </div>
+    <div class="facility-wide-text">
+      <div class="section-label">The Full Picture</div>
+      <h2 class="section-title">Three Cages. One <span class="text-gold">Mission.</span></h2>
+      <p>Looking down the line at all three cages, you see exactly what Nitro is about — a clean, well-lit, professional indoor space where multiple athletes can train simultaneously without getting in each other's way.</p>
+      <p>Every cage has its own ball cart, equipment storage, and setup ready for use. Members can walk in, grab a slot, and get straight to work.</p>
+      <ul class="checklist">
+        <li>High-intensity LED lighting throughout — no dark corners, no shadows</li>
+        <li>Turf surface designed for comfort and ball response</li>
+        <li>All 3 cages available for baseball and softball</li>
+        <li>Ball carts fully stocked at each station</li>
+        <li>Separate pitching lane for pitchers to work independently</li>
+        <li>Climate-controlled — comfortable training in any season</li>
+        <li>Ample space between cages for coaches to work alongside hitters</li>
+      </ul>
+      <a href="membership.html" class="btn btn-primary">View Membership Options</a>
+    </div>
+  </div>
+</section>
+
+<!-- ===== EQUIPMENT CLOSE-UP ===== -->
+<section style="background: var(--dark-mid); padding: 80px 60px; border-top: 1px solid rgba(43,79,168,0.15);">
+  <div style="max-width:1200px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:center;">
+    <div>
+      <div class="section-label">Training Tools</div>
+      <h2 class="section-title">Equipment That <span class="text-blue">Means Business</span></h2>
+      <p style="color:var(--silver-light); line-height:1.75; margin-bottom:16px;">We don't cut corners on equipment. From our pitching machines to our radar guns, every tool at Nitro is selected to give athletes the best feedback and training environment possible.</p>
+      <p style="color:var(--silver-light); line-height:1.75; margin-bottom:24px;">Whether Coach Pedro is tracking pitch velocity with a Smart Coach radar, running a hitter through machine reps, or setting up a live pitching session, the equipment is always ready to go. That means no wasted time — just focused, productive reps from the moment you walk in.</p>
+      <div style="display:flex; gap:20px; flex-wrap:wrap;">
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(43,79,168,0.2); border-radius:6px; padding:16px 20px; min-width:140px;">
+          <div style="font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--gold);">Smart Coach</div>
+          <div style="font-family:var(--font-condensed); font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--silver-dark); margin-top:4px;">Radar Gun</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(43,79,168,0.2); border-radius:6px; padding:16px 20px; min-width:140px;">
+          <div style="font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--gold);">Pitching</div>
+          <div style="font-family:var(--font-condensed); font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--silver-dark); margin-top:4px;">Machines</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(43,79,168,0.2); border-radius:6px; padding:16px 20px; min-width:140px;">
+          <div style="font-family:var(--font-display); font-size:1.5rem; font-weight:700; color:var(--gold);">Training</div>
+          <div style="font-family:var(--font-condensed); font-size:0.78rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--silver-dark); margin-top:4px;">Aids &amp; Targets</div>
+        </div>
+      </div>
+    </div>
+    <div style="border-radius:6px; overflow:hidden; border:1px solid rgba(43,79,168,0.25);">
+      <img src="images/IMG_6969.jpg" alt="Pitching machine and training equipment at Nitro" style="width:100%; aspect-ratio:3/4; object-fit:cover; object-position:center center; display:block;" />
+    </div>
+  </div>
+</section>
+
+<!-- ===== CTA ===== -->
+<div class="cta-banner">
+  <h2>Ready to Train in the Best Facility in Spring Hill?</h2>
+  <p>Become a Nitro member and get unlimited access to our cages, equipment, and coaching staff.</p>
+  <div style="display:flex; gap:16px; justify-content:center; flex-wrap:wrap;">
+    <a href="membership.html" class="btn btn-gold">View Memberships</a>
+    <a href="contact.html" class="btn btn-outline" style="border-color:rgba(255,255,255,0.4);">Contact Us</a>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-family:'Oswald',sans-serif; font-size:1.1rem; font-weight:700; text-transform:uppercase; color:#fff; margin-bottom:16px;"><span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY</div>
+      <p>A premier baseball and softball training facility dedicated to developing athletes at every level.</p>
+      <div class="social-links" style="margin-top:20px;">
+        <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank" class="social-link" title="Facebook">📘</a>
+        <a href="https://nitrosportsacademy.com" target="_blank" class="social-link" title="Website">🌐</a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="facility.html">Facility</a>
+      <a href="ourteam.html">Our Team</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="membership.html">Membership</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Programs</h4>
+      <a href="lessons.html">Private Lessons</a>
+      <a href="lessons.html">Group Sessions</a>
+      <a href="lessons.html">Pitching Training</a>
+      <a href="lessons.html">Hitting Clinics</a>
+      <a href="membership.html">Open Cage Access</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank">Facebook</a>
+      <a href="https://nitrosportsacademy.com" target="_blank">Online Store</a>
+      <a href="contact.html">Send a Message</a>
+      <p style="margin-top:12px; font-size:0.85rem;">📍 Spring Hill, TN</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Nitro Sports Academy. All rights reserved.</p>
+    <p>Built with ❤️ for the love of the game.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
