@@ -168,7 +168,7 @@
     var m = String(today.getMonth() + 1).padStart(2, '0');
     var d = String(today.getDate()).padStart(2, '0');
     var dateStr = y + m + d;
-    // Replace each iframe src: swap mode=WEEK or mode=MONTH to mode=DAY and append the date
+    // Replace each iframe src: swap mode=DAY or mode=DAY to mode=DAY and append the date
     document.querySelectorAll('iframe[title$="Schedule"]').forEach(function(el) {
       var src = el.getAttribute('src');
       src = src.replace(/mode=[A-Z]+/, 'mode=DAY');
