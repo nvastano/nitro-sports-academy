@@ -99,7 +99,7 @@ h2.section-title { font-family: var(--font-display); font-weight: 700; font-size
 .hero { position: relative; height: calc(100vh - var(--nav-height)); min-height: 620px; display: flex; align-items: center; overflow: hidden; }
 .hero-bg { position: absolute; inset: 0; background: linear-gradient(135deg, rgba(13,19,33,0.93) 0%, rgba(26,50,120,0.55) 55%, rgba(13,19,33,0.93) 100%), url('https://nitrosportsacademy.com/cdn/shop/files/ChatGPT_Image_Dec_16_2025_at_06_39_51_PM.png') center/cover no-repeat; }
 .hero-pattern { position: absolute; inset: 0; background-image: repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(43,79,168,0.04) 40px, rgba(43,79,168,0.04) 42px); }
-.hero-content { position: relative; z-index: 2; max-width: 680px; padding: 0 60px; animation: fadeUp 1s ease both; }
+.hero-content { position: relative; z-index: 2; max-width: 680px; padding: 0 60px 140px; animation: fadeUp 1s ease both; }
 @keyframes fadeUp { from { opacity:0; transform:translateY(40px); } to { opacity:1; transform:translateY(0); } }
 .hero-eyebrow { font-family: var(--font-condensed); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
 .hero-eyebrow::before { content: ''; display: block; width: 40px; height: 2px; background: var(--gold); }
