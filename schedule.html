@@ -2,70 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="description" content="View batting cage and pitching lane availability at Nitro Sports Academy in Spring Hill, TN. Text Pedro at 615-870-8077 to reserve your slot." />
-  <meta name="keywords" content="batting cage schedule Spring Hill TN, book batting cage Tennessee, cage availability Spring Hill, pitching lane rental Spring Hill TN" />
-  <meta name="robots" content="index, follow" />
-  <meta name="author" content="Nitro Sports Academy" />
-  <!-- Open Graph -->
-  <meta property="og:type" content="website" />
-  <meta property="og:title" content="Cage Schedule | Nitro Sports Academy Spring Hill TN" />
-  <meta property="og:description" content="View batting cage and pitching lane availability at Nitro Sports Academy in Spring Hill, TN. Text Pedro at 615-870-8077 to reserve your slot." />
-  <meta property="og:url" content="https://nitrosportsacademy.com/schedule.html" />
-  <meta property="og:site_name" content="Nitro Sports Academy" />
-  <meta property="og:image" content="https://nitrosportsacademy.com/images/IMG_6971.jpg" />
-  <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Cage Schedule | Nitro Sports Academy Spring Hill TN" />
-  <meta name="twitter:description" content="View batting cage and pitching lane availability at Nitro Sports Academy in Spring Hill, TN. Text Pedro at 615-870-8077 to reserve your slot." />
-  <meta name="twitter:image" content="https://nitrosportsacademy.com/images/IMG_6971.jpg" />
-  <!-- Schema -->
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SportsActivityLocation",
-  "name": "Nitro Sports Academy",
-  "url": "https://nitrosportsacademy.com",
-  "logo": "https://nitrosportsacademy.com/images/nitro-logo.png",
-  "description": "Nitro Sports Academy offers batting cages, baseball and softball lessons, pitching instruction, and hitting coaching in Spring Hill, TN.",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "3710 John Lunn Rd, Ste 2",
-    "addressLocality": "Spring Hill",
-    "addressRegion": "TN",
-    "postalCode": "37174",
-    "addressCountry": "US"
-  },
-  "telephone": "+16158708077",
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 35.7512,
-    "longitude": -86.9300
-  },
-  "openingHoursSpecification": {
-    "@type": "OpeningHoursSpecification",
-    "description": "By appointment — contact Pedro to schedule"
-  },
-  "sameAs": [
-    "https://www.facebook.com/nitrosportsacademy"
-  ],
-  "priceRange": "$$",
-  "sport": ["Baseball", "Softball"]
-}
-</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cage Schedule | Nitro Sports Academy Spring Hill TN</title>
-  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="description" content="View batting cage and pitching lane availability at Nitro Sports Academy in Spring Hill, TN. Text Pedro at 615-870-8077 to reserve your slot." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  
-<!-- Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-X2GC65NEMX"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-X2GC65NEMX');
-</script>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X2GC65NEMX"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-X2GC65NEMX');
+  </script>
 </head>
 <body>
 
@@ -101,118 +51,268 @@
   <a href="contact.html">Contact Us</a>
 </nav>
 
+<section style="background: var(--dark); padding: 60px 40px 80px; min-height: 80vh;">
+  <div style="max-width: 1000px; margin: 0 auto;">
 
-<section style="background: var(--dark); padding: 60px 40px 80px;">
-  <div style="max-width: 1100px; margin: 0 auto;">
-    <div style="text-align: center; margin-bottom: 48px;">
+    <!-- Header -->
+    <div style="text-align: center; margin-bottom: 40px;">
       <div class="section-label">Member Scheduling</div>
       <h2 class="section-title">Cage & Lane <span class="text-blue">Availability</span></h2>
-      <p class="text-silver" style="max-width: 600px; margin: 0 auto;">To reserve a slot, text Pedro at <a href="tel:6158708077" style="color: var(--gold);">615-870-8077</a>.</p>
+      <p class="text-silver" style="max-width: 600px; margin: 0 auto 0;">To reserve a slot, text Pedro at <a href="tel:6158708077" style="color: var(--gold);">615-870-8077</a>.</p>
+    </div>
+
+    <!-- Date nav -->
+    <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:32px;">
+      <button id="btn-prev" onclick="changeDay(-1)" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); color:#fff; width:40px; height:40px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">&#8249;</button>
+      <div style="text-align:center;">
+        <div id="date-display" style="font-family:var(--font-condensed); font-size:1.6rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#fff;"></div>
+        <div id="date-sub" style="font-size:0.8rem; color:var(--silver-dark); margin-top:2px;"></div>
+      </div>
+      <button id="btn-next" onclick="changeDay(1)" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); color:#fff; width:40px; height:40px; border-radius:50%; font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">&#8250;</button>
+      <button onclick="goToday()" style="background:var(--blue); border:none; color:#fff; padding:8px 18px; border-radius:4px; font-family:var(--font-condensed); font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer; margin-left:8px;">Today</button>
     </div>
 
     <!-- Tabs -->
-    <div style="display: flex; gap: 0; margin-bottom: 0; border-bottom: 2px solid rgba(43,79,168,0.4);">
-      <button onclick="showTab('cage1')" id="tab-cage1"
-        style="flex: 1; padding: 14px 8px; background: var(--blue); border: none; cursor: pointer; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #fff; border-radius: 6px 6px 0 0; transition: background 0.2s;">
-        &#9632; Cage 1
-      </button>
-      <button onclick="showTab('cage2')" id="tab-cage2"
-        style="flex: 1; padding: 14px 8px; background: rgba(255,255,255,0.05); border: none; cursor: pointer; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--silver-light); border-radius: 6px 6px 0 0; transition: background 0.2s;">
-        &#9632; Cage 2
-      </button>
-      <button onclick="showTab('cage3')" id="tab-cage3"
-        style="flex: 1; padding: 14px 8px; background: rgba(255,255,255,0.05); border: none; cursor: pointer; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--silver-light); border-radius: 6px 6px 0 0; transition: background 0.2s;">
-        &#9632; Cage 3
-      </button>
-      <button onclick="showTab('pitch')" id="tab-pitch"
-        style="flex: 1; padding: 14px 8px; background: rgba(255,255,255,0.05); border: none; cursor: pointer; font-family: var(--font-condensed); font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--silver-light); border-radius: 6px 6px 0 0; transition: background 0.2s;">
-        &#9632; Pitching Lane
-      </button>
+    <div style="display:flex; gap:0; border-bottom:2px solid rgba(43,79,168,0.4); margin-bottom:0;">
+      <button onclick="showTab(0)" id="tab-0" class="cal-tab cal-tab-active" style="--tab-color:#4285f4;">&#9632; Cage 1</button>
+      <button onclick="showTab(1)" id="tab-1" class="cal-tab" style="--tab-color:#0f9d58;">&#9632; Cage 2</button>
+      <button onclick="showTab(2)" id="tab-2" class="cal-tab" style="--tab-color:#f4b400;">&#9632; Cage 3</button>
+      <button onclick="showTab(3)" id="tab-3" class="cal-tab" style="--tab-color:#db4437;">&#9632; Pitching Lane</button>
     </div>
 
-    <!-- Tab panels -->
-    <div style="border-radius: 0 0 8px 8px; overflow: hidden; border: 2px solid rgba(43,79,168,0.3); border-top: none; box-shadow: 0 8px 40px rgba(0,0,0,0.4);">
-      <div id="panel-cage1">
-        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FChicago&showPrint=0&mode=WEEK&src=NTNlYjY3OGMxYmRiZDg2ZjI5N2Q4NzNkMmJiMTMwYWE5NGMyZWMzYTY5OTIwYTk3YzNmYTM0ZDU4N2JjNzUyY0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%234285F4" style="border:none; display:block;" width="100%" height="650" frameborder="0" scrolling="no" title="Cage 1 Schedule"></iframe>
-      </div>
-      <div id="panel-cage2" style="display:none;">
-        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FChicago&showPrint=0&mode=WEEK&src=ZmVmN2EzNTM3MDcxYmQxOWU4MmM3NTdkODA5NDFhOTcxMzBlNDJmNDdmOGM3MWRlNWRlZDc0OTZjMTVjNjJmN0Bncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%230F9D58" style="border:none; display:block;" width="100%" height="650" frameborder="0" scrolling="no" title="Cage 2 Schedule"></iframe>
-      </div>
-      <div id="panel-cage3" style="display:none;">
-        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FChicago&showPrint=0&mode=WEEK&src=MzY3MzI4MTRlY2NlMWY2MDZkMTg4YTc0YzM3YjM2MDNmZjc5MzEyNjBmMDhmNmY4OTI2MmNmMDFiYWE0N2E3OEBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%23F4B400" style="border:none; display:block;" width="100%" height="650" frameborder="0" scrolling="no" title="Cage 3 Schedule"></iframe>
-      </div>
-      <div id="panel-pitch" style="display:none;">
-        <iframe src="https://calendar.google.com/calendar/embed?height=600&wkst=1&ctz=America%2FChicago&showPrint=0&mode=WEEK&src=Zjc0NzljYjVjMzAwOWE5MGQ5NjI0MDI4ODEzOTU1OWY2MDllNDIzYzc1MzE4ODI2NWU4Y2JjYzhhZDU3ZGZhYkBncm91cC5jYWxlbmRhci5nb29nbGUuY29t&color=%23DB4437" style="border:none; display:block;" width="100%" height="650" frameborder="0" scrolling="no" title="Pitching Lane Schedule"></iframe>
-      </div>
+    <!-- Calendar panel -->
+    <div style="background:#fff; border-radius:0 0 8px 8px; border:2px solid rgba(43,79,168,0.3); border-top:none; overflow:hidden; min-height:500px;">
+      <div id="cal-loading" style="display:flex; align-items:center; justify-content:center; height:400px; color:#888; font-family:sans-serif;">Loading schedule…</div>
+      <div id="cal-body" style="display:none;"></div>
     </div>
 
-    <p style="text-align: center; margin-top: 20px; font-size: 0.85rem; color: var(--silver-dark);">
-      All times shown in Central Time. Contact Pedro to reserve your slot.
-    </p>
+    <p style="text-align:center; margin-top:20px; font-size:0.85rem; color:var(--silver-dark);">All times shown in Central Time.</p>
   </div>
 </section>
-
-<script>
-  var tabColors = {
-    cage1: '#4285f4',
-    cage2: '#0f9d58',
-    cage3: '#f4b400',
-    pitch: '#db4437'
-  };
-
-  function showTab(id) {
-    ['cage1','cage2','cage3','pitch'].forEach(function(t) {
-      document.getElementById('panel-' + t).style.display = t === id ? 'block' : 'none';
-      var btn = document.getElementById('tab-' + t);
-      btn.style.background = t === id ? tabColors[t] : 'rgba(255,255,255,0.05)';
-      btn.style.color = t === id ? '#fff' : 'var(--silver-light)';
-    });
-  }
-</script>
 
 <footer>
   <div class="footer-inner">
     <div class="footer-brand">
       <div style="font-family:'Oswald',sans-serif; font-size:1.1rem; font-weight:700; text-transform:uppercase; color:#fff; margin-bottom:16px;"><span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY</div>
-      <p>A premier baseball and softball training facility dedicated to developing athletes at every level.</p>
-      <div class="social-links" style="margin-top:20px;">
-        <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank" class="social-link" title="Facebook">📘</a>
-        <a href="https://nitrosportsacademy.com" target="_blank" class="social-link" title="Website">🌐</a>
-      </div>
+      <p style="color:var(--silver-dark); font-size:0.85rem; max-width:260px; line-height:1.6;">Baseball & softball training in Spring Hill, TN. Built for players who want to compete at the next level.</p>
     </div>
-    <div class="footer-col">
-      <h4>Quick Links</h4>
+    <div class="footer-links">
+      <h4>Navigation</h4>
       <a href="index.html">Home</a>
-<a href="facility.html">Facility</a>
-<a href="ourteam.html">Our Team</a>
-<a href="lessons.html">Lessons</a>
-<a href="membership.html">Membership</a>
-<a href="contact.html">Contact Us</a>
-
+      <a href="facility.html">Facility</a>
+      <a href="ourteam.html">Our Team</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="membership.html">Membership</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Contact Us</a>
     </div>
-    <div class="footer-col">
-      <h4>Programs</h4>
-      <a href="lessons.html">Private Lessons</a>
-      <a href="lessons.html">Group Sessions</a>
-      <a href="lessons.html">Pitching Training</a>
-      <a href="lessons.html">Hitting Clinics</a>
-      <a href="membership.html">Open Cage Access</a>
-    </div>
-    <div class="footer-col">
-      <h4>Connect</h4>
-      <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank">Facebook</a>
-      <a href="https://nitrosportsacademy.com" target="_blank">Online Store</a>
-      <a href="contact.html">Send a Message</a>
-      <p style="margin-top:12px; font-size:0.85rem;">📍 3710 John Lunn Rd, Ste 2<br>Spring Hill, TN 37174</p>
+    <div class="footer-links">
+      <h4>Contact</h4>
+      <a href="tel:6158708077">615-870-8077</a>
+      <a href="mailto:coach.pedro.tn@gmail.com">coach.pedro.tn@gmail.com</a>
+      <p style="color:var(--silver-dark); font-size:0.85rem; margin-top:8px;">3710 John Lunn Rd, Ste 2<br>Spring Hill, TN 37174</p>
     </div>
   </div>
   <div class="footer-bottom">
-    <p>© 2025 Nitro Sports Academy. All rights reserved.</p>
-    <p>Built with ❤️ for the love of the game.</p>
+    <p>&copy; 2026 Nitro Sports Academy. All rights reserved.</p>
   </div>
 </footer>
 
-<script src="js/main.js"></script>
+<style>
+.cal-tab {
+  flex: 1;
+  padding: 13px 8px;
+  background: rgba(255,255,255,0.04);
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-condensed);
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--silver-light);
+  border-radius: 6px 6px 0 0;
+  transition: background 0.2s, color 0.2s;
+}
+.cal-tab-active {
+  background: var(--tab-color) !important;
+  color: #fff !important;
+}
+.time-slot {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 48px;
+}
+.time-label {
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  color: #999;
+  font-family: sans-serif;
+  border-right: 1px solid #f0f0f0;
+  display: flex;
+  align-items: flex-start;
+  padding-top: 8px;
+}
+.time-content {
+  padding: 4px 8px;
+  position: relative;
+}
+.event-block {
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin: 2px 0;
+  font-size: 0.8rem;
+  font-family: sans-serif;
+  font-weight: 600;
+  color: #fff;
+}
+.no-events {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  color: #aaa;
+  font-family: sans-serif;
+  font-size: 0.95rem;
+  flex-direction: column;
+  gap: 8px;
+}
+</style>
 
+<script>
+const API_KEY = 'AIzaSyC7XdCNAhdUEJoUH6CEQYfTNc6sfde-W5o';
+const CALENDARS = [
+  { id: '53eb678c1bdbd86f297d873d2bb130aa94c2ec3a69920a97c3fa34d587bc752c@group.calendar.google.com', color: '#4285f4', name: 'Cage 1' },
+  { id: 'fef7a3537071bd19e82c757d80941a97130e42f47f8c71de5ded7496c15c62f7@group.calendar.google.com', color: '#0f9d58', name: 'Cage 2' },
+  { id: '36732814ecce1f606d188a74c37b3603ff7931260f08f6f89262cf01baa47a78@group.calendar.google.com', color: '#f4b400', name: 'Cage 3' },
+  { id: 'f7479cb5c3009a90d96240288139559f609e423c753188265e8cbcc8ad57dfab@group.calendar.google.com', color: '#db4437', name: 'Pitching Lane' }
+];
+
+let currentDate = new Date();
+let currentTab = 0;
+
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function formatDate(d) {
+  return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+}
+
+function isToday(d) {
+  const t = new Date();
+  return d.getDate() === t.getDate() && d.getMonth() === t.getMonth() && d.getFullYear() === t.getFullYear();
+}
+
+function updateDateDisplay() {
+  document.getElementById('date-display').textContent = formatDate(currentDate);
+  document.getElementById('date-sub').textContent = isToday(currentDate) ? '— Today —' : '';
+}
+
+function changeDay(delta) {
+  currentDate.setDate(currentDate.getDate() + delta);
+  updateDateDisplay();
+  loadCalendar();
+}
+
+function goToday() {
+  currentDate = new Date();
+  updateDateDisplay();
+  loadCalendar();
+}
+
+function showTab(idx) {
+  currentTab = idx;
+  for (let i = 0; i < 4; i++) {
+    const btn = document.getElementById('tab-' + i);
+    btn.classList.toggle('cal-tab-active', i === idx);
+    btn.style.setProperty('--tab-color', CALENDARS[i].color);
+  }
+  loadCalendar();
+}
+
+async function loadCalendar() {
+  const loading = document.getElementById('cal-loading');
+  const body = document.getElementById('cal-body');
+  loading.style.display = 'flex';
+  body.style.display = 'none';
+
+  const cal = CALENDARS[currentTab];
+  const start = new Date(currentDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(currentDate);
+  end.setHours(23, 59, 59, 999);
+
+  const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(cal.id)}/events?key=${API_KEY}&timeMin=${start.toISOString()}&timeMax=${end.toISOString()}&singleEvents=true&orderBy=startTime`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const events = data.items || [];
+    renderDay(events, cal.color);
+  } catch(e) {
+    body.innerHTML = '<div class="no-events">⚠️ Could not load schedule. Please try again.</div>';
+    loading.style.display = 'none';
+    body.style.display = 'block';
+  }
+}
+
+function renderDay(events, color) {
+  const loading = document.getElementById('cal-loading');
+  const body = document.getElementById('cal-body');
+
+  if (events.length === 0) {
+    body.innerHTML = '<div class="no-events"><span style="font-size:2rem;">✅</span>No bookings yet for this day</div>';
+    loading.style.display = 'none';
+    body.style.display = 'block';
+    return;
+  }
+
+  // Build hourly slots 6am - 10pm
+  const hours = [];
+  for (let h = 6; h <= 22; h++) hours.push(h);
+
+  // Map events to hours
+  const eventsByHour = {};
+  events.forEach(ev => {
+    if (!ev.start) return;
+    const start = ev.start.dateTime ? new Date(ev.start.dateTime) : null;
+    const end = ev.end.dateTime ? new Date(ev.end.dateTime) : null;
+    if (!start) return;
+    const h = start.getHours();
+    if (!eventsByHour[h]) eventsByHour[h] = [];
+    const startStr = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const endStr = end ? end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
+    eventsByHour[h].push({ title: ev.summary || 'Booked', time: `${startStr}${endStr ? ' – ' + endStr : ''}` });
+  });
+
+  let html = '';
+  hours.forEach(h => {
+    const label = h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h-12} PM`;
+    const evs = eventsByHour[h] || [];
+    let evHtml = evs.map(e => `
+      <div class="event-block" style="background:${color};">
+        <div>${e.title}</div>
+        <div style="font-weight:400; font-size:0.72rem; opacity:0.9;">${e.time}</div>
+      </div>`).join('');
+    html += `
+      <div class="time-slot">
+        <div class="time-label">${label}</div>
+        <div class="time-content">${evHtml}</div>
+      </div>`;
+  });
+
+  body.innerHTML = html;
+  loading.style.display = 'none';
+  body.style.display = 'block';
+}
+
+// Init
+updateDateDisplay();
+loadCalendar();
+</script>
+
+<script src="js/main.js"></script>
 </body>
 </html>
