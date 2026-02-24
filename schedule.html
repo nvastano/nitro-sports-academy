@@ -262,45 +262,55 @@ function renderDay(events, color) {
   const loading = document.getElementById('cal-loading');
   const body = document.getElementById('cal-body');
 
-  if (events.length === 0) {
-    body.innerHTML = '<div class="no-events"><span style="font-size:2rem;">✅</span>No bookings yet for this day</div>';
-    loading.style.display = 'none';
-    body.style.display = 'block';
-    return;
-  }
-
-  // Build hourly slots 6am - 10pm
+  // Hours 8am–8pm
   const hours = [];
-  for (let h = 6; h <= 22; h++) hours.push(h);
+  for (let h = 8; h <= 20; h++) hours.push(h);
 
-  // Map events to hours
+  // Map booked events to hours they overlap
+  const bookedHours = new Set();
   const eventsByHour = {};
   events.forEach(ev => {
     if (!ev.start) return;
     const start = ev.start.dateTime ? new Date(ev.start.dateTime) : null;
     const end = ev.end.dateTime ? new Date(ev.end.dateTime) : null;
     if (!start) return;
-    const h = start.getHours();
-    if (!eventsByHour[h]) eventsByHour[h] = [];
+    const startH = start.getHours();
+    const endH = end ? end.getHours() : startH + 1;
+    for (let h = startH; h < endH; h++) bookedHours.add(h);
+    if (!eventsByHour[startH]) eventsByHour[startH] = [];
     const startStr = start.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
     const endStr = end ? end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : '';
-    eventsByHour[h].push({ title: ev.summary || 'Booked', time: `${startStr}${endStr ? ' – ' + endStr : ''}` });
+    eventsByHour[startH].push({ title: ev.summary || 'Booked', time: `${startStr}${endStr ? ' – ' + endStr : ''}` });
   });
 
   let html = '';
   hours.forEach(h => {
     const label = h === 12 ? '12 PM' : h < 12 ? `${h} AM` : `${h-12} PM`;
+    const isBooked = bookedHours.has(h);
     const evs = eventsByHour[h] || [];
-    let evHtml = evs.map(e => `
-      <div class="event-block" style="background:${color};">
-        <div>${e.title}</div>
-        <div style="font-weight:400; font-size:0.72rem; opacity:0.9;">${e.time}</div>
-      </div>`).join('');
-    html += `
-      <div class="time-slot">
-        <div class="time-label">${label}</div>
-        <div class="time-content">${evHtml}</div>
-      </div>`;
+
+    if (isBooked) {
+      // Show booked block
+      let evHtml = evs.map(e => `
+        <div class="event-block" style="background:${color};">
+          <div>${e.title}</div>
+          <div style="font-weight:400; font-size:0.72rem; opacity:0.9;">${e.time}</div>
+        </div>`).join('');
+      html += `
+        <div class="time-slot">
+          <div class="time-label">${label}</div>
+          <div class="time-content">${evHtml}</div>
+        </div>`;
+    } else {
+      // Show available slot
+      html += `
+        <div class="time-slot" style="background:#f0fff4;">
+          <div class="time-label" style="color:#aaa;">${label}</div>
+          <div class="time-content" style="display:flex; align-items:center;">
+            <span style="font-size:0.78rem; color:#2e7d32; font-family:sans-serif; font-weight:600;">✓ Available</span>
+          </div>
+        </div>`;
+    }
   });
 
   body.innerHTML = html;
