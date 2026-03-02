@@ -195,11 +195,11 @@ const CALENDARS = [
 
 // 30-min slots: 8:00 AM to 8:00 PM = slots at :00 and :30 for hours 8–19
 const SLOTS = [];
-for (let h = 8; h <= 19; h++) {
+for (let h = 8; h <= 21; h++) {
   SLOTS.push({ h, m: 0 });
   SLOTS.push({ h, m: 30 });
 }
-SLOTS.push({ h: 20, m: 0 }); // 8:00 PM end marker (display only)
+SLOTS.push({ h: 22, m: 0 }); // 10:00 PM end marker (display only)
 
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
@@ -288,7 +288,7 @@ function renderGrid(bookedPerCal) {
 
   // Display slots 8:00–7:30 (last label is 8:00 PM)
   const displaySlots = [];
-  for (let h = 8; h <= 19; h++) {
+  for (let h = 8; h <= 21; h++) {
     displaySlots.push({ h, m: 0 });
     displaySlots.push({ h, m: 30 });
   }
