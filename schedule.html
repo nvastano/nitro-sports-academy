@@ -342,7 +342,7 @@ function renderGrid(bookedPerCal) {
         if (booked) {
           row += `<div class="slot"><div class="slot-booked" style="background:${cal.color};">${booked.title}</div></div>`;
         } else {
-          row += `<div class="slot"><div class="slot-avail" onclick="openModal('${cal.name}',${h},${m})">✓ Open</div></div>`;
+          row += `<div class="slot"><div class="slot-avail" style="cursor:default;">✓ Open</div></div>`;
         }
       });
       row += '</div>';
