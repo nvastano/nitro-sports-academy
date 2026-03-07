@@ -56,9 +56,22 @@
     <div style="text-align: center; margin-bottom: 36px;">
       <div class="section-label">Member Scheduling</div>
       <h2 class="section-title">Cage & Lane <span class="text-blue">Availability</span></h2>
-      <p class="text-silver" style="max-width: 600px; margin: 0 auto;">Click any open slot to request it, or text Pedro at <a href="tel:6158708077" style="color: var(--gold);">615-870-8077</a>.</p>
+      <p class="text-silver" style="max-width: 600px; margin: 0 auto;">Members only. Text Pedro at <a href="tel:6158708077" style="color: var(--gold);">615-870-8077</a> to become a member.</p>
     </div>
 
+    <!-- Password gate -->
+    <div id="password-gate" style="max-width:380px; margin:0 auto 40px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:32px;">
+      <p style="font-family:var(--font-condensed); font-size:0.85rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--silver-dark); margin:0 0 14px; text-align:center;">Members Enter Password</p>
+      <div style="display:flex; gap:10px;">
+        <input id="gate-input" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')checkPassword()"
+          style="flex:1; padding:10px 14px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:5px; color:#fff; font-size:0.95rem; font-family:sans-serif;" />
+        <button onclick="checkPassword()" style="background:var(--blue); border:none; color:#fff; padding:10px 18px; border-radius:5px; font-family:var(--font-condensed); font-weight:700; font-size:0.9rem; text-transform:uppercase; cursor:pointer;">Go</button>
+      </div>
+      <p id="gate-error" style="display:none; color:#ff6b6b; font-size:0.82rem; margin:10px 0 0; text-align:center;">Incorrect password. Please try again.</p>
+    </div>
+
+    <!-- Calendar (hidden until password entered) -->
+    <div id="calendar-section" style="display:none;">
     <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:28px;">
       <button onclick="changeDay(-1)" style="background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); color:#fff; width:40px; height:40px; border-radius:50%; font-size:1.3rem; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;">&#8249;</button>
       <div style="text-align:center; min-width:260px;">
@@ -82,7 +95,8 @@
       <div id="cal-rows" style="border:1px solid #e0e0e0; border-radius:0 0 8px 8px; overflow:hidden; background:#fff;"></div>
     </div>
 
-    <p style="text-align:center; margin-top:16px; font-size:0.82rem; color:var(--silver-dark);">All times shown in Central Time. Click a green slot to request it.</p>
+    <p style="text-align:center; margin-top:16px; font-size:0.82rem; color:var(--silver-dark);">All times shown in Central Time.</p>
+    </div><!-- end calendar-section -->
   </div>
 </section>
 
@@ -424,8 +438,26 @@ async function submitRequest() {
   }
 }
 
-updateDateDisplay();
-loadAll();
+function checkPassword() {
+  const val = document.getElementById('gate-input').value;
+  if (val === 'nitromembersonly') {
+    document.getElementById('password-gate').style.display    = 'none';
+    document.getElementById('calendar-section').style.display = 'block';
+    sessionStorage.setItem('nitro-auth', '1');
+    updateDateDisplay();
+    loadAll();
+  } else {
+    document.getElementById('gate-error').style.display = 'block';
+    document.getElementById('gate-input').value = '';
+  }
+}
+
+if (sessionStorage.getItem('nitro-auth') === '1') {
+  document.getElementById('password-gate').style.display    = 'none';
+  document.getElementById('calendar-section').style.display = 'block';
+  updateDateDisplay();
+  loadAll();
+}
 </script>
 
 <script src="js/main.js"></script>
