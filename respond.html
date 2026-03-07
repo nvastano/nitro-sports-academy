@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Booking Response | Nitro Sports Academy</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<header id="main-header">
+  <a class="logo-wrap" href="index.html">
+    <span style="font-family:'Oswald',sans-serif; font-size:1.3rem; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:#fff;">
+      <span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY
+    </span>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="contact.html">Contact Us</a>
+  </nav>
+</header>
+
+<section style="background: var(--dark); min-height: 80vh; display:flex; align-items:center; justify-content:center; padding: 60px 24px;">
+  <div style="max-width:480px; width:100%; text-align:center;">
+
+    <!-- Loading -->
+    <div id="state-loading">
+      <div style="font-size:2.5rem; margin-bottom:16px;">⏳</div>
+      <h2 style="font-family:var(--font-condensed); font-size:1.6rem; color:#fff; margin:0 0 12px;">Processing…</h2>
+      <p style="color:var(--silver-dark);">Please wait a moment.</p>
+    </div>
+
+    <!-- Success accept -->
+    <div id="state-accepted" style="display:none;">
+      <div style="font-size:2.5rem; margin-bottom:16px;">✅</div>
+      <h2 style="font-family:var(--font-condensed); font-size:1.6rem; color:#fff; margin:0 0 12px;">Booking Confirmed!</h2>
+      <div id="accept-details" style="background:rgba(255,255,255,0.06); border-radius:8px; padding:20px; margin:20px 0; text-align:left;"></div>
+      <p style="color:var(--silver-dark); margin-bottom:24px;">The member has been sent a confirmation email and the event is on your calendar.</p>
+      <a href="schedule.html" style="background:var(--blue); color:#fff; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; text-decoration:none;">Back to Schedule</a>
+    </div>
+
+    <!-- Success decline -->
+    <div id="state-declined" style="display:none;">
+      <div style="font-size:2.5rem; margin-bottom:16px;">❌</div>
+      <h2 style="font-family:var(--font-condensed); font-size:1.6rem; color:#fff; margin:0 0 12px;">Request Declined</h2>
+      <div id="decline-details" style="background:rgba(255,255,255,0.06); border-radius:8px; padding:20px; margin:20px 0; text-align:left;"></div>
+      <p style="color:var(--silver-dark); margin-bottom:24px;">The pending event has been removed and the member has been notified.</p>
+      <a href="schedule.html" style="background:var(--blue); color:#fff; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; text-decoration:none;">Back to Schedule</a>
+    </div>
+
+    <!-- Error -->
+    <div id="state-error" style="display:none;">
+      <div style="font-size:2.5rem; margin-bottom:16px;">⚠️</div>
+      <h2 style="font-family:var(--font-condensed); font-size:1.6rem; color:#fff; margin:0 0 12px;">Something went wrong</h2>
+      <p id="error-msg" style="color:var(--silver-dark); margin-bottom:24px;"></p>
+      <a href="schedule.html" style="background:var(--blue); color:#fff; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; text-decoration:none;">Back to Schedule</a>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-family:'Oswald',sans-serif; font-size:1.1rem; font-weight:700; text-transform:uppercase; color:#fff; margin-bottom:16px;"><span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY</div>
+    </div>
+    <div class="footer-links">
+      <h4>Contact</h4>
+      <a href="tel:6158708077">615-870-8077</a>
+      <a href="mailto:coach.pedro.tn@gmail.com">coach.pedro.tn@gmail.com</a>
+    </div>
+  </div>
+  <div class="footer-bottom"><p>&copy; 2026 Nitro Sports Academy. All rights reserved.</p></div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiVo-sAROzryviZa0vAQo4o_IzVqNXYAVzaUCokv8ASmb9Ir7uHlFxGtrRnE-Jp0UQgA/exec';
+
+function show(id) {
+  ['state-loading','state-accepted','state-declined','state-error'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function detailsHtml(data) {
+  return `
+    <div style="display:grid; grid-template-columns:80px 1fr; gap:6px 12px; font-family:sans-serif; font-size:0.9rem;">
+      <span style="color:var(--silver-dark);">Name</span>   <span style="color:#fff; font-weight:600;">${data.name}</span>
+      <span style="color:var(--silver-dark);">Email</span>  <span style="color:#fff;">${data.email}</span>
+      <span style="color:var(--silver-dark);">Phone</span>  <span style="color:#fff;">${data.phone}</span>
+      <span style="color:var(--silver-dark);">Cage</span>   <span style="color:#fff; font-weight:600;">${data.cage}</span>
+      <span style="color:var(--silver-dark);">Date</span>   <span style="color:#fff;">${data.date}</span>
+      <span style="color:var(--silver-dark);">Time</span>   <span style="color:#fff;">${data.time}</span>
+    </div>`;
+}
+
+async function processResponse() {
+  const params   = new URLSearchParams(window.location.search);
+  const action   = params.get('action');
+  const eventId  = params.get('eventId');
+  const cal      = params.get('cal');
+
+  if (!action || !eventId || !cal) {
+    show('state-error');
+    document.getElementById('error-msg').textContent = 'Invalid link. Please go back to Google Calendar and try again.';
+    return;
+  }
+
+  try {
+    const url  = `${SCRIPT_URL}?action=${action}&eventId=${encodeURIComponent(eventId)}&cal=${encodeURIComponent(cal)}`;
+    const res  = await fetch(url);
+    const text = await res.text();
+    let data   = {};
+    try { data = JSON.parse(text); } catch(e) { /* HTML response is fine */ }
+
+    if (action === 'accept') {
+      // Try to extract member info from the JSON response if available
+      if (data.member) {
+        document.getElementById('accept-details').innerHTML = detailsHtml(data.member);
+      }
+      show('state-accepted');
+    } else if (action === 'decline') {
+      if (data.member) {
+        document.getElementById('decline-details').innerHTML = detailsHtml(data.member);
+      }
+      show('state-declined');
+    } else {
+      show('state-error');
+      document.getElementById('error-msg').textContent = 'Unknown action.';
+    }
+  } catch(err) {
+    show('state-error');
+    document.getElementById('error-msg').textContent = 'Could not reach the server. Please try again or text Pedro at 615-870-8077.';
+  }
+}
+
+processResponse();
+</script>
+</body>
+</html>
