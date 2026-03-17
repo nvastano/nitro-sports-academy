@@ -15,6 +15,14 @@
     gtag('js', new Date());
     gtag('config', 'G-X2GC65NEMX');
   </script>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
+  <meta name="theme-color" content="#3d65cc" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Nitro" />
 </head>
 <body>
 
@@ -280,6 +288,19 @@ function goToday() {
 }
 function slotKey(h, m) { return h * 60 + m; }
 
+function getCTHoursMinutes(date) {
+  // Always interpret in America/Chicago (Central Time) regardless of browser timezone
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Chicago',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: false
+  }).formatToParts(date);
+  const h = parseInt(parts.find(p => p.type === 'hour').value);
+  const m = parseInt(parts.find(p => p.type === 'minute').value);
+  return { h, m };
+}
+
 function getBookedSlots(events) {
   const booked = {};
   events.forEach(ev => {
@@ -289,7 +310,8 @@ function getBookedSlots(events) {
     const title = ev.summary || 'Booked';
     let cur = new Date(start);
     while (cur < end) {
-      booked[slotKey(cur.getHours(), cur.getMinutes())] = { title };
+      const { h, m } = getCTHoursMinutes(cur);
+      booked[slotKey(h, m)] = { title };
       cur = new Date(cur.getTime() + 30*60000);
     }
   });
@@ -485,5 +507,10 @@ loadAll();
 </div>
 
 <script src="js/main.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+    }
+  </script>
 </body>
 </html>
