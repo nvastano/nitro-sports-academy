@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Household — Nitro Sports Academy Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--blue:#2B4FA8;--blue-dark:#1a3278;--blue-light:#3d65cc;--gold:#E8B84B;--silver:#9AA0B4;--silver-light:#C8CDD9;--dark:#0D1321;--dark-mid:#1C2540;--white:#fff}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--white);min-height:100vh}
+  header{background:rgba(13,19,33,0.97);border-bottom:2px solid var(--blue);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .logo-text{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white)}
+  .logo-text span{color:var(--blue-light)}
+  .header-right{display:flex;align-items:center;gap:12px}
+  .btn-sm{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:var(--silver);padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:all 0.2s;display:inline-block}
+  .btn-sm:hover{border-color:var(--blue);color:var(--white)}
+  .page{max-width:960px;margin:0 auto;padding:32px 24px}
+  .hh-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+  h1{font-family:'Oswald',sans-serif;font-size:2rem;letter-spacing:0.04em;text-transform:uppercase}
+  .card{background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:24px;margin-bottom:20px}
+  .card-title{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--silver);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:5px}
+  input,select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:9px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+  input:focus,select:focus{border-color:var(--blue-light)}
+  .btn-primary{background:var(--blue);border:none;border-radius:5px;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
+  .btn-primary:hover{background:var(--blue-light)}
+  .btn-gold{background:var(--gold);border:none;border-radius:5px;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--dark);cursor:pointer;transition:opacity 0.2s}
+  .btn-gold:hover{opacity:0.85}
+  .btn-gold:disabled{opacity:0.5;cursor:not-allowed}
+  .btn-danger{background:transparent;border:1px solid rgba(220,50,50,0.4);border-radius:5px;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:#ff7b7b;cursor:pointer;transition:all 0.2s}
+  .btn-danger:hover{background:rgba(220,50,50,0.15)}
+  /* Members */
+  .member-list{display:flex;flex-direction:column;gap:10px}
+  .member-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:14px 16px;cursor:pointer;transition:border-color 0.2s;gap:12px;flex-wrap:wrap}
+  .member-row:hover{border-color:var(--blue-light)}
+  .member-name{font-weight:600;font-size:1rem}
+  .member-meta{font-size:0.82rem;color:var(--silver);margin-top:3px}
+  .role-pill{font-size:0.72rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;white-space:nowrap}
+  .role-contact{background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3)}
+  .role-athlete{background:rgba(43,79,168,0.2);color:var(--blue-light);border:1px solid rgba(43,79,168,0.3)}
+  /* Membership card */
+  .mem-card{background:linear-gradient(135deg,var(--blue-dark),var(--dark-mid));border:1px solid rgba(43,79,168,0.5);border-radius:10px;padding:24px;margin-bottom:16px;position:relative;overflow:hidden}
+  .mem-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:var(--blue);opacity:0.1;border-radius:50%}
+  .mem-type{font-family:'Oswald',sans-serif;font-size:1.3rem;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .mem-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.9rem}
+  .mem-row:last-child{border-bottom:none}
+  .mem-label{color:var(--silver)}.mem-value{font-weight:600}
+  .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+  .badge-active{background:rgba(43,168,79,0.2);color:#4caf6e;border:1px solid rgba(43,168,79,0.3)}
+  .badge-expired{background:rgba(220,50,50,0.2);color:#ff7b7b;border:1px solid rgba(220,50,50,0.3)}
+  .badge-pending{background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3)}
+  /* Modals */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.4);border-radius:10px;padding:32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+  .modal h2{font-family:'Oswald',sans-serif;font-size:1.2rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:20px}
+  .modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
+  .btn-cancel{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:5px;padding:9px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);cursor:pointer}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--dark-mid);border:1px solid rgba(43,79,168,0.5);border-radius:8px;padding:14px 20px;font-size:0.9rem;z-index:300;transform:translateY(80px);opacity:0;transition:all 0.3s}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:rgba(43,168,79,0.5);color:#4caf6e}
+  .toast.error{border-color:rgba(220,50,50,0.5);color:#ff7b7b}
+  .empty{color:var(--silver);font-size:0.9rem;padding:8px 0}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="admin-dashboard.html" style="text-decoration:none">
+    <span class="logo-text"><span>Nitro</span> Sports Academy — Admin</span>
+  </a>
+  <div class="header-right">
+    <a class="btn-sm" href="admin-dashboard.html">← Dashboard</a>
+    <button class="btn-sm" onclick="logout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="page" id="page" style="display:none">
+
+  <div class="hh-header">
+    <div>
+      <div style="font-size:0.8rem;color:var(--silver);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px">Household</div>
+      <h1 id="hhName">Loading…</h1>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn-primary" onclick="openEditModal()">Edit Name</button>
+      <button class="btn-danger" onclick="deleteHousehold()">Delete Household</button>
+    </div>
+  </div>
+
+  <!-- Members -->
+  <div class="card">
+    <div class="card-title">
+      Members
+      <button class="btn-sm" onclick="openAddMemberModal()">+ Add Member</button>
+    </div>
+    <div class="member-list" id="memberList"><div class="empty">Loading…</div></div>
+  </div>
+
+  <!-- Household Membership -->
+  <div class="card">
+    <div class="card-title">
+      Household Membership
+      <button class="btn-sm" onclick="openRenewModal()">+ Add / Renew</button>
+    </div>
+    <div id="memSection"><div class="empty">No household membership on file.</div></div>
+  </div>
+
+  <!-- Notes -->
+  <div class="card">
+    <div class="card-title">Notes</div>
+    <div style="display:flex;gap:12px;align-items:flex-end">
+      <div style="flex:1"><input type="text" id="notesField" placeholder="Add notes about this household…"></div>
+      <button class="btn-primary" onclick="saveNotes()">Save</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Edit Name Modal -->
+<div class="modal-bg" id="editModal">
+  <div class="modal">
+    <h2>Edit Household</h2>
+    <div style="display:grid;gap:14px">
+      <div><label>Household Name</label><input type="text" id="editName" placeholder="The Johnson Family"></div>
+      <div><label>Notes</label><input type="text" id="editNotes"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Member Modal -->
+<div class="modal-bg" id="addMemberModal">
+  <div class="modal">
+    <h2>Add Member to Household</h2>
+    <p style="color:var(--silver);font-size:0.9rem;margin-bottom:20px">Select an existing client to add, or create a new one from the dashboard.</p>
+    <div style="display:grid;gap:14px">
+      <div>
+        <label>Client</label>
+        <select id="memberClientSelect"><option value="">Select a client…</option></select>
+      </div>
+      <div>
+        <label>Role</label>
+        <select id="memberRole">
+          <option value="athlete">Athlete</option>
+          <option value="contact">Contact / Parent</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeAddMemberModal()">Cancel</button>
+      <button class="btn-primary" onclick="addMember()">Add to Household</button>
+    </div>
+  </div>
+</div>
+
+<!-- Renew Modal -->
+<div class="modal-bg" id="renewModal">
+  <div class="modal">
+    <h2>Add / Renew Household Membership</h2>
+    <div style="display:grid;gap:14px">
+      <div><label>Membership Type</label>
+        <select id="ren-type">
+          <option value="family_2">Family — 2 siblings ($595/yr)</option>
+          <option value="family_3plus">Family — 3+ siblings ($645/yr)</option>
+          <option value="individual">Individual ($395/yr)</option>
+        </select>
+      </div>
+      <div><label>Start Date</label><input type="date" id="ren-start"></div>
+      <div><label>Renewal Date</label><input type="date" id="ren-renewal"></div>
+      <div><label>Amount Paid ($)</label><input type="number" id="ren-paid" min="0" step="0.01" value="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRenewModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveMembership()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
+const params = new URLSearchParams(location.search);
+const hhId = params.get('id');
+let hhData = null, allClients = [];
+
+function getToken() {
+  const t = localStorage.getItem('nitro_token');
+  if (!t) { window.location.href = 'admin.html'; return null; }
+  return t;
+}
+function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }; }
+function logout() { localStorage.removeItem('nitro_token'); window.location.href = 'admin.html'; }
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function membershipLabel(type) {
+  return { individual: 'Individual', family_2: 'Family (2 siblings)', family_3plus: 'Family (3+ siblings)' }[type] ?? '—';
+}
+function badgeHtml(status) {
+  const cls = { active: 'badge-active', expired: 'badge-expired', pending: 'badge-pending' }[status] ?? 'badge-pending';
+  return `<span class="badge ${cls}">${status ?? 'none'}</span>`;
+}
+
+async function loadHousehold() {
+  if (!hhId) { window.location.href = 'admin-dashboard.html'; return; }
+  const res = await fetch(`${API}/households/${hhId}`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  if (!res.ok) { window.location.href = 'admin-dashboard.html'; return; }
+  hhData = await res.json();
+
+  document.getElementById('hhName').textContent = hhData.name;
+  document.getElementById('notesField').value = hhData.notes ?? '';
+  renderMembers(hhData.members ?? []);
+  renderMembership(hhData.membership ?? null);
+  document.getElementById('page').style.display = 'block';
+}
+
+async function loadAllClients() {
+  const res = await fetch(`${API}/clients`, { headers: authHeaders() });
+  allClients = await res.json();
+}
+
+function renderMembers(members) {
+  const el = document.getElementById('memberList');
+  if (!members.length) { el.innerHTML = '<div class="empty">No members yet. Add a member above.</div>'; return; }
+  const roleLabel = { contact: 'Contact / Parent', athlete: 'Athlete' };
+  const roleClass = { contact: 'role-contact', athlete: 'role-athlete' };
+  el.innerHTML = members.map(m => `
+    <div class="member-row" onclick="window.location.href='admin-client.html?id=${m.id}'">
+      <div style="flex:1">
+        <div class="member-name">${m.first_name} ${m.last_name}</div>
+        <div class="member-meta">${[m.email, m.phone].filter(Boolean).join(' · ') || '—'}</div>
+      </div>
+      <span class="role-pill ${roleClass[m.household_role] ?? 'role-athlete'}">${roleLabel[m.household_role] ?? m.household_role ?? 'Athlete'}</span>
+    </div>`).join('');
+}
+
+function renderMembership(m) {
+  const el = document.getElementById('memSection');
+  if (!m) { el.innerHTML = '<div class="empty">No household membership. Click "+ Add / Renew" above.</div>'; return; }
+  const prices = { individual: 395, family_2: 595, family_3plus: 645 };
+  const price = prices[m.type] ?? 0;
+  el.innerHTML = `
+    <div class="mem-card">
+      <div class="mem-type">${membershipLabel(m.type)} ${badgeHtml(m.status)}</div>
+      <div class="mem-row"><span class="mem-label">Annual Price</span><span class="mem-value">$${price.toFixed(2)}</span></div>
+      <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
+      <div class="mem-row"><span class="mem-label">Renewal Date</span><span class="mem-value">${m.renewal_date ?? '—'}</span></div>
+      <div class="mem-row"><span class="mem-label">Amount Paid</span><span class="mem-value" style="color:#4caf6e">$${(m.amount_paid ?? 0).toFixed(2)}</span></div>
+      <div class="mem-row"><span class="mem-label">Balance Due</span><span class="mem-value" style="color:var(--gold)">$${(m.amount_due ?? 0).toFixed(2)}</span></div>
+    </div>
+    <p style="color:var(--silver);font-size:0.85rem">To record payments or send an invoice, go to the <strong style="color:var(--white)">contact member's</strong> client page.</p>`;
+}
+
+function openEditModal() {
+  document.getElementById('editName').value = hhData.name;
+  document.getElementById('editNotes').value = hhData.notes ?? '';
+  document.getElementById('editModal').classList.add('open');
+}
+function closeEditModal() { document.getElementById('editModal').classList.remove('open'); }
+
+async function saveEdit() {
+  const name = document.getElementById('editName').value.trim();
+  if (!name) return;
+  const res = await fetch(`${API}/households/${hhId}`, {
+    method: 'PUT', headers: authHeaders(),
+    body: JSON.stringify({ name, notes: document.getElementById('editNotes').value || null }),
+  });
+  if (!res.ok) { showToast('Error saving', 'error'); return; }
+  closeEditModal(); showToast('Household updated'); loadHousehold();
+}
+
+async function saveNotes() {
+  const res = await fetch(`${API}/households/${hhId}`, {
+    method: 'PUT', headers: authHeaders(),
+    body: JSON.stringify({ name: hhData.name, notes: document.getElementById('notesField').value || null }),
+  });
+  if (!res.ok) { showToast('Error saving notes', 'error'); return; }
+  showToast('Notes saved'); hhData.notes = document.getElementById('notesField').value;
+}
+
+function openAddMemberModal() {
+  const sel = document.getElementById('memberClientSelect');
+  const memberIds = new Set((hhData.members ?? []).map(m => m.id));
+  const available = allClients.filter(c => !memberIds.has(c.id));
+  sel.innerHTML = '<option value="">Select a client…</option>' +
+    available.map(c => `<option value="${c.id}">${c.first_name} ${c.last_name}${c.email ? ` (${c.email})` : ''}</option>`).join('');
+  document.getElementById('addMemberModal').classList.add('open');
+}
+function closeAddMemberModal() { document.getElementById('addMemberModal').classList.remove('open'); }
+
+async function addMember() {
+  const clientId = document.getElementById('memberClientSelect').value;
+  if (!clientId) { showToast('Please select a client', 'error'); return; }
+  const role = document.getElementById('memberRole').value;
+  // Fetch the client's current data to preserve all fields, then PUT with updated household
+  const clientRes = await fetch(`${API}/clients/${clientId}`, { headers: authHeaders() });
+  const client = await clientRes.json();
+  const body = {
+    first_name: client.first_name, last_name: client.last_name,
+    email: client.email, phone: client.phone, address: client.address,
+    date_of_birth: client.date_of_birth, current_team: client.current_team,
+    years_playing: client.years_playing, primary_position: client.primary_position,
+    secondary_position: client.secondary_position,
+    emergency_contact_name: client.emergency_contact_name,
+    emergency_contact_phone: client.emergency_contact_phone,
+    household_id: hhId, household_role: role,
+  };
+  const res = await fetch(`${API}/clients/${clientId}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error adding member', 'error'); return; }
+  closeAddMemberModal(); showToast('Member added');
+  await Promise.all([loadHousehold(), loadAllClients()]);
+}
+
+async function deleteHousehold() {
+  if (!confirm(`Delete "${hhData.name}"? Members will be unlinked but not deleted.`)) return;
+  const res = await fetch(`${API}/households/${hhId}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) { showToast('Error deleting', 'error'); return; }
+  window.location.href = 'admin-dashboard.html';
+}
+
+function openRenewModal() {
+  const today = new Date();
+  const nextYear = new Date(today); nextYear.setFullYear(nextYear.getFullYear() + 1);
+  document.getElementById('ren-start').value = today.toISOString().slice(0, 10);
+  document.getElementById('ren-renewal').value = nextYear.toISOString().slice(0, 10);
+  document.getElementById('renewModal').classList.add('open');
+}
+function closeRenewModal() { document.getElementById('renewModal').classList.remove('open'); }
+
+async function saveMembership() {
+  const res = await fetch(`${API}/households/${hhId}/memberships`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({
+      type: document.getElementById('ren-type').value,
+      start_date: document.getElementById('ren-start').value,
+      renewal_date: document.getElementById('ren-renewal').value,
+      amount_paid: parseFloat(document.getElementById('ren-paid').value) || 0,
+      status: 'active',
+    }),
+  });
+  if (!res.ok) { showToast('Error saving membership', 'error'); return; }
+  closeRenewModal(); showToast('Membership saved'); loadHousehold();
+}
+
+document.getElementById('editModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditModal(); });
+document.getElementById('addMemberModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeAddMemberModal(); });
+document.getElementById('renewModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRenewModal(); });
+
+getToken();
+Promise.all([loadHousehold(), loadAllClients()]);
+</script>
+</body>
+</html>

@@ -11,67 +11,67 @@
   body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--white);min-height:100vh}
   header{background:rgba(13,19,33,0.97);border-bottom:2px solid var(--blue);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
   .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-  .logo img{height:44px}
   .logo-text{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white)}
   .logo-text span{color:var(--blue-light)}
   .header-right{display:flex;align-items:center;gap:12px}
-  .btn-back{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:var(--silver);padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:all 0.2s}
-  .btn-back:hover{border-color:var(--blue);color:var(--white)}
-  .btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:var(--silver);padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
-  .btn-logout:hover{border-color:var(--blue);color:var(--white)}
+  .btn-sm{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:var(--silver);padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:all 0.2s;display:inline-block}
+  .btn-sm:hover{border-color:var(--blue);color:var(--white)}
   .page{max-width:960px;margin:0 auto;padding:32px 24px}
   .client-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
   .client-name-block h1{font-family:'Oswald',sans-serif;font-size:2rem;letter-spacing:0.04em;text-transform:uppercase}
-  .client-name-block p{color:var(--silver);margin-top:4px}
+  .client-name-block p{color:var(--silver);margin-top:4px;font-size:0.95rem}
   .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
   .badge-active{background:rgba(43,168,79,0.2);color:#4caf6e;border:1px solid rgba(43,168,79,0.3)}
   .badge-expired{background:rgba(220,50,50,0.2);color:#ff7b7b;border:1px solid rgba(220,50,50,0.3)}
   .badge-pending{background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3)}
-  /* Tabs */
+  .badge-household{background:rgba(43,79,168,0.2);color:var(--blue-light);border:1px solid rgba(43,79,168,0.3);cursor:pointer}
+  .badge-household:hover{background:rgba(43,79,168,0.35)}
   .tabs{display:flex;gap:4px;border-bottom:2px solid rgba(255,255,255,0.08);margin-bottom:28px}
   .tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;color:var(--silver);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
   .tab.active{color:var(--white);border-bottom-color:var(--blue-light)}
   .tab-panel{display:none}
   .tab-panel.active{display:block}
-  /* Cards */
   .card{background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:24px;margin-bottom:20px}
   .card-title{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--silver);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
-  /* Form fields */
   .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   .field-grid .full{grid-column:1/-1}
-  .field{margin-bottom:0}
   label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:5px}
   input,select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:9px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
   input:focus,select:focus{border-color:var(--blue-light)}
-  input[readonly]{opacity:0.5;cursor:default}
-  .btn-save-profile{background:var(--blue);border:none;border-radius:5px;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
-  .btn-save-profile:hover{background:var(--blue-light)}
+  .btn-primary{background:var(--blue);border:none;border-radius:5px;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
+  .btn-primary:hover{background:var(--blue-light)}
+  .btn-gold{background:var(--gold);border:none;border-radius:5px;padding:12px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--dark);cursor:pointer;transition:opacity 0.2s}
+  .btn-gold:hover{opacity:0.85}
+  .btn-gold:disabled{opacity:0.5;cursor:not-allowed}
   /* Membership card */
   .mem-card{background:linear-gradient(135deg,var(--blue-dark),var(--dark-mid));border:1px solid rgba(43,79,168,0.5);border-radius:10px;padding:24px;position:relative;overflow:hidden}
   .mem-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:var(--blue);opacity:0.1;border-radius:50%}
-  .mem-type{font-family:'Oswald',sans-serif;font-size:1.4rem;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:16px}
+  .mem-type{font-family:'Oswald',sans-serif;font-size:1.3rem;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .mem-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.9rem}
   .mem-row:last-child{border-bottom:none}
-  .mem-label{color:var(--silver)}
-  .mem-value{font-weight:600}
+  .mem-label{color:var(--silver)}.mem-value{font-weight:600}
   .mem-due{font-family:'Oswald',sans-serif;font-size:1.8rem;color:var(--gold);margin:16px 0 4px}
-  .btn-invoice{background:var(--gold);border:none;border-radius:5px;padding:12px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--dark);cursor:pointer;transition:opacity 0.2s;margin-top:16px}
-  .btn-invoice:hover{opacity:0.85}
-  .btn-invoice:disabled{opacity:0.5;cursor:not-allowed}
-  .btn-renew{background:var(--blue);border:none;border-radius:5px;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
-  .btn-renew:hover{background:var(--blue-light)}
   /* Payments */
   .pay-table{width:100%;border-collapse:collapse;font-size:0.88rem}
   .pay-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
   .pay-table td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
-  /* Add payment form */
   .add-pay-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;align-items:end;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.08)}
-  .btn-add-pay{background:var(--blue);border:none;border-radius:5px;padding:9px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;white-space:nowrap;transition:background 0.2s;margin-top:20px}
-  .btn-add-pay:hover{background:var(--blue-light)}
-  /* Modal */
+  /* Household tab */
+  .hh-banner{background:rgba(43,79,168,0.15);border:1px solid rgba(43,79,168,0.35);border-radius:8px;padding:20px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+  .hh-banner-name{font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.04em;text-transform:uppercase}
+  .hh-banner-sub{font-size:0.85rem;color:var(--silver);margin-top:4px}
+  .member-list{display:flex;flex-direction:column;gap:10px}
+  .member-row{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:6px;padding:12px 16px;cursor:pointer;transition:border-color 0.2s}
+  .member-row:hover{border-color:var(--blue-light)}
+  .member-name{font-weight:600}
+  .member-meta{font-size:0.82rem;color:var(--silver);margin-top:3px}
+  .role-pill{font-size:0.72rem;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px}
+  .role-contact{background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3)}
+  .role-athlete{background:rgba(43,79,168,0.2);color:var(--blue-light);border:1px solid rgba(43,79,168,0.3)}
+  /* Modals */
   .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
   .modal-bg.open{display:flex}
-  .modal{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.4);border-radius:10px;padding:32px;width:100%;max-width:480px}
+  .modal{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.4);border-radius:10px;padding:32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
   .modal h2{font-family:'Oswald',sans-serif;font-size:1.2rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:20px}
   .modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
   .btn-cancel{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:5px;padding:9px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);cursor:pointer}
@@ -87,31 +87,31 @@
 
 <header>
   <a class="logo" href="admin-dashboard.html">
-    <span class="logo-text"><span>Nitro</span> Sports Academy &mdash; Admin</span>
+    <span class="logo-text"><span>Nitro</span> Sports Academy — Admin</span>
   </a>
   <div class="header-right">
-    <a class="btn-back" href="admin-dashboard.html">← Dashboard</a>
-    <button class="btn-logout" onclick="logout()">Sign Out</button>
+    <a class="btn-sm" href="admin-dashboard.html">← Dashboard</a>
+    <button class="btn-sm" onclick="logout()">Sign Out</button>
   </div>
 </header>
 
 <div class="page" id="page" style="display:none">
-
   <div class="client-header">
     <div class="client-name-block">
       <h1 id="clientName">Loading…</h1>
       <p id="clientSub"></p>
     </div>
-    <div id="memBadge"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="headerBadges"></div>
   </div>
 
   <div class="tabs">
     <div class="tab active" onclick="switchTab('profile')">Profile</div>
     <div class="tab" onclick="switchTab('membership')">Membership</div>
     <div class="tab" onclick="switchTab('payments')">Payments</div>
+    <div class="tab" onclick="switchTab('household')">Household</div>
   </div>
 
-  <!-- PROFILE TAB -->
+  <!-- PROFILE -->
   <div class="tab-panel active" id="tab-profile">
     <div class="card">
       <div class="card-title">Contact Info</div>
@@ -129,25 +129,21 @@
           <div><label>Secondary Position</label><input name="secondary_position"></div>
           <div><label>Emergency Contact Name</label><input name="emergency_contact_name"></div>
           <div><label>Emergency Contact Phone</label><input name="emergency_contact_phone" type="tel"></div>
-          <div class="full" style="margin-top:8px">
-            <button type="submit" class="btn-save-profile">Save Profile</button>
-          </div>
+          <div class="full"><button type="submit" class="btn-primary">Save Profile</button></div>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MEMBERSHIP TAB -->
+  <!-- MEMBERSHIP -->
   <div class="tab-panel" id="tab-membership">
-    <div class="mem-card" id="memCard">
-      <div class="empty">No membership on file.</div>
-    </div>
+    <div class="mem-card" id="memCard"><div class="empty">No membership on file.</div></div>
     <div style="margin-top:16px">
-      <button class="btn-renew" onclick="openRenewModal()">+ Add / Renew Membership</button>
+      <button class="btn-primary" onclick="openRenewModal()">+ Add / Renew Membership</button>
     </div>
   </div>
 
-  <!-- PAYMENTS TAB -->
+  <!-- PAYMENTS -->
   <div class="tab-panel" id="tab-payments">
     <div class="card">
       <div class="card-title">Payment History</div>
@@ -160,11 +156,15 @@
         <div><label>Date</label><input type="date" id="payDate"></div>
         <div><label>Venmo Reference</label><input type="text" id="payRef" placeholder="Optional"></div>
         <div><label>Notes</label><input type="text" id="payNotes" placeholder="Optional"></div>
-        <div><button class="btn-add-pay" onclick="addPayment()">+ Record Payment</button></div>
+        <div><button class="btn-primary" onclick="addPayment()" style="margin-top:20px">+ Record Payment</button></div>
       </div>
     </div>
   </div>
 
+  <!-- HOUSEHOLD -->
+  <div class="tab-panel" id="tab-household">
+    <div id="householdContent"><div class="empty">Loading…</div></div>
+  </div>
 </div>
 
 <!-- Renew Modal -->
@@ -185,7 +185,31 @@
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeRenewModal()">Cancel</button>
-      <button class="btn-save-profile" onclick="saveMembership()">Save</button>
+      <button class="btn-primary" onclick="saveMembership()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Assign Household Modal -->
+<div class="modal-bg" id="hhModal">
+  <div class="modal">
+    <h2>Assign Household</h2>
+    <div style="display:grid;gap:14px">
+      <div>
+        <label>Household</label>
+        <select id="hhSelect"><option value="">— None (remove from household) —</option></select>
+      </div>
+      <div>
+        <label>Role</label>
+        <select id="hhRole">
+          <option value="athlete">Athlete</option>
+          <option value="contact">Contact / Parent</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeHHModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveHousehold()">Save</button>
     </div>
   </div>
 </div>
@@ -196,39 +220,34 @@
 const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
 const params = new URLSearchParams(location.search);
 const clientId = params.get('id');
-let currentMembership = null;
+let clientData = null, currentMembership = null, allHouseholds = [];
 
 function getToken() {
   const t = localStorage.getItem('nitro_token');
   if (!t) { window.location.href = 'admin.html'; return null; }
   return t;
 }
-function authHeaders() {
-  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
-}
+function authHeaders() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` }; }
 function logout() { localStorage.removeItem('nitro_token'); window.location.href = 'admin.html'; }
 
 function showToast(msg, type = 'success') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
+  t.textContent = msg; t.className = `toast ${type} show`;
   setTimeout(() => t.classList.remove('show'), 3000);
 }
 
 function switchTab(name) {
-  document.querySelectorAll('.tab').forEach((t, i) => {
-    const panels = ['profile','membership','payments'];
-    t.classList.toggle('active', panels[i] === name);
-  });
+  const tabs = ['profile','membership','payments','household'];
+  document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
   if (name === 'payments') loadPayments();
+  if (name === 'household') renderHouseholdTab();
 }
 
 function membershipLabel(type) {
   return { individual: 'Individual', family_2: 'Family (2 siblings)', family_3plus: 'Family (3+ siblings)' }[type] ?? '—';
 }
-
 function badgeHtml(status) {
   const cls = { active: 'badge-active', expired: 'badge-expired', pending: 'badge-pending' }[status] ?? 'badge-pending';
   return `<span class="badge ${cls}">${status ?? 'none'}</span>`;
@@ -247,10 +266,14 @@ function renderMembership(m) {
   const prices = { individual: 395, family_2: 595, family_3plus: 645 };
   if (!m) { card.innerHTML = '<div class="empty">No membership on file. Click "Add / Renew Membership" below.</div>'; return; }
   const price = prices[m.type] ?? 0;
+  const isHhMembership = !!m.household_id;
   card.innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
-      <div class="mem-type">${membershipLabel(m.type)}</div>
-      ${badgeHtml(m.status)}
+    <div class="mem-type">
+      ${membershipLabel(m.type)}
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        ${isHhMembership ? `<span class="badge badge-household">Household Membership</span>` : ''}
+        ${badgeHtml(m.status)}
+      </div>
     </div>
     <div class="mem-row"><span class="mem-label">Annual Price</span><span class="mem-value">$${price.toFixed(2)}</span></div>
     <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
@@ -261,9 +284,54 @@ function renderMembership(m) {
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
       <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
       <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>
-      <button class="btn-invoice" id="invoiceBtn" onclick="sendInvoice()" ${!document.getElementById('clientSub').textContent.includes('@') ? 'disabled title="No email on file"' : ''}>
+      <button class="btn-gold" id="invoiceBtn" onclick="sendInvoice()" ${!clientData?.email ? 'disabled title="No email on file"' : ''}>
         Send Invoice Email
       </button>
+    </div>`;
+}
+
+function renderHouseholdTab() {
+  const el = document.getElementById('householdContent');
+  if (!clientData) return;
+  const { household, householdMembers } = clientData;
+
+  if (!household) {
+    el.innerHTML = `
+      <div class="card">
+        <div class="card-title">Household</div>
+        <p style="color:var(--silver);margin-bottom:20px">This client is not assigned to a household.</p>
+        <button class="btn-primary" onclick="openHHModal()">Assign to Household</button>
+      </div>`;
+    return;
+  }
+
+  const roleLabel = { contact: 'Contact / Parent', athlete: 'Athlete' };
+  const roleClass = { contact: 'role-contact', athlete: 'role-athlete' };
+  const thisRole = clientData.household_role ?? 'athlete';
+
+  el.innerHTML = `
+    <div class="hh-banner">
+      <div>
+        <div class="hh-banner-name">${household.name}</div>
+        <div class="hh-banner-sub">This client's role: <strong style="color:var(--white)">${roleLabel[thisRole] ?? thisRole}</strong></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="admin-household.html?id=${household.id}" class="btn-sm">View Household →</a>
+        <button class="btn-sm" onclick="openHHModal()">Change / Remove</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Household Members (${householdMembers.length})</div>
+      <div class="member-list">
+        ${householdMembers.map(m => `
+          <div class="member-row" onclick="${m.id !== clientId ? `window.location.href='admin-client.html?id=${m.id}'` : ''}">
+            <div>
+              <div class="member-name">${m.first_name} ${m.last_name}${m.id === clientId ? ' <span style="color:var(--silver-dark);font-size:0.8rem">(you)</span>' : ''}</div>
+              <div class="member-meta">${m.email ?? ''}</div>
+            </div>
+            <span class="role-pill ${roleClass[m.household_role] ?? 'role-athlete'}">${roleLabel[m.household_role] ?? m.household_role}</span>
+          </div>`).join('')}
+      </div>
     </div>`;
 }
 
@@ -272,14 +340,33 @@ async function loadClient() {
   const res = await fetch(`${API}/clients/${clientId}`, { headers: authHeaders() });
   if (res.status === 401) { logout(); return; }
   if (!res.ok) { window.location.href = 'admin-dashboard.html'; return; }
-  const data = await res.json();
-  document.getElementById('clientName').textContent = `${data.first_name} ${data.last_name}`;
-  document.getElementById('clientSub').textContent = [data.email, data.phone].filter(Boolean).join(' · ');
-  document.getElementById('memBadge').innerHTML = badgeHtml(data.membership?.status);
-  fillProfile(data);
-  renderMembership(data.membership ?? null);
+  clientData = await res.json();
+
+  document.getElementById('clientName').textContent = `${clientData.first_name} ${clientData.last_name}`;
+  document.getElementById('clientSub').textContent = [clientData.email, clientData.phone].filter(Boolean).join(' · ');
+
+  const badges = document.getElementById('headerBadges');
+  badges.innerHTML = '';
+  if (clientData.household) {
+    const hbadge = document.createElement('span');
+    hbadge.className = 'badge badge-household';
+    hbadge.textContent = clientData.household.name;
+    hbadge.onclick = () => window.location.href = `admin-household.html?id=${clientData.household.id}`;
+    badges.appendChild(hbadge);
+  }
+  if (clientData.membership?.status) {
+    badges.insertAdjacentHTML('beforeend', badgeHtml(clientData.membership.status));
+  }
+
+  fillProfile(clientData);
+  renderMembership(clientData.membership ?? null);
   document.getElementById('page').style.display = 'block';
   document.getElementById('payDate').value = new Date().toISOString().slice(0, 10);
+}
+
+async function loadHouseholds() {
+  const res = await fetch(`${API}/households`, { headers: authHeaders() });
+  allHouseholds = await res.json();
 }
 
 async function saveProfile(e) {
@@ -287,9 +374,13 @@ async function saveProfile(e) {
   const fd = new FormData(e.target);
   const body = Object.fromEntries(fd.entries());
   if (body.years_playing) body.years_playing = parseInt(body.years_playing);
+  // preserve household assignment
+  body.household_id = clientData.household_id ?? null;
+  body.household_role = clientData.household_role ?? null;
   const res = await fetch(`${API}/clients/${clientId}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
   if (!res.ok) { showToast('Error saving profile', 'error'); return; }
   const data = await res.json();
+  clientData = { ...clientData, ...data };
   document.getElementById('clientName').textContent = `${data.first_name} ${data.last_name}`;
   document.getElementById('clientSub').textContent = [data.email, data.phone].filter(Boolean).join(' · ');
   showToast('Profile saved');
@@ -314,13 +405,12 @@ async function addPayment() {
   const amount = parseFloat(document.getElementById('payAmount').value);
   const date = document.getElementById('payDate').value;
   if (!amount || !date) { showToast('Amount and date are required', 'error'); return; }
-  const body = {
-    amount, date,
-    membership_id: currentMembership?.id ?? null,
-    venmo_reference: document.getElementById('payRef').value || null,
-    notes: document.getElementById('payNotes').value || null,
-  };
-  const res = await fetch(`${API}/clients/${clientId}/payments`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+  const res = await fetch(`${API}/clients/${clientId}/payments`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ amount, date, membership_id: currentMembership?.id ?? null,
+      venmo_reference: document.getElementById('payRef').value || null,
+      notes: document.getElementById('payNotes').value || null }),
+  });
   if (!res.ok) { showToast('Error recording payment', 'error'); return; }
   document.getElementById('payAmount').value = '';
   document.getElementById('payRef').value = '';
@@ -332,8 +422,7 @@ async function addPayment() {
 
 function openRenewModal() {
   const today = new Date();
-  const nextYear = new Date(today);
-  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  const nextYear = new Date(today); nextYear.setFullYear(nextYear.getFullYear() + 1);
   document.getElementById('ren-start').value = today.toISOString().slice(0, 10);
   document.getElementById('ren-renewal').value = nextYear.toISOString().slice(0, 10);
   document.getElementById('renewModal').classList.add('open');
@@ -341,32 +430,52 @@ function openRenewModal() {
 function closeRenewModal() { document.getElementById('renewModal').classList.remove('open'); }
 
 async function saveMembership() {
-  const body = {
-    type: document.getElementById('ren-type').value,
-    start_date: document.getElementById('ren-start').value,
-    renewal_date: document.getElementById('ren-renewal').value,
-    amount_paid: parseFloat(document.getElementById('ren-paid').value) || 0,
-    status: 'active',
-  };
-  const res = await fetch(`${API}/clients/${clientId}/memberships`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+  const res = await fetch(`${API}/clients/${clientId}/memberships`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({
+      type: document.getElementById('ren-type').value,
+      start_date: document.getElementById('ren-start').value,
+      renewal_date: document.getElementById('ren-renewal').value,
+      amount_paid: parseFloat(document.getElementById('ren-paid').value) || 0,
+      status: 'active',
+    }),
+  });
   if (!res.ok) { showToast('Error saving membership', 'error'); return; }
-  closeRenewModal();
-  showToast('Membership saved');
-  loadClient();
+  closeRenewModal(); showToast('Membership saved'); loadClient();
+}
+
+function openHHModal() {
+  const sel = document.getElementById('hhSelect');
+  sel.innerHTML = '<option value="">— None (remove from household) —</option>' +
+    allHouseholds.map(h => `<option value="${h.id}" ${h.id === clientData.household_id ? 'selected' : ''}>${h.name}</option>`).join('');
+  document.getElementById('hhRole').value = clientData.household_role ?? 'athlete';
+  document.getElementById('hhModal').classList.add('open');
+}
+function closeHHModal() { document.getElementById('hhModal').classList.remove('open'); }
+
+async function saveHousehold() {
+  const household_id = document.getElementById('hhSelect').value || null;
+  const household_role = household_id ? document.getElementById('hhRole').value : null;
+  const form = document.getElementById('profileForm');
+  const fd = new FormData(form);
+  const body = Object.fromEntries(fd.entries());
+  if (body.years_playing) body.years_playing = parseInt(body.years_playing);
+  body.household_id = household_id;
+  body.household_role = household_role;
+  const res = await fetch(`${API}/clients/${clientId}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error updating household', 'error'); return; }
+  closeHHModal(); showToast('Household updated'); await loadClient(); renderHouseholdTab();
 }
 
 async function sendInvoice() {
   const btn = document.getElementById('invoiceBtn');
   if (!btn) return;
-  btn.disabled = true;
-  btn.textContent = 'Sending…';
+  btn.disabled = true; btn.textContent = 'Sending…';
   const res = await fetch(`${API}/clients/${clientId}/invoice`, { method: 'POST', headers: authHeaders() });
   if (!res.ok) {
     const d = await res.json();
     showToast(d.error ?? 'Error sending invoice', 'error');
-    btn.disabled = false;
-    btn.textContent = 'Send Invoice Email';
-    return;
+    btn.disabled = false; btn.textContent = 'Send Invoice Email'; return;
   }
   showToast('Invoice sent!');
   btn.textContent = 'Invoice Sent ✓';
@@ -374,9 +483,10 @@ async function sendInvoice() {
 }
 
 document.getElementById('renewModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRenewModal(); });
+document.getElementById('hhModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHHModal(); });
 
 getToken();
-loadClient();
+Promise.all([loadClient(), loadHouseholds()]);
 </script>
 </body>
 </html>
