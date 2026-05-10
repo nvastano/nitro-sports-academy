@@ -158,21 +158,33 @@
   </div>
 </div>
 
-<!-- Renew Modal -->
+<!-- Membership Modal (create + edit) -->
 <div class="modal-bg" id="renewModal">
   <div class="modal">
-    <h2>Add / Renew Household Membership</h2>
+    <h2 id="renewModalTitle">Add / Renew Household Membership</h2>
     <div style="display:grid;gap:14px">
       <div><label>Membership Type</label>
-        <select id="ren-type">
-          <option value="family_2">Family — 2 siblings ($595/yr)</option>
-          <option value="family_3plus">Family — 3+ siblings ($645/yr)</option>
-          <option value="individual">Individual ($395/yr)</option>
+        <select id="ren-type" onchange="updateDefaultPrice()">
+          <option value="family_2">Family — 2 siblings</option>
+          <option value="family_3plus">Family — 3+ siblings</option>
+          <option value="individual">Individual</option>
         </select>
+      </div>
+      <div>
+        <label>Total Price ($) <span style="color:var(--silver);font-weight:400;text-transform:none;letter-spacing:0">— override default here</span></label>
+        <input type="number" id="ren-price" min="0" step="0.01" placeholder="Leave blank to use default">
       </div>
       <div><label>Start Date</label><input type="date" id="ren-start"></div>
       <div><label>Renewal Date</label><input type="date" id="ren-renewal"></div>
       <div><label>Amount Paid ($)</label><input type="number" id="ren-paid" min="0" step="0.01" value="0"></div>
+      <div><label>Status</label>
+        <select id="ren-status">
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="expired">Expired</option>
+        </select>
+      </div>
+      <div><label>Notes</label><input type="text" id="ren-notes" placeholder="Optional"></div>
     </div>
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeRenewModal()">Cancel</button>
@@ -248,12 +260,13 @@ function renderMembers(members) {
 function renderMembership(m) {
   const el = document.getElementById('memSection');
   if (!m) { el.innerHTML = '<div class="empty">No household membership. Click "+ Add / Renew" above.</div>'; return; }
-  const prices = { individual: 395, family_2: 595, family_3plus: 645 };
-  const price = prices[m.type] ?? 0;
+  const defaultPrices = { individual: 395, family_2: 595, family_3plus: 645 };
+  const price = m.custom_price != null ? m.custom_price : (defaultPrices[m.type] ?? 0);
+  const priceLabel = m.custom_price != null ? `$${price.toFixed(2)} <span style="color:var(--silver);font-size:0.8rem">(custom)</span>` : `$${price.toFixed(2)}`;
   el.innerHTML = `
     <div class="mem-card">
       <div class="mem-type">${membershipLabel(m.type)} ${badgeHtml(m.status)}</div>
-      <div class="mem-row"><span class="mem-label">Annual Price</span><span class="mem-value">$${price.toFixed(2)}</span></div>
+      <div class="mem-row"><span class="mem-label">Annual Price</span><span class="mem-value">${priceLabel}</span></div>
       <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
       <div class="mem-row"><span class="mem-label">Renewal Date</span><span class="mem-value">${m.renewal_date ?? '—'}</span></div>
       <div class="mem-row"><span class="mem-label">Amount Paid</span><span class="mem-value" style="color:#4caf6e">$${(m.amount_paid ?? 0).toFixed(2)}</span></div>
@@ -261,7 +274,10 @@ function renderMembership(m) {
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:12px">
       <p style="color:var(--silver);font-size:0.85rem">To record payments or send an invoice, go to the <strong style="color:var(--white)">contact member's</strong> client page.</p>
-      <button class="btn-danger" onclick="deleteMembership('${m.id}')">Delete Membership</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
+        <button class="btn-danger" onclick="deleteMembership('${m.id}')">Delete Membership</button>
+      </div>
     </div>`;
 }
 
@@ -340,28 +356,79 @@ async function deleteHousehold() {
   window.location.href = 'admin-dashboard.html';
 }
 
+const DEFAULT_PRICES = { individual: 395, family_2: 595, family_3plus: 645 };
+let editingMembershipId = null;
+
+function updateDefaultPrice() {
+  const type = document.getElementById('ren-type').value;
+  const priceField = document.getElementById('ren-price');
+  if (!priceField.dataset.userEdited) {
+    priceField.placeholder = `Default: $${DEFAULT_PRICES[type] ?? '—'}`;
+  }
+}
+
 function openRenewModal() {
+  editingMembershipId = null;
+  document.getElementById('renewModalTitle').textContent = 'Add / Renew Household Membership';
   const today = new Date();
   const nextYear = new Date(today); nextYear.setFullYear(nextYear.getFullYear() + 1);
+  document.getElementById('ren-type').value = 'family_2';
+  document.getElementById('ren-price').value = '';
+  document.getElementById('ren-price').dataset.userEdited = '';
   document.getElementById('ren-start').value = today.toISOString().slice(0, 10);
   document.getElementById('ren-renewal').value = nextYear.toISOString().slice(0, 10);
+  document.getElementById('ren-paid').value = '0';
+  document.getElementById('ren-status').value = 'active';
+  document.getElementById('ren-notes').value = '';
+  updateDefaultPrice();
   document.getElementById('renewModal').classList.add('open');
 }
+
+function openEditMembershipModal(m) {
+  editingMembershipId = m.id;
+  document.getElementById('renewModalTitle').textContent = 'Edit Household Membership';
+  document.getElementById('ren-type').value = m.type;
+  document.getElementById('ren-price').value = m.custom_price != null ? m.custom_price : '';
+  document.getElementById('ren-price').dataset.userEdited = m.custom_price != null ? '1' : '';
+  document.getElementById('ren-start').value = m.start_date ?? '';
+  document.getElementById('ren-renewal').value = m.renewal_date ?? '';
+  document.getElementById('ren-paid').value = m.amount_paid ?? 0;
+  document.getElementById('ren-status').value = m.status ?? 'active';
+  document.getElementById('ren-notes').value = m.notes ?? '';
+  updateDefaultPrice();
+  document.getElementById('renewModal').classList.add('open');
+}
+
 function closeRenewModal() { document.getElementById('renewModal').classList.remove('open'); }
 
 async function saveMembership() {
-  const res = await fetch(`${API}/households/${hhId}/memberships`, {
-    method: 'POST', headers: authHeaders(),
-    body: JSON.stringify({
-      type: document.getElementById('ren-type').value,
-      start_date: document.getElementById('ren-start').value,
-      renewal_date: document.getElementById('ren-renewal').value,
-      amount_paid: parseFloat(document.getElementById('ren-paid').value) || 0,
-      status: 'active',
-    }),
-  });
+  const type = document.getElementById('ren-type').value;
+  const rawPrice = document.getElementById('ren-price').value;
+  const customPrice = rawPrice !== '' ? parseFloat(rawPrice) : null;
+  const body = {
+    type,
+    custom_price: customPrice,
+    start_date: document.getElementById('ren-start').value || null,
+    renewal_date: document.getElementById('ren-renewal').value || null,
+    amount_paid: parseFloat(document.getElementById('ren-paid').value) || 0,
+    status: document.getElementById('ren-status').value,
+    notes: document.getElementById('ren-notes').value || null,
+  };
+
+  let res;
+  if (editingMembershipId) {
+    res = await fetch(`${API}/memberships/${editingMembershipId}`, {
+      method: 'PUT', headers: authHeaders(), body: JSON.stringify(body),
+    });
+  } else {
+    res = await fetch(`${API}/households/${hhId}/memberships`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify(body),
+    });
+  }
   if (!res.ok) { showToast('Error saving membership', 'error'); return; }
-  closeRenewModal(); showToast('Membership saved'); loadHousehold();
+  closeRenewModal();
+  showToast(editingMembershipId ? 'Membership updated' : 'Membership saved');
+  loadHousehold();
 }
 
 document.getElementById('editModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEditModal(); });
