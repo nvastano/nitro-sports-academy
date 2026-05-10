@@ -136,9 +136,16 @@
 <!-- Add Member Modal -->
 <div class="modal-bg" id="addMemberModal">
   <div class="modal">
-    <h2>Add Member to Household</h2>
-    <p style="color:var(--silver);font-size:0.9rem;margin-bottom:20px">Select an existing client to add, or create a new one from the dashboard.</p>
-    <div style="display:grid;gap:14px">
+    <h2 id="addMemberTitle">Add Member to Household</h2>
+
+    <!-- Mode toggle -->
+    <div style="display:flex;gap:0;margin-bottom:20px;border:1px solid rgba(255,255,255,0.1);border-radius:6px;overflow:hidden">
+      <button id="modeExisting" onclick="setAddMode('existing')" style="flex:1;padding:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;border:none;cursor:pointer;background:var(--blue);color:var(--white);transition:background 0.2s">Select Existing</button>
+      <button id="modeNew" onclick="setAddMode('new')" style="flex:1;padding:9px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;border:none;cursor:pointer;background:rgba(255,255,255,0.05);color:var(--silver);transition:background 0.2s">Create New</button>
+    </div>
+
+    <!-- Select existing -->
+    <div id="existingFields" style="display:grid;gap:14px">
       <div>
         <label>Client</label>
         <select id="memberClientSelect"><option value="">Select a client…</option></select>
@@ -151,9 +158,27 @@
         </select>
       </div>
     </div>
+
+    <!-- Create new -->
+    <div id="newFields" style="display:none;grid;gap:14px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label>First Name *</label><input type="text" id="newFirst" placeholder="John"></div>
+        <div><label>Last Name *</label><input type="text" id="newLast" placeholder="Smith"></div>
+      </div>
+      <div><label>Email</label><input type="email" id="newEmail" placeholder="john@example.com"></div>
+      <div><label>Phone</label><input type="tel" id="newPhone" placeholder="(555) 123-4567"></div>
+      <div>
+        <label>Role</label>
+        <select id="newRole">
+          <option value="athlete">Athlete</option>
+          <option value="contact">Contact / Parent</option>
+        </select>
+      </div>
+    </div>
+
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeAddMemberModal()">Cancel</button>
-      <button class="btn-primary" onclick="addMember()">Add to Household</button>
+      <button class="btn-primary" id="addMemberBtn" onclick="addMember()">Add to Household</button>
     </div>
   </div>
 </div>
@@ -308,21 +333,56 @@ async function saveNotes() {
   showToast('Notes saved'); hhData.notes = document.getElementById('notesField').value;
 }
 
+let addMemberMode = 'existing';
+
+function setAddMode(mode) {
+  addMemberMode = mode;
+  document.getElementById('existingFields').style.display = mode === 'existing' ? 'grid' : 'none';
+  document.getElementById('newFields').style.display = mode === 'new' ? 'grid' : 'none';
+  document.getElementById('modeExisting').style.background = mode === 'existing' ? 'var(--blue)' : 'rgba(255,255,255,0.05)';
+  document.getElementById('modeExisting').style.color = mode === 'existing' ? 'var(--white)' : 'var(--silver)';
+  document.getElementById('modeNew').style.background = mode === 'new' ? 'var(--blue)' : 'rgba(255,255,255,0.05)';
+  document.getElementById('modeNew').style.color = mode === 'new' ? 'var(--white)' : 'var(--silver)';
+  document.getElementById('addMemberBtn').textContent = mode === 'new' ? 'Create & Add' : 'Add to Household';
+}
+
 function openAddMemberModal() {
+  setAddMode('existing');
   const sel = document.getElementById('memberClientSelect');
   const memberIds = new Set((hhData.members ?? []).map(m => m.id));
   const available = allClients.filter(c => !memberIds.has(c.id));
   sel.innerHTML = '<option value="">Select a client…</option>' +
     available.map(c => `<option value="${c.id}">${c.first_name} ${c.last_name}${c.email ? ` (${c.email})` : ''}</option>`).join('');
+  ['newFirst','newLast','newEmail','newPhone'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('newRole').value = 'athlete';
   document.getElementById('addMemberModal').classList.add('open');
 }
 function closeAddMemberModal() { document.getElementById('addMemberModal').classList.remove('open'); }
 
 async function addMember() {
+  if (addMemberMode === 'new') {
+    const first = document.getElementById('newFirst').value.trim();
+    const last = document.getElementById('newLast').value.trim();
+    if (!first || !last) { showToast('First and last name are required', 'error'); return; }
+    const role = document.getElementById('newRole').value;
+    const res = await fetch(`${API}/clients`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({
+        first_name: first, last_name: last,
+        email: document.getElementById('newEmail').value.trim() || null,
+        phone: document.getElementById('newPhone').value.trim() || null,
+        household_id: hhId, household_role: role,
+      }),
+    });
+    if (!res.ok) { showToast('Error creating client', 'error'); return; }
+    closeAddMemberModal(); showToast(`${first} ${last} created and added`);
+    await Promise.all([loadHousehold(), loadAllClients()]);
+    return;
+  }
+
   const clientId = document.getElementById('memberClientSelect').value;
   if (!clientId) { showToast('Please select a client', 'error'); return; }
   const role = document.getElementById('memberRole').value;
-  // Fetch the client's current data to preserve all fields, then PUT with updated household
   const clientRes = await fetch(`${API}/clients/${clientId}`, { headers: authHeaders() });
   const client = await clientRes.json();
   const body = {
