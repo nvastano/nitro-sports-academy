@@ -112,6 +112,11 @@
     <div class="stat"><div class="stat-num" id="stat-due">—</div><div class="stat-label">Balance Owed</div></div>
   </div>
 
+  <div class="renewals" id="leads-panel" style="border-color:rgba(61,101,204,0.4)">
+    <h2 style="color:var(--blue-light)">★ New Leads</h2>
+    <div id="leads-list"><div class="loading">Loading…</div></div>
+  </div>
+
   <div class="renewals">
     <h2>⚠ Renewals Due in Next 30 Days</h2>
     <div id="renewals-list"><div class="loading">Loading…</div></div>
@@ -264,6 +269,31 @@ function switchView(name) {
   document.getElementById(`view-${name}`).classList.add('active');
 }
 
+async function loadLeads() {
+  const res = await fetch(`${API}/leads`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  const leads = await res.json();
+  const el = document.getElementById('leads-list');
+  const panel = document.getElementById('leads-panel');
+  if (!leads.length) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  el.innerHTML = leads.map(l => `
+    <div class="renewal-row" onclick="go('${l.id}')">
+      <div>
+        <div class="renewal-name">${l.first_name} ${l.last_name}
+          <span class="badge" style="background:rgba(61,101,204,0.2);color:var(--blue-light);border:1px solid rgba(61,101,204,0.3);margin-left:8px">${leadStatusLabel(l.lead_status)}</span>
+        </div>
+        <div class="renewal-meta">${[l.email, l.phone].filter(Boolean).join(' · ')}${l.inquiry_type ? ` · ${l.inquiry_type}` : ''}</div>
+        ${l.inquiry_notes ? `<div class="renewal-meta" style="margin-top:3px;font-style:italic">"${l.inquiry_notes.slice(0,120)}${l.inquiry_notes.length > 120 ? '…' : ''}"</div>` : ''}
+      </div>
+      <div style="font-size:0.82rem;color:var(--silver);white-space:nowrap">${l.created_at ? l.created_at.slice(0,10) : ''}</div>
+    </div>`).join('');
+}
+
+function leadStatusLabel(s) {
+  return { lead: 'New Lead', contacted: 'Contacted', converted: 'Converted', closed: 'Closed' }[s] ?? s ?? '—';
+}
+
 async function loadRenewals() {
   const res = await fetch(`${API}/renewals/upcoming?days=30`, { headers: authHeaders() });
   if (res.status === 401) { logout(); return; }
@@ -410,7 +440,7 @@ document.getElementById('clientModal').addEventListener('click', e => { if (e.ta
 document.getElementById('householdModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHouseholdModal(); });
 
 getToken();
-Promise.all([loadClients(), loadHouseholds(), loadRenewals()]);
+Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
 </script>
 </body>
 </html>

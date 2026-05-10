@@ -237,5 +237,44 @@
       window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
     }
   </script>
+  <script>
+    (function () {
+      const form = document.getElementById('contact-form');
+      if (!form) return;
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const data = new FormData(form);
+        const payload = {
+          first_name: data.get('first_name') ?? '',
+          last_name:  data.get('last_name')  ?? '',
+          email:      data.get('email')       ?? '',
+          phone:      data.get('phone')       ?? '',
+          interest:   data.get('interest')    ?? '',
+          message:    data.get('message')     ?? '',
+        };
+
+        // Submit to Formspree and our CRM in parallel
+        await Promise.allSettled([
+          fetch(form.action, {
+            method: 'POST',
+            headers: { 'Accept': 'application/json' },
+            body: data,
+          }),
+          fetch('https://nitro-crm.nicholas-vastano.workers.dev/webhooks/contact', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          }),
+        ]);
+
+        // Show success message regardless of CRM result
+        form.style.display = 'none';
+        const success = document.getElementById('form-success');
+        if (success) success.style.display = 'block';
+      });
+    })();
+  </script>
 </body>
 </html>

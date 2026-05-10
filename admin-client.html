@@ -106,6 +106,22 @@
     </div>
   </div>
 
+  <div id="leadBar" style="display:none;background:rgba(43,79,168,0.15);border:1px solid rgba(43,79,168,0.35);border-radius:8px;padding:16px 20px;margin-bottom:20px;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--blue-light);margin-bottom:4px">Lead Status</div>
+      <div id="leadInquiryType" style="font-size:0.9rem;color:var(--silver-light)"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+      <select id="leadStatusSelect" onchange="updateLeadStatus()" style="background:var(--dark-mid);border:1px solid rgba(43,79,168,0.4);border-radius:5px;padding:8px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none">
+        <option value="lead">New Lead</option>
+        <option value="contacted">Contacted</option>
+        <option value="converted">Converted</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+  </div>
+  <div id="leadNotesBar" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:14px 20px;margin-bottom:20px;font-size:0.9rem;color:var(--silver-light);font-style:italic"></div>
+
   <div class="tabs">
     <div class="tab active" onclick="switchTab('profile')">Profile</div>
     <div class="tab" onclick="switchTab('membership')">Membership</div>
@@ -365,6 +381,7 @@ async function loadClient() {
 
   fillProfile(clientData);
   renderMembership(clientData.membership ?? null);
+  renderLeadBar(clientData);
   document.getElementById('page').style.display = 'block';
   document.getElementById('payDate').value = new Date().toISOString().slice(0, 10);
 }
@@ -486,6 +503,43 @@ async function sendInvoice() {
   showToast('Invoice sent!');
   btn.textContent = 'Invoice Sent ✓';
   setTimeout(() => { btn.disabled = false; btn.textContent = 'Send Invoice Email'; }, 5000);
+}
+
+function renderLeadBar(client) {
+  const bar = document.getElementById('leadBar');
+  const notesBar = document.getElementById('leadNotesBar');
+  if (!client.lead_status) { bar.style.display = 'none'; notesBar.style.display = 'none'; return; }
+  bar.style.display = 'flex';
+  document.getElementById('leadStatusSelect').value = client.lead_status;
+  document.getElementById('leadInquiryType').textContent = client.inquiry_type
+    ? `Inquiry: ${client.inquiry_type}` : 'Contact form submission';
+  if (client.inquiry_notes) {
+    notesBar.style.display = 'block';
+    notesBar.textContent = `"${client.inquiry_notes}"`;
+  } else {
+    notesBar.style.display = 'none';
+  }
+}
+
+async function updateLeadStatus() {
+  const status = document.getElementById('leadStatusSelect').value;
+  const form = document.getElementById('profileForm');
+  const fd = new FormData(form);
+  const body = Object.fromEntries(fd.entries());
+  if (body.years_playing) body.years_playing = parseInt(body.years_playing);
+  body.household_id = clientData.household_id ?? null;
+  body.household_role = clientData.household_role ?? null;
+  body.lead_status = status;
+  body.inquiry_type = clientData.inquiry_type ?? null;
+  body.inquiry_notes = clientData.inquiry_notes ?? null;
+  const res = await fetch(`${API}/clients/${clientId}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error updating status', 'error'); return; }
+  clientData.lead_status = status;
+  showToast(`Status updated to "${leadStatusLabel(status)}"`);
+}
+
+function leadStatusLabel(s) {
+  return { lead: 'New Lead', contacted: 'Contacted', converted: 'Converted', closed: 'Closed' }[s] ?? s;
 }
 
 async function deleteClient() {
