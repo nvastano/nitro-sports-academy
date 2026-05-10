@@ -101,7 +101,9 @@
       <h1 id="clientName">Loading…</h1>
       <p id="clientSub"></p>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="headerBadges"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center" id="headerBadges">
+      <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteClient()">Delete Client</button>
+    </div>
   </div>
 
   <div class="tabs">
@@ -148,8 +150,8 @@
     <div class="card">
       <div class="card-title">Payment History</div>
       <table class="pay-table">
-        <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Venmo Ref</th><th>Notes</th></tr></thead>
-        <tbody id="payTable"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+        <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Venmo Ref</th><th>Notes</th><th></th></tr></thead>
+        <tbody id="payTable"><tr><td colspan="6" class="empty">Loading…</td></tr></tbody>
       </table>
       <div class="add-pay-form">
         <div><label>Amount ($)</label><input type="number" id="payAmount" min="0" step="0.01" placeholder="0.00"></div>
@@ -284,9 +286,12 @@ function renderMembership(m) {
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
       <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
       <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>
-      <button class="btn-gold" id="invoiceBtn" onclick="sendInvoice()" ${!clientData?.email ? 'disabled title="No email on file"' : ''}>
-        Send Invoice Email
-      </button>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+        <button class="btn-gold" id="invoiceBtn" onclick="sendInvoice()" ${!clientData?.email ? 'disabled title="No email on file"' : ''}>
+          Send Invoice Email
+        </button>
+        <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteMembership('${m.id}')">Delete Membership</button>
+      </div>
     </div>`;
 }
 
@@ -398,6 +403,7 @@ async function loadPayments() {
       <td style="text-transform:capitalize">${p.method ?? 'venmo'}</td>
       <td style="color:var(--silver)">${p.venmo_reference ?? '—'}</td>
       <td style="color:var(--silver)">${p.notes ?? '—'}</td>
+      <td><button onclick="deletePayment('${p.id}')" style="background:transparent;border:none;color:#ff7b7b;cursor:pointer;font-size:1rem;padding:4px 8px" title="Delete payment">✕</button></td>
     </tr>`).join('');
 }
 
@@ -480,6 +486,30 @@ async function sendInvoice() {
   showToast('Invoice sent!');
   btn.textContent = 'Invoice Sent ✓';
   setTimeout(() => { btn.disabled = false; btn.textContent = 'Send Invoice Email'; }, 5000);
+}
+
+async function deleteClient() {
+  if (!confirm(`Delete ${clientData.first_name} ${clientData.last_name}? This also removes their memberships and payments and cannot be undone.`)) return;
+  const res = await fetch(`${API}/clients/${clientId}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) { showToast('Error deleting client', 'error'); return; }
+  window.location.href = 'admin-dashboard.html';
+}
+
+async function deleteMembership(membershipId) {
+  if (!confirm('Delete this membership record? This cannot be undone.')) return;
+  const res = await fetch(`${API}/memberships/${membershipId}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) { showToast('Error deleting membership', 'error'); return; }
+  showToast('Membership deleted');
+  loadClient();
+}
+
+async function deletePayment(paymentId) {
+  if (!confirm('Delete this payment? The balance will be reversed on the membership.')) return;
+  const res = await fetch(`${API}/payments/${paymentId}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) { showToast('Error deleting payment', 'error'); return; }
+  showToast('Payment deleted');
+  loadPayments();
+  loadClient();
 }
 
 document.getElementById('renewModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRenewModal(); });

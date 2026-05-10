@@ -259,7 +259,10 @@ function renderMembership(m) {
       <div class="mem-row"><span class="mem-label">Amount Paid</span><span class="mem-value" style="color:#4caf6e">$${(m.amount_paid ?? 0).toFixed(2)}</span></div>
       <div class="mem-row"><span class="mem-label">Balance Due</span><span class="mem-value" style="color:var(--gold)">$${(m.amount_due ?? 0).toFixed(2)}</span></div>
     </div>
-    <p style="color:var(--silver);font-size:0.85rem">To record payments or send an invoice, go to the <strong style="color:var(--white)">contact member's</strong> client page.</p>`;
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:12px">
+      <p style="color:var(--silver);font-size:0.85rem">To record payments or send an invoice, go to the <strong style="color:var(--white)">contact member's</strong> client page.</p>
+      <button class="btn-danger" onclick="deleteMembership('${m.id}')">Delete Membership</button>
+    </div>`;
 }
 
 function openEditModal() {
@@ -320,6 +323,14 @@ async function addMember() {
   if (!res.ok) { showToast('Error adding member', 'error'); return; }
   closeAddMemberModal(); showToast('Member added');
   await Promise.all([loadHousehold(), loadAllClients()]);
+}
+
+async function deleteMembership(membershipId) {
+  if (!confirm('Delete this household membership? This cannot be undone.')) return;
+  const res = await fetch(`${API}/memberships/${membershipId}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) { showToast('Error deleting membership', 'error'); return; }
+  showToast('Membership deleted');
+  loadHousehold();
 }
 
 async function deleteHousehold() {
