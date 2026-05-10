@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Client — Nitro Sports Academy Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--blue:#2B4FA8;--blue-dark:#1a3278;--blue-light:#3d65cc;--gold:#E8B84B;--silver:#9AA0B4;--silver-light:#C8CDD9;--dark:#0D1321;--dark-mid:#1C2540;--white:#fff}
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--white);min-height:100vh}
+  header{background:rgba(13,19,33,0.97);border-bottom:2px solid var(--blue);padding:0 24px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+  .logo img{height:44px}
+  .logo-text{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white)}
+  .logo-text span{color:var(--blue-light)}
+  .header-right{display:flex;align-items:center;gap:12px}
+  .btn-back{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:var(--silver);padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;text-decoration:none;transition:all 0.2s}
+  .btn-back:hover{border-color:var(--blue);color:var(--white)}
+  .btn-logout{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:4px;color:var(--silver);padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+  .btn-logout:hover{border-color:var(--blue);color:var(--white)}
+  .page{max-width:960px;margin:0 auto;padding:32px 24px}
+  .client-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:28px;flex-wrap:wrap;gap:16px}
+  .client-name-block h1{font-family:'Oswald',sans-serif;font-size:2rem;letter-spacing:0.04em;text-transform:uppercase}
+  .client-name-block p{color:var(--silver);margin-top:4px}
+  .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+  .badge-active{background:rgba(43,168,79,0.2);color:#4caf6e;border:1px solid rgba(43,168,79,0.3)}
+  .badge-expired{background:rgba(220,50,50,0.2);color:#ff7b7b;border:1px solid rgba(220,50,50,0.3)}
+  .badge-pending{background:rgba(232,184,75,0.2);color:var(--gold);border:1px solid rgba(232,184,75,0.3)}
+  /* Tabs */
+  .tabs{display:flex;gap:4px;border-bottom:2px solid rgba(255,255,255,0.08);margin-bottom:28px}
+  .tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;color:var(--silver);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+  .tab.active{color:var(--white);border-bottom-color:var(--blue-light)}
+  .tab-panel{display:none}
+  .tab-panel.active{display:block}
+  /* Cards */
+  .card{background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:24px;margin-bottom:20px}
+  .card-title{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--silver);margin-bottom:20px;display:flex;align-items:center;justify-content:space-between}
+  /* Form fields */
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field-grid .full{grid-column:1/-1}
+  .field{margin-bottom:0}
+  label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:5px}
+  input,select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:9px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
+  input:focus,select:focus{border-color:var(--blue-light)}
+  input[readonly]{opacity:0.5;cursor:default}
+  .btn-save-profile{background:var(--blue);border:none;border-radius:5px;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
+  .btn-save-profile:hover{background:var(--blue-light)}
+  /* Membership card */
+  .mem-card{background:linear-gradient(135deg,var(--blue-dark),var(--dark-mid));border:1px solid rgba(43,79,168,0.5);border-radius:10px;padding:24px;position:relative;overflow:hidden}
+  .mem-card::before{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:var(--blue);opacity:0.1;border-radius:50%}
+  .mem-type{font-family:'Oswald',sans-serif;font-size:1.4rem;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:16px}
+  .mem-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.9rem}
+  .mem-row:last-child{border-bottom:none}
+  .mem-label{color:var(--silver)}
+  .mem-value{font-weight:600}
+  .mem-due{font-family:'Oswald',sans-serif;font-size:1.8rem;color:var(--gold);margin:16px 0 4px}
+  .btn-invoice{background:var(--gold);border:none;border-radius:5px;padding:12px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.9rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--dark);cursor:pointer;transition:opacity 0.2s;margin-top:16px}
+  .btn-invoice:hover{opacity:0.85}
+  .btn-invoice:disabled{opacity:0.5;cursor:not-allowed}
+  .btn-renew{background:var(--blue);border:none;border-radius:5px;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
+  .btn-renew:hover{background:var(--blue-light)}
+  /* Payments */
+  .pay-table{width:100%;border-collapse:collapse;font-size:0.88rem}
+  .pay-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);padding:8px 12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.08)}
+  .pay-table td{padding:11px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:middle}
+  /* Add payment form */
+  .add-pay-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;align-items:end;margin-top:20px;padding-top:20px;border-top:1px solid rgba(255,255,255,0.08)}
+  .btn-add-pay{background:var(--blue);border:none;border-radius:5px;padding:9px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;white-space:nowrap;transition:background 0.2s;margin-top:20px}
+  .btn-add-pay:hover{background:var(--blue-light)}
+  /* Modal */
+  .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.75);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.4);border-radius:10px;padding:32px;width:100%;max-width:480px}
+  .modal h2{font-family:'Oswald',sans-serif;font-size:1.2rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:20px}
+  .modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:20px}
+  .btn-cancel{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:5px;padding:9px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);cursor:pointer}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--dark-mid);border:1px solid rgba(43,79,168,0.5);border-radius:8px;padding:14px 20px;font-size:0.9rem;z-index:300;transform:translateY(80px);opacity:0;transition:all 0.3s}
+  .toast.show{transform:translateY(0);opacity:1}
+  .toast.success{border-color:rgba(43,168,79,0.5);color:#4caf6e}
+  .toast.error{border-color:rgba(220,50,50,0.5);color:#ff7b7b}
+  .empty{color:var(--silver);font-size:0.9rem;padding:16px 0}
+  @media(max-width:600px){.field-grid{grid-template-columns:1fr}.field-grid .full{grid-column:1}}
+</style>
+</head>
+<body>
+
+<header>
+  <a class="logo" href="admin-dashboard.html">
+    <img src="images/nitro-logo.png" alt="Nitro">
+    <span class="logo-text"><span>Nitro</span> Admin</span>
+  </a>
+  <div class="header-right">
+    <a class="btn-back" href="admin-dashboard.html">← Dashboard</a>
+    <button class="btn-logout" onclick="logout()">Sign Out</button>
+  </div>
+</header>
+
+<div class="page" id="page" style="display:none">
+
+  <div class="client-header">
+    <div class="client-name-block">
+      <h1 id="clientName">Loading…</h1>
+      <p id="clientSub"></p>
+    </div>
+    <div id="memBadge"></div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('profile')">Profile</div>
+    <div class="tab" onclick="switchTab('membership')">Membership</div>
+    <div class="tab" onclick="switchTab('payments')">Payments</div>
+  </div>
+
+  <!-- PROFILE TAB -->
+  <div class="tab-panel active" id="tab-profile">
+    <div class="card">
+      <div class="card-title">Contact Info</div>
+      <form id="profileForm" onsubmit="saveProfile(event)">
+        <div class="field-grid">
+          <div><label>First Name</label><input name="first_name" required></div>
+          <div><label>Last Name</label><input name="last_name" required></div>
+          <div><label>Email</label><input name="email" type="email"></div>
+          <div><label>Phone</label><input name="phone" type="tel"></div>
+          <div class="full"><label>Address</label><input name="address"></div>
+          <div><label>Date of Birth</label><input name="date_of_birth" type="date"></div>
+          <div><label>Years Playing</label><input name="years_playing" type="number" min="0"></div>
+          <div><label>Current Team</label><input name="current_team"></div>
+          <div><label>Primary Position</label><input name="primary_position"></div>
+          <div><label>Secondary Position</label><input name="secondary_position"></div>
+          <div><label>Emergency Contact Name</label><input name="emergency_contact_name"></div>
+          <div><label>Emergency Contact Phone</label><input name="emergency_contact_phone" type="tel"></div>
+          <div class="full" style="margin-top:8px">
+            <button type="submit" class="btn-save-profile">Save Profile</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MEMBERSHIP TAB -->
+  <div class="tab-panel" id="tab-membership">
+    <div class="mem-card" id="memCard">
+      <div class="empty">No membership on file.</div>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn-renew" onclick="openRenewModal()">+ Add / Renew Membership</button>
+    </div>
+  </div>
+
+  <!-- PAYMENTS TAB -->
+  <div class="tab-panel" id="tab-payments">
+    <div class="card">
+      <div class="card-title">Payment History</div>
+      <table class="pay-table">
+        <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Venmo Ref</th><th>Notes</th></tr></thead>
+        <tbody id="payTable"><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+      </table>
+      <div class="add-pay-form">
+        <div><label>Amount ($)</label><input type="number" id="payAmount" min="0" step="0.01" placeholder="0.00"></div>
+        <div><label>Date</label><input type="date" id="payDate"></div>
+        <div><label>Venmo Reference</label><input type="text" id="payRef" placeholder="Optional"></div>
+        <div><label>Notes</label><input type="text" id="payNotes" placeholder="Optional"></div>
+        <div><button class="btn-add-pay" onclick="addPayment()">+ Record Payment</button></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Renew Modal -->
+<div class="modal-bg" id="renewModal">
+  <div class="modal">
+    <h2>Add / Renew Membership</h2>
+    <div style="display:grid;gap:14px">
+      <div><label>Membership Type</label>
+        <select id="ren-type">
+          <option value="individual">Individual ($395/yr)</option>
+          <option value="family_2">Family — 2 siblings ($595/yr)</option>
+          <option value="family_3plus">Family — 3+ siblings ($645/yr)</option>
+        </select>
+      </div>
+      <div><label>Start Date</label><input type="date" id="ren-start"></div>
+      <div><label>Renewal Date</label><input type="date" id="ren-renewal"></div>
+      <div><label>Amount Paid Upfront ($)</label><input type="number" id="ren-paid" min="0" step="0.01" value="0"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRenewModal()">Cancel</button>
+      <button class="btn-save-profile" onclick="saveMembership()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
+const params = new URLSearchParams(location.search);
+const clientId = params.get('id');
+let currentMembership = null;
+
+function getToken() {
+  const t = localStorage.getItem('nitro_token');
+  if (!t) { window.location.href = 'admin.html'; return null; }
+  return t;
+}
+function authHeaders() {
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
+}
+function logout() { localStorage.removeItem('nitro_token'); window.location.href = 'admin.html'; }
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const panels = ['profile','membership','payments'];
+    t.classList.toggle('active', panels[i] === name);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  if (name === 'payments') loadPayments();
+}
+
+function membershipLabel(type) {
+  return { individual: 'Individual', family_2: 'Family (2 siblings)', family_3plus: 'Family (3+ siblings)' }[type] ?? '—';
+}
+
+function badgeHtml(status) {
+  const cls = { active: 'badge-active', expired: 'badge-expired', pending: 'badge-pending' }[status] ?? 'badge-pending';
+  return `<span class="badge ${cls}">${status ?? 'none'}</span>`;
+}
+
+function fillProfile(client) {
+  const form = document.getElementById('profileForm');
+  ['first_name','last_name','email','phone','address','date_of_birth','years_playing',
+   'current_team','primary_position','secondary_position','emergency_contact_name','emergency_contact_phone']
+    .forEach(k => { if (form[k]) form[k].value = client[k] ?? ''; });
+}
+
+function renderMembership(m) {
+  currentMembership = m;
+  const card = document.getElementById('memCard');
+  const prices = { individual: 395, family_2: 595, family_3plus: 645 };
+  if (!m) { card.innerHTML = '<div class="empty">No membership on file. Click "Add / Renew Membership" below.</div>'; return; }
+  const price = prices[m.type] ?? 0;
+  card.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
+      <div class="mem-type">${membershipLabel(m.type)}</div>
+      ${badgeHtml(m.status)}
+    </div>
+    <div class="mem-row"><span class="mem-label">Annual Price</span><span class="mem-value">$${price.toFixed(2)}</span></div>
+    <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
+    <div class="mem-row"><span class="mem-label">Renewal Date</span><span class="mem-value">${m.renewal_date ?? '—'}</span></div>
+    <div class="mem-row"><span class="mem-label">Amount Paid</span><span class="mem-value" style="color:#4caf6e">$${(m.amount_paid ?? 0).toFixed(2)}</span></div>
+    <div class="mem-row"><span class="mem-label">Balance Due</span><span class="mem-value" style="color:var(--gold)">$${(m.amount_due ?? 0).toFixed(2)}</span></div>
+    ${m.notes ? `<div class="mem-row"><span class="mem-label">Notes</span><span class="mem-value">${m.notes}</span></div>` : ''}
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
+      <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
+      <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>
+      <button class="btn-invoice" id="invoiceBtn" onclick="sendInvoice()" ${!document.getElementById('clientSub').textContent.includes('@') ? 'disabled title="No email on file"' : ''}>
+        Send Invoice Email
+      </button>
+    </div>`;
+}
+
+async function loadClient() {
+  if (!clientId) { window.location.href = 'admin-dashboard.html'; return; }
+  const res = await fetch(`${API}/clients/${clientId}`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  if (!res.ok) { window.location.href = 'admin-dashboard.html'; return; }
+  const data = await res.json();
+  document.getElementById('clientName').textContent = `${data.first_name} ${data.last_name}`;
+  document.getElementById('clientSub').textContent = [data.email, data.phone].filter(Boolean).join(' · ');
+  document.getElementById('memBadge').innerHTML = badgeHtml(data.membership?.status);
+  fillProfile(data);
+  renderMembership(data.membership ?? null);
+  document.getElementById('page').style.display = 'block';
+  document.getElementById('payDate').value = new Date().toISOString().slice(0, 10);
+}
+
+async function saveProfile(e) {
+  e.preventDefault();
+  const fd = new FormData(e.target);
+  const body = Object.fromEntries(fd.entries());
+  if (body.years_playing) body.years_playing = parseInt(body.years_playing);
+  const res = await fetch(`${API}/clients/${clientId}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error saving profile', 'error'); return; }
+  const data = await res.json();
+  document.getElementById('clientName').textContent = `${data.first_name} ${data.last_name}`;
+  document.getElementById('clientSub').textContent = [data.email, data.phone].filter(Boolean).join(' · ');
+  showToast('Profile saved');
+}
+
+async function loadPayments() {
+  const res = await fetch(`${API}/clients/${clientId}/payments`, { headers: authHeaders() });
+  const payments = await res.json();
+  const tbody = document.getElementById('payTable');
+  if (!payments.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No payments recorded.</td></tr>'; return; }
+  tbody.innerHTML = payments.map(p => `
+    <tr>
+      <td style="color:var(--silver-light)">${p.date}</td>
+      <td style="color:#4caf6e;font-weight:600">$${parseFloat(p.amount).toFixed(2)}</td>
+      <td style="text-transform:capitalize">${p.method ?? 'venmo'}</td>
+      <td style="color:var(--silver)">${p.venmo_reference ?? '—'}</td>
+      <td style="color:var(--silver)">${p.notes ?? '—'}</td>
+    </tr>`).join('');
+}
+
+async function addPayment() {
+  const amount = parseFloat(document.getElementById('payAmount').value);
+  const date = document.getElementById('payDate').value;
+  if (!amount || !date) { showToast('Amount and date are required', 'error'); return; }
+  const body = {
+    amount, date,
+    membership_id: currentMembership?.id ?? null,
+    venmo_reference: document.getElementById('payRef').value || null,
+    notes: document.getElementById('payNotes').value || null,
+  };
+  const res = await fetch(`${API}/clients/${clientId}/payments`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error recording payment', 'error'); return; }
+  document.getElementById('payAmount').value = '';
+  document.getElementById('payRef').value = '';
+  document.getElementById('payNotes').value = '';
+  showToast(`$${amount.toFixed(2)} recorded`);
+  loadPayments();
+  loadClient();
+}
+
+function openRenewModal() {
+  const today = new Date();
+  const nextYear = new Date(today);
+  nextYear.setFullYear(nextYear.getFullYear() + 1);
+  document.getElementById('ren-start').value = today.toISOString().slice(0, 10);
+  document.getElementById('ren-renewal').value = nextYear.toISOString().slice(0, 10);
+  document.getElementById('renewModal').classList.add('open');
+}
+function closeRenewModal() { document.getElementById('renewModal').classList.remove('open'); }
+
+async function saveMembership() {
+  const body = {
+    type: document.getElementById('ren-type').value,
+    start_date: document.getElementById('ren-start').value,
+    renewal_date: document.getElementById('ren-renewal').value,
+    amount_paid: parseFloat(document.getElementById('ren-paid').value) || 0,
+    status: 'active',
+  };
+  const res = await fetch(`${API}/clients/${clientId}/memberships`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error saving membership', 'error'); return; }
+  closeRenewModal();
+  showToast('Membership saved');
+  loadClient();
+}
+
+async function sendInvoice() {
+  const btn = document.getElementById('invoiceBtn');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = 'Sending…';
+  const res = await fetch(`${API}/clients/${clientId}/invoice`, { method: 'POST', headers: authHeaders() });
+  if (!res.ok) {
+    const d = await res.json();
+    showToast(d.error ?? 'Error sending invoice', 'error');
+    btn.disabled = false;
+    btn.textContent = 'Send Invoice Email';
+    return;
+  }
+  showToast('Invoice sent!');
+  btn.textContent = 'Invoice Sent ✓';
+  setTimeout(() => { btn.disabled = false; btn.textContent = 'Send Invoice Email'; }, 5000);
+}
+
+document.getElementById('renewModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRenewModal(); });
+
+getToken();
+loadClient();
+</script>
+</body>
+</html>
