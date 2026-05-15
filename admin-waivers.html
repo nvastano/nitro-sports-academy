@@ -190,7 +190,8 @@ function openDetail(id) {
   html += row('Guardian Email', w.guardian_email);
   html += row('Emergency Phone', w.emergency_phone);
 
-  html += `<div class="section-head">Submission</div>`;
+  html += `<div class="section-head">Signature &amp; Submission</div>`;
+  html += row('Electronic Signature', w.signature ? `<em>${w.signature}</em>` : '—');
   html += row('Signed At', fmt(w.signed_at));
   html += row('IP Address', w.ip_address);
   html += row('Record ID', `<span style="font-family:monospace;font-size:0.8rem">${w.id}</span>`);
