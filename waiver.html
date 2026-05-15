@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sign the Nitro Sports Academy Waiver and Release of Liability Form online. Required before participating in any training, lessons, or facility access." />
+  <meta name="robots" content="noindex" />
+  <title>Waiver & Release of Liability | Nitro Sports Academy</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet" />
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X2GC65NEMX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-X2GC65NEMX');</script>
+  <style>
+    :root {
+      --blue: #2B4FA8; --blue-light: #3d65cc; --gold: #E8B84B;
+      --silver: #9AA0B4; --dark: #0D1321; --dark-mid: #1C2540; --white: #fff;
+    }
+    body { background: var(--dark); color: var(--white); font-family: 'Barlow', sans-serif; }
+
+    /* Waiver document */
+    .waiver-wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+    .waiver-doc { background: var(--dark-mid); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 40px 48px; margin-bottom: 40px; }
+    @media (max-width: 600px) { .waiver-doc { padding: 24px 20px; } }
+
+    .waiver-logo { text-align: center; margin-bottom: 28px; }
+    .waiver-logo .brand { font-family: 'Oswald', sans-serif; font-size: 1.4rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+    .waiver-logo .brand span { color: var(--blue-light); }
+    .waiver-title { text-align: center; font-family: 'Oswald', sans-serif; font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid var(--blue); padding-bottom: 20px; margin-bottom: 24px; }
+    .waiver-note { background: rgba(232,184,75,0.1); border: 1px solid rgba(232,184,75,0.35); border-radius: 6px; padding: 14px 18px; font-size: 0.88rem; color: #f0d080; margin-bottom: 28px; line-height: 1.55; }
+    .waiver-affirm { font-size: 0.88rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--silver); margin-bottom: 24px; text-align: center; }
+
+    .waiver-section { margin-bottom: 28px; }
+    .waiver-section h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .waiver-section p, .waiver-section li { font-size: 0.9rem; line-height: 1.65; color: #c0c8d8; margin-bottom: 10px; }
+    .waiver-section ol { padding-left: 20px; display: flex; flex-direction: column; gap: 10px; }
+    .waiver-section li { font-size: 0.9rem; line-height: 1.65; color: #c0c8d8; }
+    .waiver-section strong { color: var(--white); }
+    .rules-list { display: flex; flex-direction: column; gap: 6px; padding-left: 20px; list-style: disc; }
+
+    .waiver-certify { font-size: 0.95rem; font-weight: 600; line-height: 1.7; color: var(--white); background: rgba(43,79,168,0.15); border: 1px solid rgba(43,79,168,0.4); border-radius: 8px; padding: 20px 24px; margin-top: 28px; }
+
+    /* Form */
+    .waiver-form-wrap { background: var(--dark-mid); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 40px 48px; }
+    @media (max-width: 600px) { .waiver-form-wrap { padding: 24px 20px; } }
+    .waiver-form-wrap h2 { font-family: 'Oswald', sans-serif; font-size: 1.2rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 6px; }
+    .waiver-form-wrap .sub { color: var(--silver); font-size: 0.88rem; margin-bottom: 28px; }
+
+    .form-section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 24px 0 14px; border-bottom: 1px solid rgba(232,184,75,0.2); padding-bottom: 6px; }
+    .participant-row { display: grid; grid-template-columns: 1fr auto; gap: 12px; margin-bottom: 12px; align-items: end; }
+    .participant-row .age-col { width: 80px; }
+    label { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--silver); margin-bottom: 5px; }
+    input, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 10px 14px; color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus { border-color: var(--blue-light); }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    @media (max-width: 520px) { .form-row-2 { grid-template-columns: 1fr; } .participant-row { grid-template-columns: 1fr; } .participant-row .age-col { width: 100%; } }
+
+    .agree-block { display: flex; gap: 12px; align-items: flex-start; background: rgba(43,79,168,0.1); border: 1px solid rgba(43,79,168,0.3); border-radius: 8px; padding: 18px 20px; margin: 24px 0; cursor: pointer; }
+    .agree-block input[type=checkbox] { width: 20px; min-width: 20px; height: 20px; margin-top: 2px; accent-color: var(--blue-light); cursor: pointer; }
+    .agree-block p { font-size: 0.9rem; line-height: 1.6; color: #c0c8d8; margin: 0; }
+    .agree-block strong { color: var(--white); }
+
+    .btn-submit { width: 100%; background: var(--gold); border: none; border-radius: 6px; padding: 16px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 1rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--dark); cursor: pointer; transition: opacity 0.2s; margin-top: 8px; }
+    .btn-submit:hover { opacity: 0.88; }
+    .btn-submit:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .success-box { display: none; text-align: center; padding: 40px 24px; }
+    .success-box .icon { font-size: 3rem; margin-bottom: 16px; }
+    .success-box h2 { font-family: 'Oswald', sans-serif; font-size: 1.6rem; text-transform: uppercase; margin-bottom: 12px; }
+    .success-box p { color: var(--silver); line-height: 1.6; margin-bottom: 20px; }
+    .success-box a { color: var(--blue-light); text-decoration: none; }
+
+    .err-msg { color: #ff7b7b; font-size: 0.85rem; margin-top: 6px; display: none; }
+  </style>
+</head>
+<body>
+
+<header id="main-header">
+  <a class="logo-wrap" href="index.html">
+    <span style="font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#fff;">
+      <span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY
+    </span>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="facility.html">Facility</a>
+    <a href="ourteam.html">Our Team</a>
+    <a href="lessons.html">Lessons</a>
+    <a href="membership.html">Membership</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="contact.html">Contact Us</a>
+  </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="facility.html">Facility</a>
+  <a href="ourteam.html">Our Team</a>
+  <a href="lessons.html">Lessons</a>
+  <a href="membership.html">Membership</a>
+  <a href="schedule.html">Schedule</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="contact.html">Contact Us</a>
+</nav>
+
+<div class="page-hero">
+  <div class="max-w">
+    <div class="section-label">Legal</div>
+    <h1>Waiver &amp; <span class="text-gold">Release</span></h1>
+    <p>Please read the full agreement below, then complete and sign the form. This waiver must be completed before participating in any training, lesson, or facility access.</p>
+  </div>
+</div>
+
+<div class="waiver-wrap">
+
+  <!-- ── Legal Document ── -->
+  <div class="waiver-doc">
+
+    <div class="waiver-logo">
+      <div class="brand"><span>NITRO</span> SPORTS ACADEMY</div>
+    </div>
+
+    <div class="waiver-title">Waiver and Release of Liability Form</div>
+
+    <div class="waiver-note">
+      <strong>NOTE:</strong> This form must be read and signed before the participants are permitted to take part in any training or viewing, including Key Fob Memberships, rentals, lessons, camps, clinics, within the Nitro Sports Academy building at 3710 John Lunn Road, Spring Hill, TN 37174, Suites 2 and 3.
+    </div>
+
+    <p class="waiver-affirm">By signing this agreement, the participants, families and siblings viewing events affirm having read it.</p>
+
+    <div class="waiver-section">
+      <h3>In Consideration</h3>
+      <p>In consideration of being allowed to participate or view in any way in the Nitro Sports Academy Program under the auspices of Nitro Sports Academy, I the undersigned participant(s) understand and agree that:</p>
+      <ol>
+        <li>I <strong>RISK BODILY INJURY, INCLUDING PARALYSIS, DISMEMBERMENT, DISABILITY AND DEATH</strong>, and other particular rules of the sport, skills, equipment, and personal discipline may reduce the risk. <strong>THE RISK OF SERIOUS INJURY DOES EXIST, AS WELL AS THE RISK OF DAMAGE TO OR LOSS OF PROPERTY.</strong></li>
+        <li>I <strong>KNOWINGLY AND FREELY ASSUME ANY AND ALL SUCH RISKS</strong>, both known and unknown, <strong>EVEN IF ARISING FROM THE NEGLIGENCE OF THE RELEASEES OR OTHERS</strong> and assume full responsibility for my participation.</li>
+        <li>I, FOR MYSELF, on behalf of my heirs, assigns, personal representatives and next of kin, hereby <strong>RELEASE, INDEMNIFY, HOLD HARMLESS AND PROMISE NOT TO SUE NITRO SPORTS ACADEMY</strong>, their officers, officials, volunteers, employees, sub-contractors, agents and/or assignees ("RELEASEES"), WITH RESPECT TO ANY AND ALL INJURY, DISABILITY, DEATH, AND/OR LOSS OR DAMAGE TO PERSON OR PROPERTY, WHETHER CAUSED BY THE NEGLIGENCE OF THE RELEASEES OR OTHERWISE, EXCEPT THAT WHICH IS THE RESULT OF GROSS NEGLIGENCE OR WANTON MISCONDUCT, to the fullest extent permitted by law.</li>
+      </ol>
+    </div>
+
+    <div class="waiver-section">
+      <h3>Commercial Property / Owner / Landlord</h3>
+      <p>By signing this waiver of liability below, I fully understand that the property owner, <strong>Slayer Holdings LLC</strong>, will not be held liable for any and/or incidents by Nitro Sports Academy's customers outside its building. I agree that my participation and all legal guidelines entering Nitro Sports Academy's building will abide to these rules:</p>
+      <ul class="rules-list">
+        <li><strong>ABSOLUTELY NO BALL PLAYING, HORSE PLAYING, OR RUNNING AROUND</strong> outside designated areas.</li>
+        <li><strong>NO ENTERING A CAGE, PITCHING, OR TRAINING AREA WITHOUT PERMISSION.</strong></li>
+        <li><strong>LITTERING WILL BE PROHIBITED</strong> on the owner premises — including sidewalks, parking areas, parking lot, and all common areas.</li>
+      </ul>
+      <p style="margin-top:12px">Any damages caused by you or your party will be your responsibility, and compensation will be made to said ownership.</p>
+    </div>
+
+    <div class="waiver-section">
+      <h3>Authorization — Use of Likeness</h3>
+      <p>Participants, or their legal guardians, in Nitro Sports Academy events may be recorded and photographed by owner, trainers, and advertisers of Nitro Sports Academy. Participants or legal guardians hereby give Nitro Sports Academy the right to use their name, picture, and likeness without any right of approval to promote Nitro Sports Academy events.</p>
+    </div>
+
+    <div class="waiver-section">
+      <h3>For Parents / Guardians of Participants of Minority Age</h3>
+      <p><em>Under Age 18 (or under such other age of consent as may be applicable in any given jurisdiction) at time of registration.</em></p>
+      <p>This is to certify that I/we, as parent(s)/guardian(s) with legal responsibility for this participant(s), do consent and agree not only to the release above regarding this participant's participation in any Nitro Sports Academy event, but also for myself/ourselves, and my/our heirs, assigns and next of kin, to release and indemnify the Releasees from any and all injury/incident to my/our minor participant(s), as stated above, EVEN IF ARISING FROM THE NEGLIGENCE OF THE RELEASEES, to the fullest extent permitted by law. As parent(s)/legal guardian(s) for this participant, I/we also hereby give Nitro Sports Academy the right to use the name, film, photograph, and/or likeness (without any right of approval) of this participant for any use to promote Nitro Sports Academy events and its activities.</p>
+    </div>
+
+    <div class="waiver-certify">
+      I have read this Release of Liability and Waiver Agreement, fully understand its terms, understand that I have given up substantial rights by signing it, and sign it freely and voluntarily without inducement.
+    </div>
+
+  </div><!-- /.waiver-doc -->
+
+  <!-- ── Signature Form ── -->
+  <div class="waiver-form-wrap">
+    <div id="form-area">
+      <h2>Sign the Waiver</h2>
+      <p class="sub">Fill in all participants and sign below. A typed name serves as your legal electronic signature.</p>
+
+      <div class="form-section-label">Participants</div>
+
+      <div class="participant-row">
+        <div>
+          <label for="p1name">Participant 1 Name *</label>
+          <input type="text" id="p1name" placeholder="Full name" required />
+        </div>
+        <div class="age-col">
+          <label for="p1age">Age</label>
+          <input type="number" id="p1age" placeholder="Age" min="1" max="99" />
+        </div>
+      </div>
+
+      <div class="participant-row">
+        <div>
+          <label for="p2name">Participant 2 Name</label>
+          <input type="text" id="p2name" placeholder="Full name (optional)" />
+        </div>
+        <div class="age-col">
+          <label for="p2age">Age</label>
+          <input type="number" id="p2age" placeholder="Age" min="1" max="99" />
+        </div>
+      </div>
+
+      <div class="participant-row">
+        <div>
+          <label for="p3name">Participant 3 Name</label>
+          <input type="text" id="p3name" placeholder="Full name (optional)" />
+        </div>
+        <div class="age-col">
+          <label for="p3age">Age</label>
+          <input type="number" id="p3age" placeholder="Age" min="1" max="99" />
+        </div>
+      </div>
+
+      <div class="form-section-label">Parent / Guardian Info</div>
+      <p style="color:var(--silver);font-size:0.85rem;margin-bottom:14px">Required if any participant is under 18.</p>
+
+      <div class="form-row-2" style="margin-bottom:14px">
+        <div>
+          <label for="guardianName">Parent / Guardian Name</label>
+          <input type="text" id="guardianName" placeholder="Full legal name" />
+        </div>
+        <div>
+          <label for="guardianEmail">Guardian Email</label>
+          <input type="email" id="guardianEmail" placeholder="email@example.com" />
+        </div>
+      </div>
+
+      <div>
+        <label for="emergencyPhone">Emergency Contact Phone *</label>
+        <input type="tel" id="emergencyPhone" placeholder="(615) 555-0100" required />
+        <div class="err-msg" id="phoneErr">Emergency phone is required.</div>
+      </div>
+
+      <div class="form-section-label">Signature</div>
+      <p style="color:var(--silver);font-size:0.85rem;margin-bottom:14px">Type your full name below. This serves as your legal electronic signature.</p>
+
+      <div style="margin-bottom:6px">
+        <label for="sigName">Signature (typed full name) *</label>
+        <input type="text" id="sigName" placeholder="Type your full name" required style="font-style:italic;font-size:1.05rem;" />
+        <div class="err-msg" id="sigErr">Signature is required.</div>
+      </div>
+      <div style="color:var(--silver);font-size:0.8rem;margin-bottom:20px" id="sigDateLine">Date: <strong id="sigDate"></strong></div>
+
+      <div class="agree-block" onclick="toggleAgree()">
+        <input type="checkbox" id="agreeBox" />
+        <p>I have read the <strong>Waiver and Release of Liability Agreement</strong> in full, understand its terms, understand that I have given up substantial rights by signing it, and sign it freely and voluntarily without inducement.</p>
+      </div>
+      <div class="err-msg" id="agreeErr">You must agree to the terms before signing.</div>
+
+      <button class="btn-submit" id="submitBtn" onclick="submitWaiver()">Sign &amp; Submit Waiver</button>
+    </div>
+
+    <div class="success-box" id="successBox">
+      <div class="icon">✅</div>
+      <h2>Waiver Signed</h2>
+      <p>Thank you! Your waiver has been received and is on file with Nitro Sports Academy. You're all set — see you on the field.</p>
+      <p><a href="index.html">← Back to the website</a></p>
+    </div>
+  </div>
+
+</div><!-- /.waiver-wrap -->
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:16px;"><span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY</div>
+      <p>A premier baseball and softball training facility dedicated to developing athletes at every level.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="facility.html">Facility</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="membership.html">Membership</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank">Facebook</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Send a Message</a>
+      <p style="margin-top:12px;font-size:0.85rem;">📍 3710 John Lunn Rd, Ste 2<br>Spring Hill, TN 37174</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Nitro Sports Academy. All rights reserved.</p>
+    <p>Built with ❤️ for the love of the game.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  // Set today's date in the signature line
+  const today = new Date();
+  document.getElementById('sigDate').textContent = today.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+
+  function toggleAgree() {
+    const cb = document.getElementById('agreeBox');
+    cb.checked = !cb.checked;
+  }
+
+  async function submitWaiver() {
+    const p1 = document.getElementById('p1name').value.trim();
+    const sig = document.getElementById('sigName').value.trim();
+    const phone = document.getElementById('emergencyPhone').value.trim();
+    const agreed = document.getElementById('agreeBox').checked;
+
+    // Clear errors
+    ['sigErr','phoneErr','agreeErr'].forEach(id => document.getElementById(id).style.display = 'none');
+
+    let valid = true;
+    if (!p1) { document.getElementById('p1name').focus(); valid = false; }
+    if (!phone) { document.getElementById('phoneErr').style.display = 'block'; valid = false; }
+    if (!sig) { document.getElementById('sigErr').style.display = 'block'; valid = false; }
+    if (!agreed) { document.getElementById('agreeErr').style.display = 'block'; valid = false; }
+    if (!valid) return;
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Submitting…';
+
+    const payload = {
+      participant_1_name: p1,
+      participant_1_age: parseInt(document.getElementById('p1age').value) || null,
+      participant_2_name: document.getElementById('p2name').value.trim() || null,
+      participant_2_age: parseInt(document.getElementById('p2age').value) || null,
+      participant_3_name: document.getElementById('p3name').value.trim() || null,
+      participant_3_age: parseInt(document.getElementById('p3age').value) || null,
+      guardian_name: document.getElementById('guardianName').value.trim() || null,
+      guardian_email: document.getElementById('guardianEmail').value.trim() || null,
+      emergency_phone: phone,
+      signature: sig,
+    };
+
+    try {
+      const res = await fetch('https://nitro-crm.nicholas-vastano.workers.dev/waivers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Server error');
+      document.getElementById('form-area').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+    } catch (e) {
+      btn.disabled = false;
+      btn.textContent = 'Sign & Submit Waiver';
+      alert('Something went wrong. Please try again or contact us directly.');
+    }
+  }
+</script>
+</body>
+</html>
