@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Shared Sessions — Nitro Sports Academy (Concept Preview)</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --blue:#2B4FA8; --blue-dark:#1a3278; --blue-light:#3d65cc;
+  --gold:#E8B84B; --silver:#9AA0B4; --silver-light:#C8CDD9;
+  --dark:#0D1321; --dark-mid:#1C2540; --dark-card:#16203a; --white:#fff;
+  --hitting:#3d65cc; --pitching:#E8B84B; --catching:#3dab7a;
+  --red:#e05050;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Barlow',sans-serif;background:var(--dark);color:var(--white);min-height:100vh}
+
+/* ── Preview Banner ── */
+.preview-banner{background:linear-gradient(90deg,var(--gold),#d4a235);color:var(--dark);text-align:center;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase}
+
+/* ── Header ── */
+header{background:rgba(13,19,33,0.97);border-bottom:2px solid var(--blue);padding:0 28px;height:64px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.logo-text{font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);text-decoration:none}
+.logo-text span{color:var(--blue-light)}
+.header-badge{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;background:rgba(232,184,75,0.15);border:1px solid rgba(232,184,75,0.4);color:var(--gold);padding:4px 12px;border-radius:20px}
+
+/* ── Hero ── */
+.hero{background:linear-gradient(160deg,var(--dark-mid) 0%,var(--dark) 100%);border-bottom:1px solid rgba(255,255,255,0.06);padding:56px 28px 48px}
+.hero-inner{max-width:900px;margin:0 auto}
+.section-label{font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;color:var(--blue-light);margin-bottom:10px}
+.hero h1{font-family:'Oswald',sans-serif;font-size:2.4rem;font-weight:700;text-transform:uppercase;letter-spacing:0.04em;line-height:1.1;margin-bottom:16px}
+.hero h1 span{color:var(--gold)}
+.hero p{color:var(--silver-light);font-size:1rem;line-height:1.65;max-width:620px;margin-bottom:28px}
+.value-pills{display:flex;gap:12px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:30px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.06em;text-transform:uppercase}
+.pill-blue{border-color:rgba(61,101,204,0.5);color:var(--blue-light)}
+.pill-gold{border-color:rgba(232,184,75,0.5);color:var(--gold)}
+.pill-green{border-color:rgba(61,171,122,0.5);color:var(--catching)}
+
+/* ── How It Works ── */
+.how-section{background:rgba(255,255,255,0.02);border-bottom:1px solid rgba(255,255,255,0.05);padding:40px 28px}
+.how-inner{max-width:900px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:640px){.how-inner{grid-template-columns:1fr}}
+.how-card{background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:24px}
+.how-num{font-family:'Oswald',sans-serif;font-size:2rem;font-weight:700;color:var(--blue-light);margin-bottom:8px}
+.how-card h4{font-family:'Barlow Condensed',sans-serif;font-size:1rem;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:8px}
+.how-card p{font-size:0.88rem;color:var(--silver);line-height:1.55}
+
+/* ── Booking Area ── */
+.booking-section{max-width:900px;margin:0 auto;padding:40px 28px 80px}
+
+/* Week nav */
+.week-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;gap:12px;flex-wrap:wrap}
+.week-nav h2{font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.06em;text-transform:uppercase}
+.week-btns{display:flex;gap:8px}
+.btn-wk{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:8px 16px;color:var(--silver);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;transition:all 0.2s}
+.btn-wk:hover{border-color:var(--blue-light);color:var(--white)}
+
+/* Day tabs */
+.day-tabs{display:flex;gap:6px;margin-bottom:28px;overflow-x:auto;padding-bottom:4px;-webkit-overflow-scrolling:touch}
+.day-tab{flex-shrink:0;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 16px;text-align:center;cursor:pointer;transition:all 0.2s;min-width:70px}
+.day-tab:hover{border-color:rgba(43,79,168,0.5)}
+.day-tab.active{background:var(--blue);border-color:var(--blue)}
+.day-tab .day-name{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--silver-light);margin-bottom:3px}
+.day-tab.active .day-name{color:rgba(255,255,255,0.8)}
+.day-tab .day-num{font-family:'Oswald',sans-serif;font-size:1.25rem;font-weight:700}
+.day-tab.active .day-num{color:var(--white)}
+
+/* Service filter */
+.filter-row{display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap}
+.filter-btn{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:20px;padding:6px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:all 0.2s;color:var(--silver)}
+.filter-btn:hover,.filter-btn.active{color:var(--white)}
+.filter-btn.active-all{background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.3);color:var(--white)}
+.filter-btn.active-hitting{background:rgba(61,101,204,0.25);border-color:var(--hitting);color:var(--hitting)}
+.filter-btn.active-pitching{background:rgba(232,184,75,0.2);border-color:var(--pitching);color:var(--pitching)}
+.filter-btn.active-catching{background:rgba(61,171,122,0.2);border-color:var(--catching);color:var(--catching)}
+
+/* Slot grid */
+.slots-grid{display:flex;flex-direction:column;gap:10px}
+.slot-card{background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:18px 20px;display:grid;grid-template-columns:90px 1fr auto;align-items:center;gap:16px;transition:border-color 0.2s;cursor:pointer}
+.slot-card:hover:not(.slot-full){border-color:rgba(43,79,168,0.5)}
+.slot-card.slot-full{opacity:0.55;cursor:default}
+@media(max-width:520px){.slot-card{grid-template-columns:1fr;gap:10px}}
+
+.slot-time{font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;letter-spacing:0.02em}
+.slot-time-sub{font-size:0.75rem;color:var(--silver);margin-top:1px}
+
+.slot-mid{}
+.slot-service{display:inline-flex;align-items:center;gap:6px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;padding:3px 10px;border-radius:20px;margin-bottom:10px}
+.svc-hitting{background:rgba(61,101,204,0.2);color:var(--hitting);border:1px solid rgba(61,101,204,0.4)}
+.svc-pitching{background:rgba(232,184,75,0.15);color:var(--pitching);border:1px solid rgba(232,184,75,0.35)}
+.svc-catching{background:rgba(61,171,122,0.15);color:var(--catching);border:1px solid rgba(61,171,122,0.35)}
+
+/* Capacity bar */
+.capacity-wrap{display:flex;align-items:center;gap:10px}
+.cap-dots{display:flex;gap:5px}
+.cap-dot{width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.2)}
+.cap-dot.filled{border-color:transparent}
+.cap-dot.filled-hitting{background:var(--hitting)}
+.cap-dot.filled-pitching{background:var(--pitching)}
+.cap-dot.filled-catching{background:var(--catching)}
+.cap-dot.filled-full{background:rgba(255,255,255,0.3)}
+.cap-text{font-size:0.82rem;color:var(--silver)}
+.cap-text strong{color:var(--white)}
+.cap-text.open-3 strong{color:#4caf6e}
+.cap-text.open-2 strong{color:var(--gold)}
+.cap-text.open-1 strong{color:#e08050}
+.cap-text.open-0 strong{color:var(--silver)}
+
+.slot-right{text-align:right;flex-shrink:0}
+.slot-price{font-family:'Oswald',sans-serif;font-size:1.2rem;font-weight:700;color:var(--white);margin-bottom:6px}
+.slot-price span{font-size:0.75rem;color:var(--silver);font-family:'Barlow',sans-serif;font-weight:400}
+.btn-book{background:var(--blue);border:none;border-radius:5px;padding:8px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s;white-space:nowrap}
+.btn-book:hover{background:var(--blue-light)}
+.btn-full{background:rgba(255,255,255,0.07);border:none;border-radius:5px;padding:8px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);cursor:default}
+
+.no-slots{text-align:center;padding:48px 24px;color:var(--silver);font-size:0.95rem}
+
+/* ── Modal ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.8);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+.modal-bg.open{display:flex}
+.modal{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.5);border-radius:12px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:24px 28px 0;border-bottom:1px solid rgba(255,255,255,0.07);padding-bottom:20px;margin-bottom:0}
+.modal-header h2{font-family:'Oswald',sans-serif;font-size:1.2rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px}
+.modal-header p{color:var(--silver);font-size:0.88rem}
+.modal-body{padding:24px 28px}
+.modal-slot-summary{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:16px 18px;margin-bottom:20px;display:grid;gap:8px}
+.summary-row{display:flex;justify-content:space-between;font-size:0.88rem}
+.summary-row .lbl{color:var(--silver)}
+.summary-row .val{font-weight:600}
+.summary-row.price-row .val{color:var(--gold);font-family:'Oswald',sans-serif;font-size:1.1rem}
+.availability-note{display:flex;align-items:center;gap:8px;background:rgba(61,171,122,0.08);border:1px solid rgba(61,171,122,0.25);border-radius:6px;padding:10px 14px;font-size:0.85rem;color:#4caf6e;margin-bottom:20px}
+
+label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:5px}
+input,select{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:10px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.95rem;outline:none;transition:border-color 0.2s;margin-bottom:14px}
+input:focus,select:focus{border-color:var(--blue-light)}
+input::placeholder{color:rgba(255,255,255,0.25)}
+.modal-footer{display:flex;justify-content:flex-end;gap:12px;padding:0 28px 24px;margin-top:4px}
+.btn-cancel{background:transparent;border:1px solid rgba(255,255,255,0.15);border-radius:5px;padding:10px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.82rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);cursor:pointer}
+.btn-confirm{background:var(--gold);border:none;border-radius:5px;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--dark);cursor:pointer;transition:opacity 0.2s}
+.btn-confirm:hover{opacity:0.88}
+
+.success-state{display:none;text-align:center;padding:40px 28px}
+.success-state .icon{font-size:3rem;margin-bottom:16px}
+.success-state h3{font-family:'Oswald',sans-serif;font-size:1.4rem;text-transform:uppercase;margin-bottom:10px}
+.success-state p{color:var(--silver);font-size:0.9rem;line-height:1.6}
+
+/* ── Pricing callout ── */
+.pricing-bar{background:linear-gradient(135deg,rgba(43,79,168,0.2),rgba(13,19,33,0.6));border:1px solid rgba(43,79,168,0.3);border-radius:10px;padding:28px 32px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.pricing-bar-left h3{font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
+.pricing-bar-left p{font-size:0.88rem;color:var(--silver);line-height:1.5;max-width:420px}
+.price-tag{font-family:'Oswald',sans-serif;font-size:2.2rem;font-weight:700;color:var(--gold);white-space:nowrap}
+.price-tag span{font-size:0.9rem;color:var(--silver);font-family:'Barlow',sans-serif;font-weight:400}
+
+/* ── Toast ── */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--dark-mid);border:1px solid rgba(43,79,168,0.5);border-radius:8px;padding:14px 20px;font-size:0.9rem;z-index:300;transform:translateY(80px);opacity:0;transition:all 0.3s;max-width:320px}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.success{border-color:rgba(61,171,122,0.5);color:#4caf6e}
+</style>
+</head>
+<body>
+
+<div class="preview-banner">
+  🔒 Concept Preview — For Review Only &nbsp;·&nbsp; Not Published to the Public &nbsp;·&nbsp; Share link: nitrosportsacademy.com/shared-sessions.html
+</div>
+
+<header>
+  <a href="index.html" class="logo-text" style="text-decoration:none"><span>Nitro</span> Sports Academy</a>
+  <div class="header-badge">Shared Sessions — Preview</div>
+</header>
+
+<!-- ── Hero ── -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="section-label">New — Shared Session Model</div>
+    <h1>Train Together,<br><span>Pay Less Per Slot</span></h1>
+    <p>Book into a shared 1-hour session alongside up to 2 other players — all working on the same discipline. Every athlete gets personal coaching attention and full cage access for the hour, at $60 per player.</p>
+    <div class="value-pills">
+      <div class="pill pill-blue">⚾ Hitting Sessions</div>
+      <div class="pill pill-gold">🎯 Pitching Sessions</div>
+      <div class="pill pill-green">🧤 Catching Sessions</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── How It Works ── -->
+<div class="how-section">
+  <div class="how-inner">
+    <div class="how-card">
+      <div class="how-num">01</div>
+      <h4>Pick Your Discipline</h4>
+      <p>Choose from Hitting, Pitching, or Catching. Each session is focused — no mixed-skill slots, so the coaching stays sharp.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">02</div>
+      <h4>Grab an Open Spot</h4>
+      <p>Each 1-hour slot holds up to 3 players. See live availability and book directly. Open slots confirm instantly.</p>
+    </div>
+    <div class="how-card">
+      <div class="how-num">03</div>
+      <h4>$60 Per Player, Per Hour</h4>
+      <p>Flat rate — no hidden fees. Whether the slot has 1 player or 3, the price per person stays the same.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── Booking ── -->
+<div class="booking-section">
+
+  <div class="pricing-bar">
+    <div class="pricing-bar-left">
+      <h3>Flat-Rate Shared Sessions</h3>
+      <p>Every slot is 60 minutes of focused, coach-led work. All disciplines available — Hitting, Pitching, and Catching — with a maximum of 3 athletes per session.</p>
+    </div>
+    <div>
+      <div class="price-tag">$60 <span>/ player / hour</span></div>
+    </div>
+  </div>
+
+  <!-- Week Nav -->
+  <div class="week-nav">
+    <h2 id="weekLabel">Loading…</h2>
+    <div class="week-btns">
+      <button class="btn-wk" onclick="changeWeek(-1)">← Prev</button>
+      <button class="btn-wk" onclick="changeWeek(1)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Day Tabs -->
+  <div class="day-tabs" id="dayTabs"></div>
+
+  <!-- Filter -->
+  <div class="filter-row">
+    <button class="filter-btn active-all" data-filter="all" onclick="setFilter(this,'all')">All Sessions</button>
+    <button class="filter-btn" data-filter="hitting" onclick="setFilter(this,'hitting')">⚾ Hitting</button>
+    <button class="filter-btn" data-filter="pitching" onclick="setFilter(this,'pitching')">🎯 Pitching</button>
+    <button class="filter-btn" data-filter="catching" onclick="setFilter(this,'catching')">🧤 Catching</button>
+  </div>
+
+  <!-- Slots -->
+  <div class="slots-grid" id="slotsGrid"></div>
+
+</div>
+
+<!-- ── Booking Modal ── -->
+<div class="modal-bg" id="bookingModal">
+  <div class="modal">
+    <div id="formState">
+      <div class="modal-header">
+        <h2>Book Your Spot</h2>
+        <p id="modalSubtitle">Confirm your details below to reserve this slot.</p>
+      </div>
+      <div class="modal-body">
+        <div class="modal-slot-summary" id="slotSummary"></div>
+        <div class="availability-note" id="availNote"></div>
+        <div>
+          <label>Player Name *</label>
+          <input type="text" id="bookName" placeholder="Full name" />
+        </div>
+        <div>
+          <label>Email Address *</label>
+          <input type="email" id="bookEmail" placeholder="your@email.com" />
+        </div>
+        <div>
+          <label>Phone / Text</label>
+          <input type="tel" id="bookPhone" placeholder="(615) 555-0100" />
+        </div>
+        <div>
+          <label>Age</label>
+          <input type="number" id="bookAge" placeholder="Age" min="5" max="99" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-confirm" onclick="confirmBooking()">Request This Slot →</button>
+      </div>
+    </div>
+    <div class="success-state" id="successState">
+      <div class="icon">✅</div>
+      <h3>Request Sent!</h3>
+      <p>Pedro will confirm your spot via text or email within a few hours. Keep an eye on your phone — see you on the field.</p>
+      <br>
+      <button class="btn-cancel" onclick="closeModal()" style="margin:0 auto;display:block">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data generation ──────────────────────────────────────────
+const SERVICES = ['hitting','pitching','catching'];
+const TIMES = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
+const SVC_LABELS = { hitting:'Hitting', pitching:'Pitching', catching:'Catching' };
+const SVC_ICONS  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
+const SVC_CLASS  = { hitting:'svc-hitting', pitching:'svc-pitching', catching:'svc-catching' };
+const DOT_CLASS  = { hitting:'filled-hitting', pitching:'filled-pitching', catching:'filled-catching' };
+
+// Seed-based pseudorandom so slots don't change on reload
+function seededRand(seed) {
+  let x = Math.sin(seed + 1) * 10000;
+  return x - Math.floor(x);
+}
+
+function generateSlots(dateStr) {
+  const seed = dateStr.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
+  const slots = [];
+  // Show ~8 slots per day, spread across times
+  const usedTimes = new Set();
+  const usedTimeSvc = new Set();
+  let count = 0;
+  for (let i = 0; i < TIMES.length && count < 8; i++) {
+    const r1 = seededRand(seed + i * 7);
+    if (r1 < 0.35) continue; // skip some times
+    const t = TIMES[i];
+    // pick 1-2 services for this time
+    const numSvcs = seededRand(seed + i * 3) < 0.4 ? 2 : 1;
+    for (let s = 0; s < numSvcs && count < 9; s++) {
+      const svcIdx = Math.floor(seededRand(seed + i * 13 + s * 5) * 3);
+      const svc = SERVICES[svcIdx];
+      const key = t + svc;
+      if (usedTimeSvc.has(key)) continue;
+      usedTimeSvc.add(key);
+      const booked = Math.floor(seededRand(seed + i * 17 + s * 11) * 4); // 0-3
+      slots.push({ time: t, service: svc, booked: Math.min(booked, 3) });
+      count++;
+    }
+  }
+  // Sort by time
+  slots.sort((a,b) => TIMES.indexOf(a.time) - TIMES.indexOf(b.time));
+  return slots;
+}
+
+// ── State ──────────────────────────────────────────────────────
+let weekOffset = 0;
+let selectedDayIdx = 0;
+let currentFilter = 'all';
+let activeSlot = null;
+let weekDays = [];
+
+function getWeekDays(offset) {
+  const days = [];
+  const now = new Date();
+  const dow = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - dow + 1 + offset * 7);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+function fmt(d) { return d.toISOString().slice(0,10); }
+function dayName(d) { return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
+function monthName(d) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; }
+
+function changeWeek(dir) {
+  weekOffset += dir;
+  selectedDayIdx = 0;
+  render();
+}
+
+function selectDay(idx) {
+  selectedDayIdx = idx;
+  renderDayTabs();
+  renderSlots();
+}
+
+function setFilter(btn, filter) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    b.className = 'filter-btn';
+    if (b.dataset.filter === filter) {
+      b.classList.add('active-' + filter);
+    }
+  });
+  renderSlots();
+}
+
+function render() {
+  weekDays = getWeekDays(weekOffset);
+  const start = weekDays[0], end = weekDays[6];
+  document.getElementById('weekLabel').textContent =
+    `${monthName(start)} ${start.getDate()} – ${monthName(end)} ${end.getDate()}, ${end.getFullYear()}`;
+  renderDayTabs();
+  renderSlots();
+}
+
+function renderDayTabs() {
+  const today = fmt(new Date());
+  document.getElementById('dayTabs').innerHTML = weekDays.map((d,i) => {
+    const isToday = fmt(d) === today;
+    return `<div class="day-tab ${i===selectedDayIdx?'active':''}" onclick="selectDay(${i})">
+      <div class="day-name">${dayName(d)}${isToday?' <span style="color:var(--gold)">·</span>':''}</div>
+      <div class="day-num">${d.getDate()}</div>
+    </div>`;
+  }).join('');
+}
+
+function capTextClass(open) {
+  if (open === 3) return 'cap-text open-3';
+  if (open === 2) return 'cap-text open-2';
+  if (open === 1) return 'cap-text open-1';
+  return 'cap-text open-0';
+}
+
+function renderSlots() {
+  const day = weekDays[selectedDayIdx];
+  const isPast = day < new Date(new Date().setHours(0,0,0,0));
+  const slots = isPast ? [] : generateSlots(fmt(day));
+  const filtered = currentFilter === 'all' ? slots : slots.filter(s => s.service === currentFilter);
+  const grid = document.getElementById('slotsGrid');
+
+  if (!filtered.length) {
+    grid.innerHTML = `<div class="no-slots">${isPast ? '⏮ This day has passed.' : '😎 No sessions scheduled yet for this day. More coming soon!'}</div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map((slot, i) => {
+    const open = 3 - slot.booked;
+    const full = open === 0;
+    const dots = [0,1,2].map(j =>
+      `<div class="cap-dot ${j < slot.booked ? 'filled ' + (full ? 'filled-full' : DOT_CLASS[slot.service]) : ''}"></div>`
+    ).join('');
+    const openText = full ? 'Full' : open === 1 ? '1 spot left' : `${open} spots open`;
+    return `
+    <div class="slot-card ${full?'slot-full':''}" onclick="${full?'':  `openModal(${i},'${fmt(day)}')`}">
+      <div>
+        <div class="slot-time">${slot.time}</div>
+        <div class="slot-time-sub">1 hour</div>
+      </div>
+      <div class="slot-mid">
+        <div><span class="slot-service ${SVC_CLASS[slot.service]}">${SVC_ICONS[slot.service]} ${SVC_LABELS[slot.service]}</span></div>
+        <div class="capacity-wrap">
+          <div class="cap-dots">${dots}</div>
+          <div class="${capTextClass(open)}"><strong>${openText}</strong> of 3 slots</div>
+        </div>
+      </div>
+      <div class="slot-right">
+        <div class="slot-price">$60 <span>/ player</span></div>
+        ${full
+          ? '<div class="btn-full">Full</div>'
+          : `<button class="btn-book">Book Spot →</button>`}
+      </div>
+    </div>`;
+  }).join('');
+
+  // Store for modal access
+  window._currentSlots = filtered;
+  window._currentDay = fmt(day);
+}
+
+// ── Modal ──────────────────────────────────────────────────────
+function openModal(slotIdx, dateStr) {
+  const slot = window._currentSlots[slotIdx];
+  if (!slot || 3 - slot.booked === 0) return;
+  activeSlot = { ...slot, dateStr };
+
+  const open = 3 - slot.booked;
+  const d = weekDays[selectedDayIdx];
+  const dateLabel = `${dayName(d)}, ${monthName(d)} ${d.getDate()}`;
+
+  document.getElementById('slotSummary').innerHTML = `
+    <div class="summary-row"><span class="lbl">Date</span><span class="val">${dateLabel}</span></div>
+    <div class="summary-row"><span class="lbl">Time</span><span class="val">${slot.time} — 1 hour</span></div>
+    <div class="summary-row"><span class="lbl">Discipline</span><span class="val">${SVC_ICONS[slot.service]} ${SVC_LABELS[slot.service]}</span></div>
+    <div class="summary-row"><span class="lbl">Spots Remaining</span><span class="val" style="color:${open===1?'#e08050':open===2?'var(--gold)':'#4caf6e'}">${open} of 3</span></div>
+    <div class="summary-row price-row"><span class="lbl">Price</span><span class="val">$60</span></div>`;
+
+  const othersText = slot.booked === 0
+    ? '✅ You\'d be the first player in this slot.'
+    : slot.booked === 1
+    ? '✅ 1 other player is already booked in this slot.'
+    : '✅ 2 other players are already booked in this slot.';
+  document.getElementById('availNote').textContent = othersText;
+
+  ['bookName','bookEmail','bookPhone','bookAge'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('formState').style.display = 'block';
+  document.getElementById('successState').style.display = 'none';
+  document.getElementById('bookingModal').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('bookingModal').classList.remove('open');
+  activeSlot = null;
+}
+
+function confirmBooking() {
+  const name = document.getElementById('bookName').value.trim();
+  const email = document.getElementById('bookEmail').value.trim();
+  if (!name || !email) { showToast('Please enter your name and email.'); return; }
+
+  // In production: POST to the CRM worker here
+  // For now: show success state
+  document.getElementById('formState').style.display = 'none';
+  document.getElementById('successState').style.display = 'block';
+
+  // Mark the slot as +1 booked in the UI (local only)
+  if (activeSlot) activeSlot.booked = Math.min(activeSlot.booked + 1, 3);
+}
+
+document.getElementById('bookingModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('bookingModal')) closeModal();
+});
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.className = 'toast show';
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Init ──────────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
