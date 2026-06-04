@@ -397,10 +397,22 @@ async function renderSlots() {
     }
   } catch(e) { console.error('Slots fetch error', e); }
 
+  // Filter out times that have already started today
+  const isToday = fmt(day) === fmt(new Date());
+  const nowMinutes = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : 0;
+  function slotMinutes(time) {
+    const [t, ap] = time.split(' ');
+    let [h, m] = t.split(':').map(Number);
+    if (ap === 'PM' && h !== 12) h += 12;
+    if (ap === 'AM' && h === 12) h = 0;
+    return h * 60 + m;
+  }
+  const availableTimes = isToday ? TIMES.filter(t => slotMinutes(t) > nowMinutes) : TIMES;
+
   // Build full slot list: every time × every service
   const disciplines = currentFilter === 'all' ? SERVICES : [currentFilter];
   const slots = [];
-  for (const time of TIMES) {
+  for (const time of availableTimes) {
     for (const disc of disciplines) {
       const booked = bookedMap[`${time}|${disc}`] ?? 0;
       slots.push({ time, service: disc, booked });
