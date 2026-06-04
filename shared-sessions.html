@@ -291,48 +291,14 @@ input::placeholder{color:rgba(255,255,255,0.25)}
 <div class="toast" id="toast"></div>
 
 <script>
-// ── Data generation ──────────────────────────────────────────
+// ── Constants ──────────────────────────────────────────────────
+const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
 const SERVICES = ['hitting','pitching','catching'];
 const TIMES = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
 const SVC_LABELS = { hitting:'Hitting', pitching:'Pitching', catching:'Catching' };
 const SVC_ICONS  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
 const SVC_CLASS  = { hitting:'svc-hitting', pitching:'svc-pitching', catching:'svc-catching' };
 const DOT_CLASS  = { hitting:'filled-hitting', pitching:'filled-pitching', catching:'filled-catching' };
-
-// Seed-based pseudorandom so slots don't change on reload
-function seededRand(seed) {
-  let x = Math.sin(seed + 1) * 10000;
-  return x - Math.floor(x);
-}
-
-function generateSlots(dateStr) {
-  const seed = dateStr.split('').reduce((a,c)=>a+c.charCodeAt(0),0);
-  const slots = [];
-  // Show ~8 slots per day, spread across times
-  const usedTimes = new Set();
-  const usedTimeSvc = new Set();
-  let count = 0;
-  for (let i = 0; i < TIMES.length && count < 8; i++) {
-    const r1 = seededRand(seed + i * 7);
-    if (r1 < 0.35) continue; // skip some times
-    const t = TIMES[i];
-    // pick 1-2 services for this time
-    const numSvcs = seededRand(seed + i * 3) < 0.4 ? 2 : 1;
-    for (let s = 0; s < numSvcs && count < 9; s++) {
-      const svcIdx = Math.floor(seededRand(seed + i * 13 + s * 5) * 3);
-      const svc = SERVICES[svcIdx];
-      const key = t + svc;
-      if (usedTimeSvc.has(key)) continue;
-      usedTimeSvc.add(key);
-      const booked = Math.floor(seededRand(seed + i * 17 + s * 11) * 4); // 0-3
-      slots.push({ time: t, service: svc, booked: Math.min(booked, 3) });
-      count++;
-    }
-  }
-  // Sort by time
-  slots.sort((a,b) => TIMES.indexOf(a.time) - TIMES.indexOf(b.time));
-  return slots;
-}
 
 // ── State ──────────────────────────────────────────────────────
 let weekOffset = 0;
@@ -359,19 +325,19 @@ function fmt(d) { return d.toISOString().slice(0,10); }
 function dayName(d) { return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
 function monthName(d) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; }
 
-function changeWeek(dir) {
+async function changeWeek(dir) {
   weekOffset += dir;
   selectedDayIdx = 0;
-  render();
+  await render();
 }
 
-function selectDay(idx) {
+async function selectDay(idx) {
   selectedDayIdx = idx;
   renderDayTabs();
-  renderSlots();
+  await renderSlots();
 }
 
-function setFilter(btn, filter) {
+async function setFilter(btn, filter) {
   currentFilter = filter;
   document.querySelectorAll('.filter-btn').forEach(b => {
     b.className = 'filter-btn';
@@ -379,16 +345,16 @@ function setFilter(btn, filter) {
       b.classList.add('active-' + filter);
     }
   });
-  renderSlots();
+  await renderSlots();
 }
 
-function render() {
+async function render() {
   weekDays = getWeekDays(weekOffset);
   const start = weekDays[0], end = weekDays[6];
   document.getElementById('weekLabel').textContent =
     `${monthName(start)} ${start.getDate()} – ${monthName(end)} ${end.getDate()}, ${end.getFullYear()}`;
   renderDayTabs();
-  renderSlots();
+  await renderSlots();
 }
 
 function renderDayTabs() {
@@ -409,19 +375,44 @@ function capTextClass(open) {
   return 'cap-text open-0';
 }
 
-function renderSlots() {
+async function renderSlots() {
   const day = weekDays[selectedDayIdx];
   const isPast = day < new Date(new Date().setHours(0,0,0,0));
-  const slots = isPast ? [] : generateSlots(fmt(day));
-  const filtered = currentFilter === 'all' ? slots : slots.filter(s => s.service === currentFilter);
   const grid = document.getElementById('slotsGrid');
 
-  if (!filtered.length) {
-    grid.innerHTML = `<div class="no-slots">${isPast ? '⏮ This day has passed.' : '😎 No sessions scheduled yet for this day. More coming soon!'}</div>`;
+  if (isPast) {
+    grid.innerHTML = `<div class="no-slots">⏮ This day has passed.</div>`;
     return;
   }
 
-  grid.innerHTML = filtered.map((slot, i) => {
+  grid.innerHTML = `<div class="no-slots" style="color:var(--silver)">Loading availability…</div>`;
+
+  // Fetch real booked counts from backend
+  let bookedMap = {}; // key: "time|discipline" → count
+  try {
+    const res = await fetch(`${API}/slots?date=${fmt(day)}`);
+    if (res.ok) {
+      const counts = await res.json();
+      counts.forEach(r => { bookedMap[`${r.time}|${r.discipline}`] = r.booked; });
+    }
+  } catch(e) { console.error('Slots fetch error', e); }
+
+  // Build full slot list: every time × every service
+  const disciplines = currentFilter === 'all' ? SERVICES : [currentFilter];
+  const slots = [];
+  for (const time of TIMES) {
+    for (const disc of disciplines) {
+      const booked = bookedMap[`${time}|${disc}`] ?? 0;
+      slots.push({ time, service: disc, booked });
+    }
+  }
+
+  if (!slots.length) {
+    grid.innerHTML = `<div class="no-slots">No sessions available.</div>`;
+    return;
+  }
+
+  grid.innerHTML = slots.map((slot, i) => {
     const open = 3 - slot.booked;
     const full = open === 0;
     const dots = [0,1,2].map(j =>
@@ -450,8 +441,7 @@ function renderSlots() {
     </div>`;
   }).join('');
 
-  // Store for modal access
-  window._currentSlots = filtered;
+  window._currentSlots = slots;
   window._currentDay = fmt(day);
 }
 
@@ -490,18 +480,39 @@ function closeModal() {
   activeSlot = null;
 }
 
-function confirmBooking() {
-  const name = document.getElementById('bookName').value.trim();
+async function confirmBooking() {
+  const name  = document.getElementById('bookName').value.trim();
   const email = document.getElementById('bookEmail').value.trim();
   if (!name || !email) { showToast('Please enter your name and email.'); return; }
+  if (!activeSlot) return;
 
-  // In production: POST to the CRM worker here
-  // For now: show success state
-  document.getElementById('formState').style.display = 'none';
-  document.getElementById('successState').style.display = 'block';
+  const btn = document.querySelector('#formState .btn-confirm');
+  btn.disabled = true; btn.textContent = 'Submitting…';
 
-  // Mark the slot as +1 booked in the UI (local only)
-  if (activeSlot) activeSlot.booked = Math.min(activeSlot.booked + 1, 3);
+  try {
+    const res = await fetch(`${API}/bookings`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        date:        activeSlot.dateStr,
+        time:        activeSlot.time,
+        discipline:  activeSlot.service,
+        player_name: name,
+        player_email: email,
+        player_phone: document.getElementById('bookPhone').value.trim() || null,
+        player_age:   document.getElementById('bookAge').value || null,
+      }),
+    });
+    if (res.status === 409) { showToast('Sorry — that slot just filled up.'); btn.disabled=false; btn.textContent='Request This Slot →'; return; }
+    if (!res.ok) throw new Error('Server error');
+    document.getElementById('formState').style.display = 'none';
+    document.getElementById('successState').style.display = 'block';
+    // Refresh slot availability after booking
+    renderSlots();
+  } catch(e) {
+    btn.disabled = false; btn.textContent = 'Request This Slot →';
+    showToast('Something went wrong. Please try again.');
+  }
 }
 
 document.getElementById('bookingModal').addEventListener('click', e => {
