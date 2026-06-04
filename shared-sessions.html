@@ -526,6 +526,9 @@ function showToast(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────────────
+// Default to today's day within the week (Mon=0 … Sun=6)
+const _dow = new Date().getDay();
+selectedDayIdx = _dow === 0 ? 6 : _dow - 1;
 render();
 </script>
 </body>
