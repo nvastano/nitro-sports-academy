@@ -321,7 +321,10 @@ function getWeekDays(offset) {
   return days;
 }
 
-function fmt(d) { return d.toISOString().slice(0,10); }
+function fmt(d) {
+  // Use local date parts to avoid UTC timezone rollover
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
 function dayName(d) { return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
 function monthName(d) { return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]; }
 
