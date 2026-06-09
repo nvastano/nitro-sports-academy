@@ -352,20 +352,30 @@ function formatRowLabel(h, m) {
 }
 
 function renderGrid(bookedPerCal) {
+  const viewingToday = isToday(currentDate);
+  const { h: nowH, m: nowM } = getCTHoursMinutes(new Date());
+  const nowMinutes = nowH * 60 + nowM;
+
   let html = '';
   for (let h = 8; h <= 21; h++) {
     [0, 30].forEach(m => {
-      const isHalf = m === 30;
-      const k      = slotKey(h, m);
-      const label  = formatRowLabel(h, m);
+      const isHalf  = m === 30;
+      const k       = slotKey(h, m);
+      const label   = formatRowLabel(h, m);
+      const slotMins = h * 60 + m;
+      // Only show "✓ Open" for today's date, 12 PM or later, and not yet passed
+      const isBookable = viewingToday && h >= 12 && slotMins > nowMinutes;
+
       let row = `<div class="time-row${isHalf ? ' half-hour' : ''}">`;
       row += `<div class="row-label${isHalf ? ' half' : ''}">${label}</div>`;
       CALENDARS.forEach((cal, i) => {
         const booked = bookedPerCal[i][k];
         if (booked) {
           row += `<div class="slot"><div class="slot-booked" style="background:${cal.color};">${booked.title}</div></div>`;
-        } else {
+        } else if (isBookable) {
           row += `<div class="slot"><div class="slot-avail" onclick="requestSlot('${cal.name}',${h},${m})">✓ Open</div></div>`;
+        } else {
+          row += `<div class="slot"><div></div></div>`;
         }
       });
       row += '</div>';

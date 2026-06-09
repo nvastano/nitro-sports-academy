@@ -294,7 +294,7 @@ input::placeholder{color:rgba(255,255,255,0.25)}
 // ── Constants ──────────────────────────────────────────────────
 const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
 const SERVICES = ['hitting','pitching','catching'];
-const TIMES = ['12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
+const TIMES = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
 const SVC_LABELS = { hitting:'Hitting', pitching:'Pitching', catching:'Catching' };
 const SVC_ICONS  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
 const SVC_CLASS  = { hitting:'svc-hitting', pitching:'svc-pitching', catching:'svc-catching' };
@@ -312,8 +312,7 @@ function getWeekDays(offset) {
   const now = new Date();
   const dow = now.getDay();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
-  monday.setHours(0,0,0,0);
+  monday.setDate(now.getDate() - dow + 1 + offset * 7);
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -381,10 +380,13 @@ function capTextClass(open) {
 
 async function renderSlots() {
   const day = weekDays[selectedDayIdx];
-  const todayStr = fmt(new Date());
-  const isToday = fmt(day) === todayStr;
   const isPast = day < new Date(new Date().setHours(0,0,0,0));
   const grid = document.getElementById('slotsGrid');
+
+  if (isPast) {
+    grid.innerHTML = `<div class="no-slots">⏮ This day has passed.</div>`;
+    return;
+  }
 
   grid.innerHTML = `<div class="no-slots" style="color:var(--silver)">Loading availability…</div>`;
 
@@ -398,6 +400,9 @@ async function renderSlots() {
     }
   } catch(e) { console.error('Slots fetch error', e); }
 
+  // Filter out times that have already started today
+  const isToday = fmt(day) === fmt(new Date());
+  const nowMinutes = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : 0;
   function slotMinutes(time) {
     const [t, ap] = time.split(' ');
     let [h, m] = t.split(':').map(Number);
@@ -405,17 +410,12 @@ async function renderSlots() {
     if (ap === 'AM' && h === 12) h = 0;
     return h * 60 + m;
   }
-
-  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
-  // Today: only show 12 PM+ slots that haven't passed yet. Other days: show all TIMES.
-  const timesToShow = (isToday && !isPast)
-    ? TIMES.filter(t => slotMinutes(t) > nowMinutes)
-    : TIMES;
+  const availableTimes = isToday ? TIMES.filter(t => slotMinutes(t) > nowMinutes) : TIMES;
 
   // Build full slot list: every time × every service
   const disciplines = currentFilter === 'all' ? SERVICES : [currentFilter];
   const slots = [];
-  for (const time of timesToShow) {
+  for (const time of availableTimes) {
     for (const disc of disciplines) {
       const booked = bookedMap[`${time}|${disc}`] ?? 0;
       slots.push({ time, service: disc, booked });
@@ -423,44 +423,19 @@ async function renderSlots() {
   }
 
   if (!slots.length) {
-    const msg = isPast
-      ? '⏮ This day has passed.'
-      : 'No more sessions available today. Check back tomorrow after 12:00 PM.';
-    grid.innerHTML = `<div class="no-slots">${msg}</div>`;
+    grid.innerHTML = `<div class="no-slots">No sessions available.</div>`;
     return;
   }
-
-  // Only today's slots get availability indicators and a Book button
-  const bookable = isToday && !isPast;
 
   grid.innerHTML = slots.map((slot, i) => {
     const open = 3 - slot.booked;
     const full = open === 0;
-
-    if (!bookable) {
-      // Future/past day — neutral display, no availability info, no button
-      return `
-      <div class="slot-card slot-full">
-        <div>
-          <div class="slot-time">${slot.time}</div>
-          <div class="slot-time-sub">1 hour</div>
-        </div>
-        <div class="slot-mid">
-          <div><span class="slot-service ${SVC_CLASS[slot.service]}">${SVC_ICONS[slot.service]} ${SVC_LABELS[slot.service]}</span></div>
-        </div>
-        <div class="slot-right">
-          <div class="slot-price">$60 <span>/ player</span></div>
-        </div>
-      </div>`;
-    }
-
-    // Today — show full availability + book button
     const dots = [0,1,2].map(j =>
       `<div class="cap-dot ${j < slot.booked ? 'filled ' + (full ? 'filled-full' : DOT_CLASS[slot.service]) : ''}"></div>`
     ).join('');
     const openText = full ? 'Full' : open === 1 ? '1 spot left' : `${open} spots open`;
     return `
-    <div class="slot-card ${full ? 'slot-full' : ''}" onclick="${full ? '' : `openModal(${i},'${fmt(day)}')`}">
+    <div class="slot-card ${full?'slot-full':''}" onclick="${full?'':  `openModal(${i},'${fmt(day)}')`}">
       <div>
         <div class="slot-time">${slot.time}</div>
         <div class="slot-time-sub">1 hour</div>
@@ -474,7 +449,9 @@ async function renderSlots() {
       </div>
       <div class="slot-right">
         <div class="slot-price">$60 <span>/ player</span></div>
-        ${full ? '<div class="btn-full">Full</div>' : `<button class="btn-book">Book Spot →</button>`}
+        ${full
+          ? '<div class="btn-full">Full</div>'
+          : `<button class="btn-book">Book Spot →</button>`}
       </div>
     </div>`;
   }).join('');
@@ -564,11 +541,10 @@ function showToast(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────────────
-// Default to today's tab within the week (Mon=0 … Sun=6)
+// Default to today's day within the week (Mon=0 … Sun=6)
 const _dow = new Date().getDay();
 selectedDayIdx = _dow === 0 ? 6 : _dow - 1;
 render();
-
 </script>
 </body>
 </html>
