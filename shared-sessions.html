@@ -294,7 +294,7 @@ input::placeholder{color:rgba(255,255,255,0.25)}
 // ── Constants ──────────────────────────────────────────────────
 const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
 const SERVICES = ['hitting','pitching','catching'];
-const TIMES = ['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
+const TIMES = ['12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM','5:00 PM','6:00 PM','7:00 PM'];
 const SVC_LABELS = { hitting:'Hitting', pitching:'Pitching', catching:'Catching' };
 const SVC_ICONS  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
 const SVC_CLASS  = { hitting:'svc-hitting', pitching:'svc-pitching', catching:'svc-catching' };
@@ -312,7 +312,8 @@ function getWeekDays(offset) {
   const now = new Date();
   const dow = now.getDay();
   const monday = new Date(now);
-  monday.setDate(now.getDate() - dow + 1 + offset * 7);
+  monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
+  monday.setHours(0,0,0,0);
   for (let i = 0; i < 7; i++) {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
@@ -380,11 +381,24 @@ function capTextClass(open) {
 
 async function renderSlots() {
   const day = weekDays[selectedDayIdx];
+  const todayStr = fmt(new Date());
+  const isToday = fmt(day) === todayStr;
   const isPast = day < new Date(new Date().setHours(0,0,0,0));
   const grid = document.getElementById('slotsGrid');
 
+  // Past days
   if (isPast) {
     grid.innerHTML = `<div class="no-slots">⏮ This day has passed.</div>`;
+    return;
+  }
+
+  // Future days — show schedule but no booking
+  if (!isToday) {
+    grid.innerHTML = `<div class="no-slots" style="padding:40px 24px">
+      <div style="font-size:1.5rem;margin-bottom:12px">📅</div>
+      <div style="font-weight:600;color:var(--white);margin-bottom:6px">Same-Day Booking Only</div>
+      <div style="font-size:0.88rem">Shared sessions can only be reserved on the day of the session. Check back on <strong style="color:var(--gold)">${dayName(day)}, ${monthName(day)} ${day.getDate()}</strong> after 12:00 PM to grab a spot.</div>
+    </div>`;
     return;
   }
 
@@ -400,9 +414,8 @@ async function renderSlots() {
     }
   } catch(e) { console.error('Slots fetch error', e); }
 
-  // Filter out times that have already started today
-  const isToday = fmt(day) === fmt(new Date());
-  const nowMinutes = isToday ? new Date().getHours() * 60 + new Date().getMinutes() : 0;
+  // Filter out times that have already passed today (TIMES already starts at 12 PM)
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
   function slotMinutes(time) {
     const [t, ap] = time.split(' ');
     let [h, m] = t.split(':').map(Number);
@@ -410,7 +423,7 @@ async function renderSlots() {
     if (ap === 'AM' && h === 12) h = 0;
     return h * 60 + m;
   }
-  const availableTimes = isToday ? TIMES.filter(t => slotMinutes(t) > nowMinutes) : TIMES;
+  const availableTimes = TIMES.filter(t => slotMinutes(t) > nowMinutes);
 
   // Build full slot list: every time × every service
   const disciplines = currentFilter === 'all' ? SERVICES : [currentFilter];
@@ -423,7 +436,7 @@ async function renderSlots() {
   }
 
   if (!slots.length) {
-    grid.innerHTML = `<div class="no-slots">No sessions available.</div>`;
+    grid.innerHTML = `<div class="no-slots">No more sessions available today. Check back tomorrow after 12:00 PM.</div>`;
     return;
   }
 
@@ -541,10 +554,11 @@ function showToast(msg) {
 }
 
 // ── Init ──────────────────────────────────────────────────────
-// Default to today's day within the week (Mon=0 … Sun=6)
+// Default to today's tab within the week (Mon=0 … Sun=6)
 const _dow = new Date().getDay();
 selectedDayIdx = _dow === 0 ? 6 : _dow - 1;
 render();
+
 </script>
 </body>
 </html>
