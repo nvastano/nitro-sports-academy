@@ -386,22 +386,6 @@ async function renderSlots() {
   const isPast = day < new Date(new Date().setHours(0,0,0,0));
   const grid = document.getElementById('slotsGrid');
 
-  // Past days
-  if (isPast) {
-    grid.innerHTML = `<div class="no-slots">⏮ This day has passed.</div>`;
-    return;
-  }
-
-  // Future days — show schedule but no booking
-  if (!isToday) {
-    grid.innerHTML = `<div class="no-slots" style="padding:40px 24px">
-      <div style="font-size:1.5rem;margin-bottom:12px">📅</div>
-      <div style="font-weight:600;color:var(--white);margin-bottom:6px">Same-Day Booking Only</div>
-      <div style="font-size:0.88rem">Shared sessions can only be reserved on the day of the session. Check back on <strong style="color:var(--gold)">${dayName(day)}, ${monthName(day)} ${day.getDate()}</strong> after 12:00 PM to grab a spot.</div>
-    </div>`;
-    return;
-  }
-
   grid.innerHTML = `<div class="no-slots" style="color:var(--silver)">Loading availability…</div>`;
 
   // Fetch real booked counts from backend
@@ -414,8 +398,6 @@ async function renderSlots() {
     }
   } catch(e) { console.error('Slots fetch error', e); }
 
-  // Filter out times that have already passed today (TIMES already starts at 12 PM)
-  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
   function slotMinutes(time) {
     const [t, ap] = time.split(' ');
     let [h, m] = t.split(':').map(Number);
@@ -423,12 +405,17 @@ async function renderSlots() {
     if (ap === 'AM' && h === 12) h = 0;
     return h * 60 + m;
   }
-  const availableTimes = TIMES.filter(t => slotMinutes(t) > nowMinutes);
+
+  // For today: hide slots that have already passed. For all other days: show all times (view only).
+  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  const timesToShow = (isToday && !isPast)
+    ? TIMES.filter(t => slotMinutes(t) > nowMinutes)
+    : TIMES;
 
   // Build full slot list: every time × every service
   const disciplines = currentFilter === 'all' ? SERVICES : [currentFilter];
   const slots = [];
-  for (const time of availableTimes) {
+  for (const time of timesToShow) {
     for (const disc of disciplines) {
       const booked = bookedMap[`${time}|${disc}`] ?? 0;
       slots.push({ time, service: disc, booked });
@@ -436,19 +423,28 @@ async function renderSlots() {
   }
 
   if (!slots.length) {
-    grid.innerHTML = `<div class="no-slots">No more sessions available today. Check back tomorrow after 12:00 PM.</div>`;
+    const msg = isPast
+      ? '⏮ This day has passed.'
+      : 'No more sessions available today. Check back tomorrow after 12:00 PM.';
+    grid.innerHTML = `<div class="no-slots">${msg}</div>`;
     return;
   }
+
+  // Slots are only bookable if the selected day is today and not in the past
+  const bookable = isToday && !isPast;
 
   grid.innerHTML = slots.map((slot, i) => {
     const open = 3 - slot.booked;
     const full = open === 0;
+    const locked = !bookable; // not today — display only
     const dots = [0,1,2].map(j =>
       `<div class="cap-dot ${j < slot.booked ? 'filled ' + (full ? 'filled-full' : DOT_CLASS[slot.service]) : ''}"></div>`
     ).join('');
     const openText = full ? 'Full' : open === 1 ? '1 spot left' : `${open} spots open`;
+    const cardClass = `slot-card ${full || locked ? 'slot-full' : ''}`;
+    const clickHandler = (!full && !locked) ? `openModal(${i},'${fmt(day)}')` : '';
     return `
-    <div class="slot-card ${full?'slot-full':''}" onclick="${full?'':  `openModal(${i},'${fmt(day)}')`}">
+    <div class="${cardClass}" onclick="${clickHandler}">
       <div>
         <div class="slot-time">${slot.time}</div>
         <div class="slot-time-sub">1 hour</div>
@@ -464,7 +460,9 @@ async function renderSlots() {
         <div class="slot-price">$60 <span>/ player</span></div>
         ${full
           ? '<div class="btn-full">Full</div>'
-          : `<button class="btn-book">Book Spot →</button>`}
+          : locked
+            ? '<div class="btn-full">Today Only</div>'
+            : `<button class="btn-book">Book Spot →</button>`}
       </div>
     </div>`;
   }).join('');
