@@ -406,8 +406,8 @@ async function renderSlots() {
     return h * 60 + m;
   }
 
-  // For today: hide slots that have already passed. For all other days: show all times (view only).
   const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  // Today: only show 12 PM+ slots that haven't passed yet. Other days: show all TIMES.
   const timesToShow = (isToday && !isPast)
     ? TIMES.filter(t => slotMinutes(t) > nowMinutes)
     : TIMES;
@@ -430,21 +430,37 @@ async function renderSlots() {
     return;
   }
 
-  // Slots are only bookable if the selected day is today and not in the past
+  // Only today's slots get availability indicators and a Book button
   const bookable = isToday && !isPast;
 
   grid.innerHTML = slots.map((slot, i) => {
     const open = 3 - slot.booked;
     const full = open === 0;
-    const locked = !bookable; // not today — display only
+
+    if (!bookable) {
+      // Future/past day — neutral display, no availability info, no button
+      return `
+      <div class="slot-card slot-full">
+        <div>
+          <div class="slot-time">${slot.time}</div>
+          <div class="slot-time-sub">1 hour</div>
+        </div>
+        <div class="slot-mid">
+          <div><span class="slot-service ${SVC_CLASS[slot.service]}">${SVC_ICONS[slot.service]} ${SVC_LABELS[slot.service]}</span></div>
+        </div>
+        <div class="slot-right">
+          <div class="slot-price">$60 <span>/ player</span></div>
+        </div>
+      </div>`;
+    }
+
+    // Today — show full availability + book button
     const dots = [0,1,2].map(j =>
       `<div class="cap-dot ${j < slot.booked ? 'filled ' + (full ? 'filled-full' : DOT_CLASS[slot.service]) : ''}"></div>`
     ).join('');
     const openText = full ? 'Full' : open === 1 ? '1 spot left' : `${open} spots open`;
-    const cardClass = `slot-card ${full || locked ? 'slot-full' : ''}`;
-    const clickHandler = (!full && !locked) ? `openModal(${i},'${fmt(day)}')` : '';
     return `
-    <div class="${cardClass}" onclick="${clickHandler}">
+    <div class="slot-card ${full ? 'slot-full' : ''}" onclick="${full ? '' : `openModal(${i},'${fmt(day)}')`}">
       <div>
         <div class="slot-time">${slot.time}</div>
         <div class="slot-time-sub">1 hour</div>
@@ -458,11 +474,7 @@ async function renderSlots() {
       </div>
       <div class="slot-right">
         <div class="slot-price">$60 <span>/ player</span></div>
-        ${full
-          ? '<div class="btn-full">Full</div>'
-          : locked
-            ? '<div class="btn-full">Today Only</div>'
-            : `<button class="btn-book">Book Spot →</button>`}
+        ${full ? '<div class="btn-full">Full</div>' : `<button class="btn-book">Book Spot →</button>`}
       </div>
     </div>`;
   }).join('');
