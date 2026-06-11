@@ -357,8 +357,8 @@ function renderGrid(bookedPerCal) {
   const viewingToday = isToday(currentDate);
   const { h: nowH, m: nowM } = getCTHoursMinutes(new Date());
   const nowMinutes = nowH * 60 + nowM;
-  // Booking opens at 12:00 PM CST — instructors use the morning to load their lessons
-  const bookingWindowOpen = nowMinutes >= 12 * 60;
+  // TEMP: lowered to 8 AM for testing — restore to 12 * 60 after test
+  const bookingWindowOpen = nowMinutes >= 8 * 60;
 
   let html = '';
   for (let h = 8; h <= 21; h++) {
