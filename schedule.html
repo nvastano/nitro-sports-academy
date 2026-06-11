@@ -361,7 +361,7 @@ function renderGrid(bookedPerCal) {
   const bookingWindowOpen = true;
 
   let html = '';
-  for (let h = 8; h <= 21; h++) {
+  for (let h = 8; h <= 24; h++) { // TEMP: extended to midnight for testing — restore to 21
     [0, 30].forEach(m => {
       const isHalf  = m === 30;
       const k       = slotKey(h, m);
