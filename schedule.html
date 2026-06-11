@@ -129,7 +129,7 @@
   <div style="background:#1a1f2e; border:1px solid rgba(46,125,50,0.5); border-radius:10px; max-width:420px; width:100%; padding:40px 32px; text-align:center;">
     <div style="font-size:2.5rem; margin-bottom:16px;">⚾</div>
     <h3 style="font-family:var(--font-condensed); font-size:1.5rem; color:#fff; margin:0 0 12px;">Request Sent!</h3>
-    <p style="color:var(--silver-dark); margin:0 0 24px; line-height:1.6;">Pedro will review your request and send a confirmation email. Keep an eye on your inbox.</p>
+    <p style="color:var(--silver-dark); margin:0 0 24px; line-height:1.6;">Your request has been received. Pedro will confirm or suggest an alternative time — keep an eye on your email or text from <strong style="color:#fff;">615-968-1327</strong>.</p>
     <button onclick="closeSuccess()" style="background:var(--blue); border:none; color:#fff; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; cursor:pointer;">Back to Schedule</button>
   </div>
 </div>
@@ -250,8 +250,8 @@
 </style>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiVo-sAROzryviZa0vAQo4o_IzVqNXYAVzaUCokv8ASmb9Ir7uHlFxGtrRnE-Jp0UQgA/exec';
-const API_KEY    = 'AIzaSyC7XdCNAhdUEJoUH6CEQYfTNc6sfde-W5o';
+const BOOKING_API = 'https://nitro-crm.nicholas-vastano.workers.dev';
+const API_KEY     = 'AIzaSyC7XdCNAhdUEJoUH6CEQYfTNc6sfde-W5o';
 
 const CALENDARS = [
   { id: '53eb678c1bdbd86f297d873d2bb130aa94c2ec3a69920a97c3fa34d587bc752c@group.calendar.google.com', color: '#4285f4', name: 'Cage 1' },
@@ -262,6 +262,8 @@ const CALENDARS = [
 
 const DAYS   = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+const CAGE_KEY = { 'Cage 1':'cage_1', 'Cage 2':'cage_2', 'Cage 3':'cage_3', 'Pitching Lane':'pitching_lane' };
 
 let currentDate = new Date();
 let pendingSlot = null;
@@ -389,10 +391,14 @@ function renderGrid(bookedPerCal) {
   document.getElementById('cal-grid').style.display    = 'block';
 }
 
+function fmtDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
 function openModal(cageName, h, m) {
-  const dateStr = `${currentDate.getMonth()+1}/${currentDate.getDate()}/${currentDate.getFullYear()}`;
+  const dateStr = fmtDate(currentDate);
   const timeStr = formatTimeStr(h, m);
-  pendingSlot   = { cage: cageName, date: dateStr, time: timeStr };
+  pendingSlot   = { cage: CAGE_KEY[cageName] ?? cageName, cageLabel: cageName, date: dateStr, time: timeStr };
   document.getElementById('modal-cage').textContent     = cageName;
   document.getElementById('modal-datetime').textContent = `${formatDate(currentDate)} at ${timeStr}`;
   document.getElementById('f-name').value  = '';
@@ -434,25 +440,32 @@ async function submitRequest() {
   btn.disabled    = true;
   errEl.style.display = 'none';
 
-  const payload = new URLSearchParams({
-    name, email, phone,
-    cage: pendingSlot.cage,
-    date: pendingSlot.date,
-    time: pendingSlot.time
-  });
-
   try {
-    await fetch(SCRIPT_URL, {
+    const res = await fetch(`${BOOKING_API}/schedule-bookings`, {
       method:  'POST',
-      mode:    'no-cors',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body:    payload.toString()
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({
+        player_name:  name,
+        player_email: email,
+        player_phone: phone,
+        cage:  pendingSlot.cage,
+        date:  pendingSlot.date,
+        time:  pendingSlot.time,
+      }),
     });
+    if (res.status === 409) {
+      errEl.textContent = 'That slot was just claimed. Please pick another time.';
+      errEl.style.display = 'block';
+      btn.textContent = 'Send Request';
+      btn.disabled = false;
+      return;
+    }
+    if (!res.ok) throw new Error(`Server error ${res.status}`);
     closeModal();
     document.getElementById('success-overlay').style.display = 'flex';
     document.body.style.overflow = 'hidden';
   } catch(err) {
-    errEl.textContent = 'Something went wrong. Please try again or text Pedro at 615-870-8077.';
+    errEl.textContent = 'Something went wrong. Please try again or text Pedro at 615-968-1327.';
     errEl.style.display = 'block';
     btn.textContent = 'Send Request';
     btn.disabled    = false;

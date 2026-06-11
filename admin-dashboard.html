@@ -128,7 +128,7 @@
   <div class="view-tabs">
     <div class="view-tab active" onclick="switchView('clients')">Clients</div>
     <div class="view-tab" onclick="switchView('households')">Households</div>
-    <div class="view-tab" onclick="switchView('bookings')" id="tab-bookings">Shared Sessions</div>
+    <div class="view-tab" onclick="switchView('bookings')" id="tab-bookings">Bookings</div>
   </div>
 
   <!-- CLIENTS VIEW -->
@@ -159,13 +159,33 @@
 
   <!-- BOOKINGS VIEW -->
   <div class="view-panel" id="view-bookings">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
-      <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase">Pending Requests</h3>
-      <a href="shared-sessions.html" target="_blank" class="btn-add" style="text-decoration:none;font-size:0.78rem">View Booking Page ↗</a>
+
+    <!-- Cage Requests (schedule.html) -->
+    <div style="background:rgba(43,79,168,0.08);border:1px solid rgba(43,79,168,0.25);border-radius:8px;padding:20px 24px;margin-bottom:32px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light)">🗓 Cage Requests</h3>
+        <a href="schedule.html" target="_blank" class="btn-add" style="text-decoration:none;font-size:0.78rem">View Schedule ↗</a>
+      </div>
+      <div id="cage-pending"><div class="loading">Loading…</div></div>
+      <div id="cage-confirmed-wrap" style="display:none">
+        <h4 style="font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin:20px 0 10px">Confirmed</h4>
+        <div id="cage-confirmed"></div>
+      </div>
     </div>
-    <div id="bookings-pending"><div class="loading">Loading…</div></div>
-    <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;margin:28px 0 16px">Confirmed Sessions</h3>
-    <div id="bookings-confirmed"><div class="loading">Loading…</div></div>
+
+    <!-- Shared Sessions (shared-sessions.html) -->
+    <div style="background:rgba(61,171,122,0.05);border:1px solid rgba(61,171,122,0.2);border-radius:8px;padding:20px 24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+        <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:#3dab7a">⚾ Shared Sessions</h3>
+        <a href="shared-sessions.html" target="_blank" class="btn-add" style="text-decoration:none;font-size:0.78rem">View Booking Page ↗</a>
+      </div>
+      <div id="bookings-pending"><div class="loading">Loading…</div></div>
+      <div id="bookings-confirmed-wrap" style="display:none">
+        <h4 style="font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin:20px 0 10px">Confirmed</h4>
+        <div id="bookings-confirmed"></div>
+      </div>
+    </div>
+
   </div>
 
   <!-- HOUSEHOLDS VIEW -->
@@ -334,44 +354,53 @@ const DISC_ICON  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
 const CAGE_LABEL = { cage_1:'Cage 1', cage_2:'Cage 2', cage_3:'Cage 3', pitching_lane:'Pitching Lane' };
 
 async function loadBookings() {
-  const [pendRes, confRes] = await Promise.all([
-    fetch(`${API}/bookings?status=pending`,   { headers: authHeaders() }),
-    fetch(`${API}/bookings?status=confirmed`, { headers: authHeaders() }),
-  ]);
-  if (pendRes.status === 401) { logout(); return; }
-  const pending   = await pendRes.json();
-  const confirmed = await confRes.json();
+  const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  const all = await res.json();
 
-  // Update tab badge
-  const tab = document.getElementById('tab-bookings');
-  tab.textContent = `Shared Sessions${pending.length ? ` (${pending.length})` : ''}`;
+  const cagePending   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending');
+  const cageConfirmed = all.filter(b => b.booking_type === 'cage_request' && b.status === 'confirmed');
+  const ssPending     = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'pending');
+  const ssConfirmed   = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'confirmed');
 
-  renderBookingList('bookings-pending', pending, true);
-  renderBookingList('bookings-confirmed', confirmed, false);
+  const totalPending = cagePending.length + ssPending.length;
+  document.getElementById('tab-bookings').textContent = `Bookings${totalPending ? ` (${totalPending})` : ''}`;
+
+  renderBookingList('cage-pending', cagePending, true);
+  const cageConfWrap = document.getElementById('cage-confirmed-wrap');
+  if (cageConfirmed.length) {
+    cageConfWrap.style.display = 'block';
+    renderBookingList('cage-confirmed', cageConfirmed, false);
+  } else {
+    cageConfWrap.style.display = 'none';
+  }
+
+  renderBookingList('bookings-pending', ssPending, true);
+  const ssConfWrap = document.getElementById('bookings-confirmed-wrap');
+  if (ssConfirmed.length) {
+    ssConfWrap.style.display = 'block';
+    renderBookingList('bookings-confirmed', ssConfirmed, false);
+  } else {
+    ssConfWrap.style.display = 'none';
+  }
 }
 
 function renderBookingList(elId, bookings, showActions) {
   const el = document.getElementById(elId);
   if (!bookings.length) {
-    el.innerHTML = `<div style="color:var(--silver);font-size:0.9rem;padding:12px 0">None.</div>`;
+    el.innerHTML = `<div style="color:var(--silver);font-size:0.88rem;padding:8px 0">No pending requests.</div>`;
     return;
   }
-  el.innerHTML = bookings.map(b => `
+  el.innerHTML = bookings.map(b => {
+    const isCage = b.booking_type === 'cage_request';
+    const typeTag = isCage
+      ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(43,79,168,0.2);color:#3d65cc">${CAGE_LABEL[b.cage_assigned] ?? b.cage_assigned}</span>`
+      : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;${b.discipline==='hitting'?'background:rgba(61,101,204,0.2);color:#3d65cc':b.discipline==='pitching'?'background:rgba(232,184,75,0.15);color:#E8B84B':'background:rgba(61,171,122,0.15);color:#3dab7a'}">${DISC_ICON[b.discipline]??''} ${b.discipline}</span>`;
+    return `
     <div style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="flex:1;min-width:200px">
-        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">
-          ${DISC_ICON[b.discipline] ?? ''} ${b.player_name}
-          <span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;
-            padding:2px 8px;border-radius:20px;margin-left:6px;
-            ${b.discipline==='hitting'?'background:rgba(61,101,204,0.2);color:#3d65cc':''}
-            ${b.discipline==='pitching'?'background:rgba(232,184,75,0.15);color:#E8B84B':''}
-            ${b.discipline==='catching'?'background:rgba(61,171,122,0.15);color:#3dab7a':''}"
-          >${b.discipline}</span>
-        </div>
-        <div style="font-size:0.82rem;color:var(--silver)">
-          ${b.date} · ${b.time}
-          ${b.cage_assigned ? `· <strong style="color:var(--white)">${CAGE_LABEL[b.cage_assigned]}</strong>` : ''}
-        </div>
+        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}</div>
+        <div style="font-size:0.82rem;color:var(--silver)">${b.date} · ${b.time}</div>
         <div style="font-size:0.82rem;color:var(--silver);margin-top:3px">
           ${[b.player_email, b.player_phone, b.player_age ? `Age ${b.player_age}` : null].filter(Boolean).join(' · ') || '—'}
         </div>
@@ -394,7 +423,8 @@ function renderBookingList(elId, bookings, showActions) {
           Cancel
         </button>
       </div>`}
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 async function approveBooking(id) {
