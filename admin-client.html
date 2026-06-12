@@ -118,6 +118,8 @@
         <option value="converted">Converted</option>
         <option value="closed">Closed</option>
       </select>
+      <button onclick="openEmailModal()" style="background:var(--blue);border:none;border-radius:5px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;color:#fff;cursor:pointer">✉ Email</button>
+      <button onclick="openSMS()" id="smsBtn" style="background:transparent;border:1px solid rgba(61,171,122,0.5);border-radius:5px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;color:#3dab7a;cursor:pointer">💬 Text</button>
     </div>
   </div>
   <div id="leadNotesBar" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:14px 20px;margin-bottom:20px;font-size:0.9rem;color:var(--silver-light);font-style:italic"></div>
@@ -245,6 +247,31 @@
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- Email Modal -->
+<div class="modal-bg" id="emailModal">
+  <div class="modal" style="max-width:540px">
+    <h2>Send Email to Lead</h2>
+    <div style="display:grid;gap:14px">
+      <div>
+        <label>To</label>
+        <input type="email" id="emailTo" readonly style="opacity:0.6;cursor:default">
+      </div>
+      <div>
+        <label>Subject</label>
+        <input type="text" id="emailSubject">
+      </div>
+      <div>
+        <label>Message</label>
+        <textarea id="emailBody" rows="8" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;resize:vertical;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--blue-light)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeEmailModal()">Cancel</button>
+      <button class="btn-primary" id="emailSendBtn" onclick="sendLeadEmail()">Send Email</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
@@ -630,8 +657,63 @@ async function deletePayment(paymentId) {
   loadClient();
 }
 
+function openEmailModal() {
+  if (!clientData?.email) { showToast('No email address on file', 'error'); return; }
+  const firstName = clientData.first_name ?? '';
+  const topic = clientData.inquiry_type ?? clientData.inquiry_notes ?? 'your inquiry';
+  document.getElementById('emailTo').value = clientData.email;
+  document.getElementById('emailSubject').value = `Re: Your Inquiry — Nitro Sports Academy`;
+  document.getElementById('emailBody').value =
+`Hi ${firstName},
+
+Thank you for reaching out to Nitro Sports Academy! We received your inquiry about ${topic} and wanted to follow up personally.
+
+We'd love to connect and answer any questions you have. Feel free to reply to this email or give us a call/text at (615) 870-8077.
+
+Looking forward to hearing from you!
+
+Pedro Hernandez
+Owner & Head Coach — Nitro Sports Academy
+(615) 870-8077`;
+  document.getElementById('emailModal').classList.add('open');
+}
+
+function closeEmailModal() { document.getElementById('emailModal').classList.remove('open'); }
+
+async function sendLeadEmail() {
+  const to = document.getElementById('emailTo').value;
+  const subject = document.getElementById('emailSubject').value.trim();
+  const body = document.getElementById('emailBody').value.trim();
+  if (!subject || !body) { showToast('Subject and message are required', 'error'); return; }
+  const btn = document.getElementById('emailSendBtn');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const res = await fetch(`${API}/leads/${clientId}/email`, {
+    method: 'POST', headers: authHeaders(),
+    body: JSON.stringify({ to, subject, body }),
+  });
+  if (!res.ok) { showToast('Error sending email', 'error'); btn.disabled = false; btn.textContent = 'Send Email'; return; }
+  showToast('Email sent!');
+  closeEmailModal();
+  btn.disabled = false; btn.textContent = 'Send Email';
+  if (clientData.lead_status === 'lead') {
+    document.getElementById('leadStatusSelect').value = 'contacted';
+    updateLeadStatus();
+  }
+}
+
+function openSMS() {
+  const phone = clientData?.phone;
+  if (!phone) { showToast('No phone number on file', 'error'); return; }
+  const firstName = clientData.first_name ?? '';
+  const topic = clientData.inquiry_type ?? clientData.inquiry_notes ?? 'your inquiry';
+  const msg = `Hi ${firstName}, this is Pedro from Nitro Sports Academy! Thanks for reaching out about ${topic}. I'd love to connect — feel free to text back or call me at (615) 870-8077.`;
+  const clean = phone.replace(/\D/g, '');
+  window.open(`sms:+1${clean}?body=${encodeURIComponent(msg)}`);
+}
+
 document.getElementById('renewModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRenewModal(); });
 document.getElementById('hhModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHHModal(); });
+document.getElementById('emailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeEmailModal(); });
 
 getToken();
 Promise.all([loadClient(), loadHouseholds()]);
