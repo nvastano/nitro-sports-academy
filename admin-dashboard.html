@@ -468,7 +468,7 @@ async function loadClients() {
   const res = await fetch(`${API}/clients`, { headers: authHeaders() });
   if (res.status === 401) { logout(); return; }
   allClients = await res.json();
-  const clients = allClients.filter(c => c.lead_status !== 'lead' && c.lead_status !== 'contacted');
+  const clients = allClients.filter(c => !!c.membership_type);
   document.getElementById('stat-total').textContent = clients.length;
   document.getElementById('stat-active').textContent = clients.filter(c => c.membership_status === 'active').length;
   const totalDue = clients.reduce((s, c) => s + (c.amount_due ?? 0), 0);
@@ -496,7 +496,7 @@ function filterClients() {
   const s = document.getElementById('search').value.toLowerCase();
   const status = document.getElementById('statusFilter').value;
   const filtered = allClients.filter(c => {
-    if (c.lead_status === 'lead' || c.lead_status === 'contacted') return false;
+    if (!c.membership_type) return false;
     const match = !s || [c.first_name, c.last_name, c.email, c.current_team, c.household_name].some(v => (v ?? '').toLowerCase().includes(s));
     return match && (!status || c.membership_status === status);
   });
