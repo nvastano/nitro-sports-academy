@@ -315,16 +315,27 @@ async function loadLeads() {
   document.getElementById('tab-leads').textContent = `Leads${newLeads.length ? ` (${newLeads.length})` : ''}`;
   if (!leads.length) { el.innerHTML = '<div class="empty">No leads yet.</div>'; return; }
   el.innerHTML = leads.map(l => `
-    <div class="renewal-row" onclick="go('${l.id}')">
-      <div>
+    <div class="renewal-row" style="cursor:default">
+      <div onclick="go('${l.id}')" style="cursor:pointer;flex:1">
         <div class="renewal-name">${l.first_name} ${l.last_name}
           <span class="badge" style="background:rgba(61,101,204,0.2);color:var(--blue-light);border:1px solid rgba(61,101,204,0.3);margin-left:8px">${leadStatusLabel(l.lead_status)}</span>
         </div>
         <div class="renewal-meta">${[l.email, l.phone].filter(Boolean).join(' · ')}${l.inquiry_type ? ` · ${l.inquiry_type}` : ''}</div>
         ${l.inquiry_notes ? `<div class="renewal-meta" style="margin-top:3px;font-style:italic">"${l.inquiry_notes.slice(0,120)}${l.inquiry_notes.length > 120 ? '…' : ''}"</div>` : ''}
       </div>
-      <div style="font-size:0.82rem;color:var(--silver);white-space:nowrap">${l.created_at ? l.created_at.slice(0,10) : ''}</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-shrink:0">
+        <div style="font-size:0.82rem;color:var(--silver);white-space:nowrap">${l.created_at ? l.created_at.slice(0,10) : ''}</div>
+        <button onclick="deleteLead('${l.id}','${l.first_name} ${l.last_name}')" style="background:transparent;border:1px solid rgba(220,50,50,0.3);border-radius:4px;color:#ff7b7b;padding:4px 10px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer">Delete</button>
+      </div>
     </div>`).join('');
+}
+
+async function deleteLead(id, name) {
+  if (!confirm(`Delete lead "${name}"? This cannot be undone.`)) return;
+  const res = await fetch(`${API}/clients/${id}`, { method: 'DELETE', headers: authHeaders() });
+  if (!res.ok) { showToast('Error deleting lead'); return; }
+  showToast(`${name} deleted`);
+  loadLeads();
 }
 
 function leadStatusLabel(s) {
