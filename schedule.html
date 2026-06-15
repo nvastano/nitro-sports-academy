@@ -349,6 +349,7 @@ function formatTimeStr(h, m) {
 }
 function formatRowLabel(h, m) {
   if (m === 30) return ':30';
+  if (h === 0 || h === 24) return '12 AM';
   if (h === 12) return '12 PM';
   return h < 12 ? `${h} AM` : `${h-12} PM`;
 }
