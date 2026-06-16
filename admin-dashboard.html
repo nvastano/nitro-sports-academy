@@ -647,7 +647,9 @@ const CAL_CAGES = ['cage_1','cage_2','cage_3','pitching_lane'];
 const CAL_CAGE_LABELS = { cage_1:'Cage 1', cage_2:'Cage 2', cage_3:'Cage 3', pitching_lane:'Pitching Lane' };
 const CAL_HOURS = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
 
-function calDateStr(d) { return d.toISOString().slice(0,10); }
+function calDateStr(d) {
+  return d.toLocaleDateString('en-CA', { timeZone: 'America/Chicago' }); // YYYY-MM-DD in Chicago time
+}
 function calPrevDay() { calDate = new Date(calDate); calDate.setDate(calDate.getDate()-1); loadCalendar(); }
 function calNextDay() { calDate = new Date(calDate); calDate.setDate(calDate.getDate()+1); loadCalendar(); }
 function calToday() { calDate = new Date(); loadCalendar(); }
