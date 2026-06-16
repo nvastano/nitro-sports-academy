@@ -90,7 +90,27 @@
   .btn-save:hover{background:var(--blue-light)}
   .divider-label{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);padding-top:4px}
   @media(max-width:600px){.form-grid{grid-template-columns:1fr}.form-grid .full{grid-column:1}}
+  /* Calendar */
+  .cal-nav{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .cal-nav-btn{background:var(--dark-mid);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 16px;color:var(--white);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;transition:background 0.2s}
+  .cal-nav-btn:hover{background:rgba(43,79,168,0.3)}
+  .cal-nav-btn.active{background:var(--blue);border-color:var(--blue)}
+  .cal-date-label{font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.05em;flex:1;text-align:center}
+  .cal-legend{display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap}
+  .cal-legend-item{display:flex;align-items:center;gap:7px;font-size:0.82rem;color:var(--silver)}
+  .cal-legend-dot{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+  .cal-wrap{overflow-x:auto}
+  .cal-table{width:100%;border-collapse:collapse;min-width:600px}
+  .cal-table th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);padding:10px 12px;text-align:center;background:var(--dark-mid);border:1px solid rgba(255,255,255,0.06)}
+  .cal-time{width:70px;padding:10px 12px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;color:var(--silver);border:1px solid rgba(255,255,255,0.06);vertical-align:top;white-space:nowrap}
+  .cal-cell{padding:5px;border:1px solid rgba(255,255,255,0.06);vertical-align:top;min-height:48px;min-width:130px}
+  .cal-event{border-radius:5px;padding:5px 8px;margin-bottom:4px;font-size:0.8rem;line-height:1.35}
+  .cal-event-pending{background:rgba(232,184,75,0.15);border-left:3px solid var(--gold);color:var(--gold)}
+  .cal-event-gcal{background:rgba(43,79,168,0.18);border-left:3px solid var(--blue-light);color:var(--silver-light)}
+  .cal-event-name{font-weight:600}
+  .cal-event-meta{font-size:0.73rem;opacity:0.8;margin-top:2px}
 </style>
+
 </head>
 <body>
 
@@ -125,6 +145,7 @@
     <div class="view-tab" onclick="switchView('households')">Households</div>
     <div class="view-tab" onclick="switchView('bookings')" id="tab-bookings">Bookings</div>
     <div class="view-tab" onclick="switchView('leads')" id="tab-leads">Leads</div>
+    <div class="view-tab" onclick="switchView('calendar')">Calendar</div>
   </div>
 
   <!-- CLIENTS VIEW -->
@@ -187,6 +208,22 @@
   <!-- LEADS VIEW -->
   <div class="view-panel" id="view-leads">
     <div id="leads-list"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- CALENDAR VIEW -->
+  <div class="view-panel" id="view-calendar">
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calPrevDay()">← Prev</button>
+      <button class="cal-nav-btn active" onclick="calToday()">Today</button>
+      <button class="cal-nav-btn" onclick="calNextDay()">Next →</button>
+      <span class="cal-date-label" id="cal-date-label"></span>
+      <button class="cal-nav-btn" onclick="loadCalendar()" style="margin-left:auto">↻ Refresh</button>
+    </div>
+    <div class="cal-legend">
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--gold)"></div> Pending (not yet approved)</div>
+      <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light)"></div> Confirmed / Instructor (from Google Calendar)</div>
+    </div>
+    <div class="cal-wrap" id="cal-grid"><div class="loading">Loading…</div></div>
   </div>
 
   <!-- HOUSEHOLDS VIEW -->
@@ -300,10 +337,11 @@ function badgeHtml(status) {
 }
 
 function switchView(name) {
-  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','households','bookings','leads'][i] === name));
+  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','households','bookings','leads','calendar'][i] === name));
   document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`view-${name}`).classList.add('active');
   if (name === 'bookings') loadBookings();
+  if (name === 'calendar') loadCalendar();
 }
 
 async function loadLeads() {
@@ -601,6 +639,104 @@ async function saveHousehold(e) {
 
 document.getElementById('clientModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeClientModal(); });
 document.getElementById('householdModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHouseholdModal(); });
+
+// ============ CALENDAR ============
+let calDate = new Date();
+const CAL_CAGES = ['cage_1','cage_2','cage_3','pitching_lane'];
+const CAL_CAGE_LABELS = { cage_1:'Cage 1', cage_2:'Cage 2', cage_3:'Cage 3', pitching_lane:'Pitching Lane' };
+const CAL_HOURS = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+
+function calDateStr(d) { return d.toISOString().slice(0,10); }
+function calPrevDay() { calDate = new Date(calDate); calDate.setDate(calDate.getDate()-1); loadCalendar(); }
+function calNextDay() { calDate = new Date(calDate); calDate.setDate(calDate.getDate()+1); loadCalendar(); }
+function calToday() { calDate = new Date(); loadCalendar(); }
+
+function calHourLabel(h) {
+  if (h === 0 || h === 24) return '12 AM';
+  if (h === 12) return '12 PM';
+  return h < 12 ? `${h} AM` : `${h-12} PM`;
+}
+
+function parseGCalHour(dateTimeStr) {
+  if (!dateTimeStr) return null;
+  const d = new Date(dateTimeStr);
+  const s = d.toLocaleString('en-US', { timeZone:'America/Chicago', hour:'numeric', hour12:false });
+  const h = parseInt(s);
+  return isNaN(h) ? null : h;
+}
+
+function parseBookingHour(timeStr) {
+  if (!timeStr) return null;
+  const [t, ap] = timeStr.split(' ');
+  let [h] = t.split(':').map(Number);
+  if (ap === 'PM' && h !== 12) h += 12;
+  if (ap === 'AM' && h === 12) h = 0;
+  return h;
+}
+
+async function loadCalendar() {
+  const dateStr = calDateStr(calDate);
+  document.getElementById('cal-date-label').textContent = calDate.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' });
+  document.getElementById('cal-grid').innerHTML = '<div class="loading">Loading…</div>';
+  try {
+    const [gcalRes, pendingRes] = await Promise.all([
+      fetch(`${API}/calendar/events?date=${dateStr}`, { headers: authHeaders() }),
+      fetch(`${API}/bookings?status=pending&type=cage_request&date=${dateStr}`, { headers: authHeaders() })
+    ]);
+    const gcalEvents = gcalRes.ok ? await gcalRes.json() : [];
+    const pendingBookings = pendingRes.ok ? await pendingRes.json() : [];
+    renderCalendar(gcalEvents, pendingBookings);
+  } catch(e) {
+    document.getElementById('cal-grid').innerHTML = '<div class="empty">Error loading calendar. Check console.</div>';
+  }
+}
+
+function renderCalendar(gcalEvents, pendingBookings) {
+  const grid = {};
+  CAL_CAGES.forEach(cage => { grid[cage] = {}; CAL_HOURS.forEach(h => grid[cage][h] = []); });
+
+  gcalEvents.forEach(e => {
+    const h = parseGCalHour(e.start);
+    if (h !== null && grid[e.cage] && grid[e.cage][h] !== undefined)
+      grid[e.cage][h].push({ type:'gcal', ...e });
+  });
+
+  pendingBookings.forEach(b => {
+    const h = parseBookingHour(b.time);
+    const cage = b.cage_assigned;
+    if (h !== null && grid[cage] && grid[cage][h] !== undefined)
+      grid[cage][h].push({ type:'pending', ...b });
+  });
+
+  const headers = CAL_CAGES.map(c => `<th>${CAL_CAGE_LABELS[c]}</th>`).join('');
+  const rows = CAL_HOURS.map(h => {
+    const cells = CAL_CAGES.map(cage => {
+      const evts = grid[cage][h];
+      const html = evts.map(e => {
+        if (e.type === 'pending') {
+          return `<div class="cal-event cal-event-pending">
+            <div class="cal-event-name">${e.player_name}</div>
+            <div class="cal-event-meta">${e.time} · Pending approval</div>
+          </div>`;
+        } else {
+          const t = e.start ? new Date(e.start).toLocaleTimeString('en-US', { timeZone:'America/Chicago', hour:'numeric', minute:'2-digit' }) : '';
+          return `<div class="cal-event cal-event-gcal">
+            <div class="cal-event-name">${e.summary ?? 'Event'}</div>
+            <div class="cal-event-meta">${t}</div>
+          </div>`;
+        }
+      }).join('');
+      return `<td class="cal-cell">${html}</td>`;
+    }).join('');
+    return `<tr><td class="cal-time">${calHourLabel(h)}</td>${cells}</tr>`;
+  }).join('');
+
+  document.getElementById('cal-grid').innerHTML = `
+    <table class="cal-table">
+      <thead><tr><th>Time</th>${headers}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
 
 getToken();
 Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
