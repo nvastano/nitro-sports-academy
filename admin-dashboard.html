@@ -56,6 +56,9 @@
   table{width:100%;border-collapse:collapse;font-size:0.9rem}
   thead{background:var(--dark-mid)}
   th{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);padding:12px 16px;text-align:left;white-space:nowrap}
+  th.sortable{cursor:pointer;user-select:none}
+  th.sortable:hover{color:var(--blue-light)}
+  .sort-arrow{color:var(--blue-light);font-size:0.7rem}
   td{padding:14px 16px;border-top:1px solid rgba(255,255,255,0.05);vertical-align:middle}
   tr{cursor:pointer;transition:background 0.15s}
   tr:hover td{background:rgba(43,79,168,0.1)}
@@ -161,13 +164,24 @@
         <option value="expired">Expired</option>
         <option value="pending">Pending</option>
       </select>
+      <select id="membershipFilter" onchange="filterClients()">
+        <option value="">All Membership Types</option>
+        <option value="individual">Individual</option>
+        <option value="family_2">Family (2)</option>
+        <option value="family_3plus">Family (3+)</option>
+      </select>
       <button class="btn-add" onclick="openClientModal()">+ Add Client</button>
     </div>
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Client</th><th>Household</th><th>Membership</th>
-          <th>Status</th><th>Renewal</th><th>Paid</th><th>Due</th>
+          <th class="sortable" onclick="sortClients('name')">Client<span class="sort-arrow" id="sort-name"></span></th>
+          <th class="sortable" onclick="sortClients('household_name')">Household<span class="sort-arrow" id="sort-household_name"></span></th>
+          <th class="sortable" onclick="sortClients('membership_type')">Membership<span class="sort-arrow" id="sort-membership_type"></span></th>
+          <th class="sortable" onclick="sortClients('membership_status')">Status<span class="sort-arrow" id="sort-membership_status"></span></th>
+          <th class="sortable" onclick="sortClients('renewal_date')">Renewal<span class="sort-arrow" id="sort-renewal_date"></span></th>
+          <th class="sortable" onclick="sortClients('amount_paid')">Paid<span class="sort-arrow" id="sort-amount_paid"></span></th>
+          <th class="sortable" onclick="sortClients('amount_due')">Due<span class="sort-arrow" id="sort-amount_due"></span></th>
         </tr></thead>
         <tbody id="clientTable"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
       </table>
@@ -569,15 +583,53 @@ function populateHouseholdSelect() {
   sel.value = existing;
 }
 
+let clientSort = { key: null, dir: 1 };
+
 function filterClients() {
   const s = document.getElementById('search').value.toLowerCase();
   const status = document.getElementById('statusFilter').value;
-  const filtered = allClients.filter(c => {
+  const membershipType = document.getElementById('membershipFilter').value;
+  let filtered = allClients.filter(c => {
     if (!c.membership_type) return false;
     const match = !s || [c.first_name, c.last_name, c.email, c.current_team, c.household_name].some(v => (v ?? '').toLowerCase().includes(s));
-    return match && (!status || c.membership_status === status);
+    return match && (!status || c.membership_status === status) && (!membershipType || c.membership_type === membershipType);
   });
+  filtered = applyClientSort(filtered);
   renderClientTable(filtered);
+}
+
+function applyClientSort(list) {
+  if (!clientSort.key) return list;
+  const key = clientSort.key;
+  const dir = clientSort.dir;
+  return [...list].sort((a, b) => {
+    let av, bv;
+    if (key === 'name') {
+      av = `${a.first_name ?? ''} ${a.last_name ?? ''}`.toLowerCase();
+      bv = `${b.first_name ?? ''} ${b.last_name ?? ''}`.toLowerCase();
+    } else {
+      av = a[key]; bv = b[key];
+    }
+    if (typeof av === 'string') av = av.toLowerCase();
+    if (typeof bv === 'string') bv = bv.toLowerCase();
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1;
+    if (bv == null) return -1;
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
+}
+
+function sortClients(key) {
+  if (clientSort.key === key) {
+    clientSort.dir *= -1;
+  } else {
+    clientSort = { key, dir: 1 };
+  }
+  document.querySelectorAll('#view-clients .sort-arrow').forEach(el => el.textContent = '');
+  document.getElementById(`sort-${key}`).textContent = clientSort.dir === 1 ? ' ▲' : ' ▼';
+  filterClients();
 }
 
 function renderClientTable(clients) {
