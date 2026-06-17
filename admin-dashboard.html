@@ -404,14 +404,26 @@ async function loadRenewals() {
 const DISC_ICON  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
 const CAGE_LABEL = { cage_1:'Cage 1', cage_2:'Cage 2', cage_3:'Cage 3', pitching_lane:'Pitching Lane' };
 
-function memberLookup(email) {
-  if (!email) return null;
-  const e = email.trim().toLowerCase();
-  return allClients.find(c => (c.email ?? '').trim().toLowerCase() === e) || null;
+function normalizePhone(p) {
+  return (p ?? '').replace(/\D/g, '').replace(/^1(\d{10})$/, '$1');
 }
 
-function memberBadge(email) {
-  const client = memberLookup(email);
+function memberLookup(email, phone) {
+  const e = (email ?? '').trim().toLowerCase();
+  if (e) {
+    const byEmail = allClients.find(c => (c.email ?? '').trim().toLowerCase() === e);
+    if (byEmail) return byEmail;
+  }
+  const p = normalizePhone(phone);
+  if (p) {
+    const byPhone = allClients.find(c => normalizePhone(c.phone) === p);
+    if (byPhone) return byPhone;
+  }
+  return null;
+}
+
+function memberBadge(email, phone) {
+  const client = memberLookup(email, phone);
   const isMember = !!client && client.membership_status === 'active';
   return isMember
     ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(76,175,110,0.15);color:#4caf6e">✓ Member</span>`
@@ -465,7 +477,7 @@ function renderBookingList(elId, bookings, showActions) {
     return `
     <div style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="flex:1;min-width:200px">
-        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${memberBadge(b.player_email)}</div>
+        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${memberBadge(b.player_email, b.player_phone)}</div>
         <div style="font-size:0.82rem;color:var(--silver)">${b.date} · ${b.time}</div>
         <div style="font-size:0.82rem;color:var(--silver);margin-top:3px">
           ${[b.player_email, b.player_phone, b.player_age ? `Age ${b.player_age}` : null].filter(Boolean).join(' · ') || '—'}
