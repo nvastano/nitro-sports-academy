@@ -404,7 +404,22 @@ async function loadRenewals() {
 const DISC_ICON  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
 const CAGE_LABEL = { cage_1:'Cage 1', cage_2:'Cage 2', cage_3:'Cage 3', pitching_lane:'Pitching Lane' };
 
+function memberLookup(email) {
+  if (!email) return null;
+  const e = email.trim().toLowerCase();
+  return allClients.find(c => (c.email ?? '').trim().toLowerCase() === e) || null;
+}
+
+function memberBadge(email) {
+  const client = memberLookup(email);
+  const isMember = !!client && client.membership_status === 'active';
+  return isMember
+    ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(76,175,110,0.15);color:#4caf6e">✓ Member</span>`
+    : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(220,50,50,0.15);color:#ff7b7b">Not a Member</span>`;
+}
+
 async function loadBookings() {
+  if (!allClients.length) await loadClients();
   const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
   if (res.status === 401) { logout(); return; }
   const all = await res.json();
@@ -450,7 +465,7 @@ function renderBookingList(elId, bookings, showActions) {
     return `
     <div style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="flex:1;min-width:200px">
-        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}</div>
+        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${memberBadge(b.player_email)}</div>
         <div style="font-size:0.82rem;color:var(--silver)">${b.date} · ${b.time}</div>
         <div style="font-size:0.82rem;color:var(--silver);margin-top:3px">
           ${[b.player_email, b.player_phone, b.player_age ? `Age ${b.player_age}` : null].filter(Boolean).join(' · ') || '—'}
