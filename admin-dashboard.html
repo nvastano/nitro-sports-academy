@@ -198,6 +198,10 @@
         <a href="schedule.html" target="_blank" class="btn-add" style="text-decoration:none;font-size:0.78rem">View Schedule ↗</a>
       </div>
       <div id="cage-pending"><div class="loading">Loading…</div></div>
+      <div id="cage-payment-wrap" style="display:none">
+        <h4 style="font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin:20px 0 10px">Awaiting Payment (Guest)</h4>
+        <div id="cage-payment"></div>
+      </div>
       <div id="cage-confirmed-wrap" style="display:none">
         <h4 style="font-family:'Barlow Condensed',sans-serif;font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin:20px 0 10px">Confirmed</h4>
         <div id="cage-confirmed"></div>
@@ -451,33 +455,41 @@ async function loadBookings() {
   const all = await res.json();
 
   const cagePending   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending');
+  const cagePayment   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending_payment');
   const cageConfirmed = all.filter(b => b.booking_type === 'cage_request' && b.status === 'confirmed');
   const ssPending     = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'pending');
   const ssConfirmed   = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'confirmed');
 
-  const totalPending = cagePending.length + ssPending.length;
+  const totalPending = cagePending.length + cagePayment.length + ssPending.length;
   document.getElementById('tab-bookings').textContent = `Bookings${totalPending ? ` (${totalPending})` : ''}`;
 
-  renderBookingList('cage-pending', cagePending, true);
+  renderBookingList('cage-pending', cagePending, 'pending');
+  const cagePaymentWrap = document.getElementById('cage-payment-wrap');
+  if (cagePayment.length) {
+    cagePaymentWrap.style.display = 'block';
+    renderBookingList('cage-payment', cagePayment, 'payment');
+  } else {
+    cagePaymentWrap.style.display = 'none';
+  }
   const cageConfWrap = document.getElementById('cage-confirmed-wrap');
   if (cageConfirmed.length) {
     cageConfWrap.style.display = 'block';
-    renderBookingList('cage-confirmed', cageConfirmed, false);
+    renderBookingList('cage-confirmed', cageConfirmed, 'confirmed');
   } else {
     cageConfWrap.style.display = 'none';
   }
 
-  renderBookingList('bookings-pending', ssPending, true);
+  renderBookingList('bookings-pending', ssPending, 'pending');
   const ssConfWrap = document.getElementById('bookings-confirmed-wrap');
   if (ssConfirmed.length) {
     ssConfWrap.style.display = 'block';
-    renderBookingList('bookings-confirmed', ssConfirmed, false);
+    renderBookingList('bookings-confirmed', ssConfirmed, 'confirmed');
   } else {
     ssConfWrap.style.display = 'none';
   }
 }
 
-function renderBookingList(elId, bookings, showActions) {
+function renderBookingList(elId, bookings, mode) {
   const el = document.getElementById(elId);
   if (!bookings.length) {
     el.innerHTML = `<div style="color:var(--silver);font-size:0.88rem;padding:8px 0">No pending requests.</div>`;
@@ -488,16 +500,12 @@ function renderBookingList(elId, bookings, showActions) {
     const typeTag = isCage
       ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(43,79,168,0.2);color:#3d65cc">${CAGE_LABEL[b.cage_assigned] ?? b.cage_assigned}</span>`
       : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;${b.discipline==='hitting'?'background:rgba(61,101,204,0.2);color:#3d65cc':b.discipline==='pitching'?'background:rgba(232,184,75,0.15);color:#E8B84B':'background:rgba(61,171,122,0.15);color:#3dab7a'}">${DISC_ICON[b.discipline]??''} ${b.discipline}</span>`;
-    return `
-    <div style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-      <div style="flex:1;min-width:200px">
-        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${memberBadge(b.player_email, b.player_phone)}</div>
-        <div style="font-size:0.82rem;color:var(--silver)">${b.date} · ${b.time}</div>
-        <div style="font-size:0.82rem;color:var(--silver);margin-top:3px">
-          ${[b.player_email, b.player_phone, b.player_age ? `Age ${b.player_age}` : null].filter(Boolean).join(' · ') || '—'}
-        </div>
-      </div>
-      ${showActions ? `
+    const priceTag = b.price != null
+      ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(232,184,75,0.15);color:var(--gold)">${b.duration ?? 30}min · $${b.price.toFixed(0)}</span>`
+      : '';
+    let actionsHtml;
+    if (mode === 'pending') {
+      actionsHtml = `
       <div style="display:flex;gap:8px;flex-shrink:0">
         <button onclick="approveBooking('${b.id}')"
           style="background:var(--blue);border:none;border-radius:5px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;color:#fff;cursor:pointer">
@@ -507,14 +515,39 @@ function renderBookingList(elId, bookings, showActions) {
           style="background:transparent;border:1px solid rgba(220,50,50,0.4);border-radius:5px;padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;color:#ff7b7b;cursor:pointer">
           ✕
         </button>
-      </div>` : `
+      </div>`;
+    } else if (mode === 'payment') {
+      actionsHtml = `
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button onclick="confirmPayment('${b.id}')"
+          style="background:#3dab7a;border:none;border-radius:5px;padding:8px 16px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;color:#fff;cursor:pointer">
+          ✓ Mark Paid &amp; Confirm
+        </button>
+        <button onclick="declineBooking('${b.id}')"
+          style="background:transparent;border:1px solid rgba(220,50,50,0.4);border-radius:5px;padding:8px 14px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.78rem;letter-spacing:0.08em;text-transform:uppercase;color:#ff7b7b;cursor:pointer">
+          ✕
+        </button>
+      </div>`;
+    } else {
+      actionsHtml = `
       <div style="display:flex;gap:8px;flex-shrink:0;align-items:center">
         <span style="font-size:0.78rem;color:#4caf6e;font-family:'Barlow Condensed',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase">✓ Confirmed</span>
         <button onclick="cancelBooking('${b.id}')"
           style="background:transparent;border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:6px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--silver);cursor:pointer">
           Cancel
         </button>
-      </div>`}
+      </div>`;
+    }
+    return `
+    <div style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+      <div style="flex:1;min-width:200px">
+        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${priceTag}${memberBadge(b.player_email, b.player_phone)}</div>
+        <div style="font-size:0.82rem;color:var(--silver)">${b.date} · ${b.time}</div>
+        <div style="font-size:0.82rem;color:var(--silver);margin-top:3px">
+          ${[b.player_email, b.player_phone, b.player_age ? `Age ${b.player_age}` : null].filter(Boolean).join(' · ') || '—'}
+        </div>
+      </div>
+      ${actionsHtml}
     </div>`;
   }).join('');
 }
@@ -523,6 +556,14 @@ async function approveBooking(id) {
   const res = await fetch(`${API}/bookings/${id}/approve`, { method:'PUT', headers: authHeaders() });
   if (!res.ok) { alert('Error approving booking'); return; }
   showToast('Booking approved — calendar updated ✓', 'success');
+  loadBookings();
+}
+
+async function confirmPayment(id) {
+  if (!confirm("Confirm that payment was collected for this guest booking? This will create the calendar event and email the player.")) return;
+  const res = await fetch(`${API}/bookings/${id}/confirm-payment`, { method:'PUT', headers: authHeaders() });
+  if (!res.ok) { alert('Error confirming payment'); return; }
+  showToast('Payment confirmed — booking is now live ✓', 'success');
   loadBookings();
 }
 
