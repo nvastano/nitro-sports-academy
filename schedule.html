@@ -140,7 +140,10 @@
     <div id="success-icon" style="font-size:2.5rem; margin-bottom:16px;">✅</div>
     <h3 id="success-title" style="font-family:var(--font-condensed); font-size:1.5rem; color:#fff; margin:0 0 12px;">You're Booked!</h3>
     <p id="success-body" style="color:var(--silver-dark); margin:0 0 24px; line-height:1.6;">Your slot is confirmed. Check your email for a <strong style="color:#fff;">calendar invite</strong> you can save directly to your calendar.</p>
-    <button onclick="closeSuccess()" style="background:var(--blue); border:none; color:#fff; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; cursor:pointer;">Back to Schedule</button>
+    <a id="success-pay-link" href="#" target="_blank" style="display:none; background:var(--blue); color:#fff; text-decoration:none; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:14px;">Pay Now</a>
+    <div>
+      <button onclick="closeSuccess()" style="background:var(--blue); border:none; color:#fff; padding:11px 32px; border-radius:5px; font-family:var(--font-condensed); font-size:0.95rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; cursor:pointer;">Back to Schedule</button>
+    </div>
   </div>
 </div>
 
@@ -503,14 +506,23 @@ async function submitRequest() {
     if (!res.ok) throw new Error(`Server error ${res.status}`);
     const data = await res.json();
     closeModal();
+    const payLink = document.getElementById('success-pay-link');
     if (data.payment_required) {
-      document.getElementById('success-icon').textContent = '⏳';
-      document.getElementById('success-title').textContent = 'Request Received!';
-      document.getElementById('success-body').innerHTML = `Pedro will follow up shortly with a secure payment link to confirm your <strong style="color:#fff;">$${data.price.toFixed(2)}</strong> spot. Check your email for details.`;
+      document.getElementById('success-icon').textContent = '💳';
+      document.getElementById('success-title').textContent = 'One Last Step — Payment';
+      if (data.payment_link_url) {
+        document.getElementById('success-body').innerHTML = `Your spot is held but not confirmed yet. Pay <strong style="color:#fff;">$${data.price.toFixed(2)}</strong> now to lock it in. A copy of this link was also emailed to you.`;
+        payLink.href = data.payment_link_url;
+        payLink.style.display = 'inline-block';
+      } else {
+        document.getElementById('success-body').innerHTML = `Pedro will follow up shortly with a secure payment link to confirm your <strong style="color:#fff;">$${data.price.toFixed(2)}</strong> spot. Check your email for details.`;
+        payLink.style.display = 'none';
+      }
     } else {
       document.getElementById('success-icon').textContent = '✅';
       document.getElementById('success-title').textContent = "You're Booked!";
       document.getElementById('success-body').innerHTML = 'Your slot is confirmed. Check your email for a <strong style="color:#fff;">calendar invite</strong> you can save directly to your calendar.';
+      payLink.style.display = 'none';
     }
     document.getElementById('success-overlay').style.display = 'flex';
     document.body.style.overflow = 'hidden';
