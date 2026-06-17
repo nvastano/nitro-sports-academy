@@ -16,47 +16,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ============ CONTACT FORM — sends to coach.pedro.tn@gmail.com via Formspree ============
-  const form = document.getElementById('contact-form');
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = form.querySelector('.form-submit');
-      btn.textContent = 'Sending…';
-      btn.disabled = true;
-
-      const data = {
-        name: (document.getElementById('fname').value + ' ' + document.getElementById('lname').value).trim(),
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value || 'Not provided',
-        interest: document.getElementById('interest') ? document.getElementById('interest').value : 'Not specified',
-        message: document.getElementById('message').value,
-        _replyto: document.getElementById('email').value,
-        _subject: 'New message from Nitro Sports Academy website'
-      };
-
-      try {
-        const res = await fetch('https://formspree.io/f/xwvnrear', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-          body: JSON.stringify(data)
-        });
-        const json = await res.json();
-        if (res.ok) {
-          const success = document.getElementById('form-success');
-          form.style.display = 'none';
-          if (success) success.classList.add('show');
-        } else {
-          throw new Error('Submission failed');
-        }
-      } catch (err) {
-        btn.textContent = 'Send Message ✉️';
-        btn.disabled = false;
-        alert('Something went wrong. Please email us directly at coach.pedro.tn@gmail.com');
-      }
-    });
-  }
-
   // ============ FAQ ACCORDION ============
   document.querySelectorAll('.faq-question').forEach(q => {
     q.addEventListener('click', () => {
