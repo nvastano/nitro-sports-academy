@@ -513,8 +513,8 @@ function renderCageLists() {
 }
 
 async function loadBookings() {
-  if (!allClients.length) await loadClients();
-  if (!allWaivers.length) await loadWaivers();
+  await loadClients();
+  await loadWaivers();
   const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
   if (res.status === 401) { logout(); return; }
   const all = await res.json();
