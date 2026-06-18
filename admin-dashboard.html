@@ -111,6 +111,7 @@
   .cal-time{width:70px;padding:10px 12px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-size:0.78rem;color:var(--silver);border:1px solid rgba(255,255,255,0.06);vertical-align:top;white-space:nowrap}
   .cal-cell{padding:5px;border:1px solid rgba(255,255,255,0.06);vertical-align:top;min-height:48px;min-width:130px}
   .cal-event{border-radius:5px;padding:5px 8px;margin-bottom:4px;font-size:0.8rem;line-height:1.35}
+  .cal-event-span{height:100%;margin-bottom:0}
   .cal-event-pending{background:rgba(232,184,75,0.15);border-left:3px solid var(--gold);color:var(--gold)}
   .cal-event-gcal{background:rgba(43,79,168,0.18);border-left:3px solid var(--blue-light);color:var(--silver-light)}
   .cal-event-name{font-weight:600}
@@ -874,12 +875,29 @@ async function loadCalendar() {
 
 function renderCalendar(gcalEvents, pendingBookings) {
   const grid = {};
-  CAL_CAGES.forEach(cage => { grid[cage] = {}; CAL_HOURS.forEach(h => grid[cage][h] = []); });
+  const span = {};
+  const skip = {};
+  CAL_CAGES.forEach(cage => { grid[cage] = {}; span[cage] = {}; skip[cage] = {}; CAL_HOURS.forEach(h => grid[cage][h] = []); });
+
+  const firstHour = CAL_HOURS[0];
+  const lastHour = CAL_HOURS[CAL_HOURS.length - 1];
 
   gcalEvents.forEach(e => {
     const h = parseGCalHour(e.start);
-    if (h !== null && grid[e.cage] && grid[e.cage][h] !== undefined)
+    if (h !== null && grid[e.cage] && grid[e.cage][h] !== undefined) {
       grid[e.cage][h].push({ type:'gcal', ...e });
+      const endH = e.end ? parseGCalHour(e.end) : null;
+      if (endH !== null && endH > h) {
+        const rowCount = Math.min(endH, lastHour + 1) - h;
+        if (rowCount > 1) {
+          span[e.cage][h] = Math.max(span[e.cage][h] || 1, rowCount);
+          for (let i = 1; i < rowCount; i++) {
+            const hh = h + i;
+            if (hh >= firstHour && hh <= lastHour) skip[e.cage][hh] = true;
+          }
+        }
+      }
+    }
   });
 
   pendingBookings.forEach(b => {
@@ -892,7 +910,9 @@ function renderCalendar(gcalEvents, pendingBookings) {
   const headers = CAL_CAGES.map(c => `<th>${CAL_CAGE_LABELS[c]}</th>`).join('');
   const rows = CAL_HOURS.map(h => {
     const cells = CAL_CAGES.map(cage => {
+      if (skip[cage][h]) return '';
       const evts = grid[cage][h];
+      const rowspan = span[cage][h] || 1;
       const html = evts.map(e => {
         if (e.type === 'pending') {
           return `<div class="cal-event cal-event-pending">
@@ -902,13 +922,15 @@ function renderCalendar(gcalEvents, pendingBookings) {
         } else {
           const fmt = iso => iso ? new Date(iso).toLocaleTimeString('en-US', { timeZone:'America/Chicago', hour:'numeric', minute:'2-digit' }) : '';
           const t = e.end ? `${fmt(e.start)} – ${fmt(e.end)}` : fmt(e.start);
-          return `<div class="cal-event cal-event-gcal">
+          const spanClass = rowspan > 1 ? ' cal-event-span' : '';
+          return `<div class="cal-event cal-event-gcal${spanClass}">
             <div class="cal-event-name">${e.summary ?? 'Event'}</div>
             <div class="cal-event-meta">${t}</div>
           </div>`;
         }
       }).join('');
-      return `<td class="cal-cell">${html}</td>`;
+      const rowspanAttr = rowspan > 1 ? ` rowspan="${rowspan}"` : '';
+      return `<td class="cal-cell"${rowspanAttr}>${html}</td>`;
     }).join('');
     return `<tr><td class="cal-time">${calHourLabel(h)}</td>${cells}</tr>`;
   }).join('');
