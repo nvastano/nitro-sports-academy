@@ -900,7 +900,8 @@ function renderCalendar(gcalEvents, pendingBookings) {
             <div class="cal-event-meta">${e.time} · Pending approval</div>
           </div>`;
         } else {
-          const t = e.start ? new Date(e.start).toLocaleTimeString('en-US', { timeZone:'America/Chicago', hour:'numeric', minute:'2-digit' }) : '';
+          const fmt = iso => iso ? new Date(iso).toLocaleTimeString('en-US', { timeZone:'America/Chicago', hour:'numeric', minute:'2-digit' }) : '';
+          const t = e.end ? `${fmt(e.start)} – ${fmt(e.end)}` : fmt(e.start);
           return `<div class="cal-event cal-event-gcal">
             <div class="cal-event-name">${e.summary ?? 'Event'}</div>
             <div class="cal-event-meta">${t}</div>
