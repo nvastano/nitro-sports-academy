@@ -550,10 +550,10 @@ function renderBookingList(elId, bookings, mode) {
     const typeTag = isCage
       ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(43,79,168,0.2);color:#3d65cc">${CAGE_LABEL[b.cage_assigned] ?? b.cage_assigned}</span>`
       : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;${b.discipline==='hitting'?'background:rgba(61,101,204,0.2);color:#3d65cc':b.discipline==='pitching'?'background:rgba(232,184,75,0.15);color:#E8B84B':'background:rgba(61,171,122,0.15);color:#3dab7a'}">${DISC_ICON[b.discipline]??''} ${b.discipline}</span>`;
-    const priceTag = b.price != null
+    const isMemberRow = !!memberLookup(b.player_email, b.player_phone) && memberLookup(b.player_email, b.player_phone).membership_status === 'active';
+    const priceTag = (b.price != null && !isMemberRow)
       ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(232,184,75,0.15);color:var(--gold)">${b.duration ?? 30}min · $${b.price.toFixed(0)}</span>`
       : '';
-    const isMemberRow = !!memberLookup(b.player_email, b.player_phone) && memberLookup(b.player_email, b.player_phone).membership_status === 'active';
     const waiverTag = isMemberRow ? '' : waiverBadge(b.player_email);
     let actionsHtml;
     if (mode === 'pending') {
