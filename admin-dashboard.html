@@ -42,6 +42,9 @@
   .view-tab.active{color:var(--white);border-bottom-color:var(--blue-light)}
   .view-panel{display:none}
   .view-panel.active{display:block}
+  .subtabs{display:flex;gap:6px;margin-bottom:16px}
+  .subtab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.08em;text-transform:uppercase;padding:6px 14px;border-radius:20px;color:var(--silver);cursor:pointer;border:1px solid rgba(255,255,255,0.12);transition:all 0.2s}
+  .subtab.active{color:#fff;background:rgba(43,79,168,0.35);border-color:rgba(43,79,168,0.6)}
   /* Toolbar */
   .toolbar{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
   .search-wrap{flex:1;min-width:200px;position:relative}
@@ -196,6 +199,11 @@
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
         <h3 style="font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--blue-light)">🗓 Cage Requests</h3>
         <a href="schedule.html" target="_blank" class="btn-add" style="text-decoration:none;font-size:0.78rem">View Schedule ↗</a>
+      </div>
+      <div class="subtabs">
+        <div class="subtab active" id="cagefilter-all" onclick="switchCageFilter('all')">All</div>
+        <div class="subtab" id="cagefilter-member" onclick="switchCageFilter('member')">Members</div>
+        <div class="subtab" id="cagefilter-guest" onclick="switchCageFilter('guest')">Non-Members</div>
       </div>
       <div id="cage-pending"><div class="loading">Loading…</div></div>
       <div id="cage-payment-wrap" style="display:none">
@@ -461,21 +469,30 @@ function waiverBadge(email) {
     : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(220,50,50,0.15);color:#ff7b7b">No Waiver</span>`;
 }
 
-async function loadBookings() {
-  if (!allClients.length) await loadClients();
-  if (!allWaivers.length) await loadWaivers();
-  const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
-  if (res.status === 401) { logout(); return; }
-  const all = await res.json();
+let cagePendingAll = [], cagePaymentAll = [], cageConfirmedAll = [];
+let cageFilter = 'all';
 
-  const cagePending   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending');
-  const cagePayment   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending_payment');
-  const cageConfirmed = all.filter(b => b.booking_type === 'cage_request' && b.status === 'confirmed');
-  const ssPending     = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'pending');
-  const ssConfirmed   = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'confirmed');
+function isBookingMember(b) {
+  const client = memberLookup(b.player_email, b.player_phone);
+  return !!client && client.membership_status === 'active';
+}
 
-  const totalPending = cagePending.length + cagePayment.length + ssPending.length;
-  document.getElementById('tab-bookings').textContent = `Bookings${totalPending ? ` (${totalPending})` : ''}`;
+function switchCageFilter(filter) {
+  cageFilter = filter;
+  ['all','member','guest'].forEach(f => document.getElementById(`cagefilter-${f}`).classList.toggle('active', f === filter));
+  renderCageLists();
+}
+
+function applyCageFilter(list) {
+  if (cageFilter === 'member') return list.filter(isBookingMember);
+  if (cageFilter === 'guest') return list.filter(b => !isBookingMember(b));
+  return list;
+}
+
+function renderCageLists() {
+  const cagePending   = applyCageFilter(cagePendingAll);
+  const cagePayment   = applyCageFilter(cagePaymentAll);
+  const cageConfirmed = applyCageFilter(cageConfirmedAll);
 
   renderBookingList('cage-pending', cagePending, 'pending');
   const cagePaymentWrap = document.getElementById('cage-payment-wrap');
@@ -492,6 +509,25 @@ async function loadBookings() {
   } else {
     cageConfWrap.style.display = 'none';
   }
+}
+
+async function loadBookings() {
+  if (!allClients.length) await loadClients();
+  if (!allWaivers.length) await loadWaivers();
+  const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  const all = await res.json();
+
+  cagePendingAll   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending');
+  cagePaymentAll   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending_payment');
+  cageConfirmedAll = all.filter(b => b.booking_type === 'cage_request' && b.status === 'confirmed');
+  const ssPending     = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'pending');
+  const ssConfirmed   = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'confirmed');
+
+  const totalPending = cagePendingAll.length + cagePaymentAll.length + ssPending.length;
+  document.getElementById('tab-bookings').textContent = `Bookings${totalPending ? ` (${totalPending})` : ''}`;
+
+  renderCageLists();
 
   renderBookingList('bookings-pending', ssPending, 'pending');
   const ssConfWrap = document.getElementById('bookings-confirmed-wrap');
