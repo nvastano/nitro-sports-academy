@@ -335,7 +335,7 @@
 
 <script>
 const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
-let allClients = [], allHouseholds = [];
+let allClients = [], allHouseholds = [], allWaivers = [];
 
 function getToken() {
   const t = localStorage.getItem('nitro_token');
@@ -448,8 +448,22 @@ function memberBadge(email, phone) {
     : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(220,50,50,0.15);color:#ff7b7b">Not a Member</span>`;
 }
 
+function waiverSigned(email) {
+  const e = (email ?? '').trim().toLowerCase();
+  if (!e) return false;
+  return allWaivers.some(w => (w.guardian_email ?? '').trim().toLowerCase() === e);
+}
+
+function waiverBadge(email) {
+  if (!email) return '';
+  return waiverSigned(email)
+    ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(76,175,110,0.15);color:#4caf6e">✓ Waiver</span>`
+    : `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.72rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(220,50,50,0.15);color:#ff7b7b">No Waiver</span>`;
+}
+
 async function loadBookings() {
   if (!allClients.length) await loadClients();
+  if (!allWaivers.length) await loadWaivers();
   const res = await fetch(`${API}/bookings`, { headers: authHeaders() });
   if (res.status === 401) { logout(); return; }
   const all = await res.json();
@@ -503,6 +517,8 @@ function renderBookingList(elId, bookings, mode) {
     const priceTag = b.price != null
       ? `<span style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;margin-left:6px;background:rgba(232,184,75,0.15);color:var(--gold)">${b.duration ?? 30}min · $${b.price.toFixed(0)}</span>`
       : '';
+    const isMemberRow = !!memberLookup(b.player_email, b.player_phone) && memberLookup(b.player_email, b.player_phone).membership_status === 'active';
+    const waiverTag = isMemberRow ? '' : waiverBadge(b.player_email);
     let actionsHtml;
     if (mode === 'pending') {
       actionsHtml = `
@@ -541,7 +557,7 @@ function renderBookingList(elId, bookings, mode) {
     return `
     <div style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
       <div style="flex:1;min-width:200px">
-        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${priceTag}${memberBadge(b.player_email, b.player_phone)}</div>
+        <div style="font-weight:600;font-size:0.95rem;margin-bottom:4px">${b.player_name}${typeTag}${priceTag}${memberBadge(b.player_email, b.player_phone)}${waiverTag}</div>
         <div style="font-size:0.82rem;color:var(--silver)">${b.date} · ${b.time}</div>
         <div style="font-size:0.82rem;color:var(--silver);margin-top:3px">
           ${[b.player_email, b.player_phone, b.player_age ? `Age ${b.player_age}` : null].filter(Boolean).join(' · ') || '—'}
@@ -606,6 +622,12 @@ async function loadClients() {
   const totalDue = clients.reduce((s, c) => s + (c.amount_due ?? 0), 0);
   document.getElementById('stat-due').textContent = `$${totalDue.toFixed(0)}`;
   filterClients();
+}
+
+async function loadWaivers() {
+  const res = await fetch(`${API}/waivers`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  allWaivers = await res.json();
 }
 
 async function loadHouseholds() {
