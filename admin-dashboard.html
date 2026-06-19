@@ -684,7 +684,7 @@ function populateHouseholdSelect() {
   sel.value = existing;
 }
 
-let clientSort = { key: null, dir: 1 };
+let clientSort = { key: 'name', dir: 1 };
 
 function filterClients() {
   const s = document.getElementById('search').value.toLowerCase();
@@ -953,6 +953,7 @@ function renderCalendar(gcalEvents, pendingBookings) {
 }
 
 getToken();
+document.getElementById('sort-name').textContent = ' ▲';
 Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
 </script>
 </body>
