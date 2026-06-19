@@ -312,6 +312,11 @@
     document.getElementById('step1NextBtn').disabled = false;
   }
 
+  (function preselectPlanFromQuery() {
+    const plan = new URLSearchParams(window.location.search).get('plan');
+    if (plan && document.querySelector(`.plan-card[data-plan="${plan}"]`)) selectPlan(plan);
+  })();
+
   function showStep(n) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
     document.getElementById(`step-${n}`).classList.add('active');
