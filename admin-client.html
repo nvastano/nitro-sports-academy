@@ -345,6 +345,7 @@ function renderMembership(m) {
         <button class="btn-gold" id="invoiceBtn" onclick="sendInvoice()" ${!clientData?.email ? 'disabled title="No email on file"' : ''}>
           Send Invoice Email
         </button>
+        ${(m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
         <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
         <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteMembership('${m.id}')">Delete</button>
       </div>
@@ -645,6 +646,14 @@ async function deleteMembership(membershipId) {
   const res = await fetch(`${API}/memberships/${membershipId}`, { method: 'DELETE', headers: authHeaders() });
   if (!res.ok) { showToast('Error deleting membership', 'error'); return; }
   showToast('Membership deleted');
+  loadClient();
+}
+
+async function markMembershipPaid(membershipId) {
+  if (!confirm('Mark this membership as paid? This will clear the balance due and roll the renewal date forward one year.')) return;
+  const res = await fetch(`${API}/memberships/${membershipId}/mark-paid`, { method: 'POST', headers: authHeaders() });
+  if (!res.ok) { showToast('Error marking membership paid', 'error'); return; }
+  showToast('Membership marked as paid');
   loadClient();
 }
 
