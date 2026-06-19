@@ -182,14 +182,16 @@
         <div><label>Phone *</label><input type="tel" id="p-phone" required placeholder="(615) 555-0100"></div>
       </div>
       <div class="field"><label>Address</label><input type="text" id="p-address" placeholder="Street, City, State, ZIP"></div>
-      <div class="form-row-2">
-        <div><label>Date of Birth</label><input type="date" id="p-dob"></div>
-        <div><label>Current Team</label><input type="text" id="p-team"></div>
-      </div>
-      <div class="form-row-3">
-        <div><label>Years Playing</label><input type="number" id="p-years" min="0"></div>
-        <div><label>Primary Position</label><input type="text" id="p-pos1"></div>
-        <div><label>Secondary Position</label><input type="text" id="p-pos2"></div>
+      <div id="p-player-fields">
+        <div class="form-row-2">
+          <div><label>Date of Birth</label><input type="date" id="p-dob"></div>
+          <div><label>Current Team</label><input type="text" id="p-team"></div>
+        </div>
+        <div class="form-row-3">
+          <div><label>Years Playing</label><input type="number" id="p-years" min="0"></div>
+          <div><label>Primary Position</label><input type="text" id="p-pos1"></div>
+          <div><label>Secondary Position</label><input type="text" id="p-pos2"></div>
+        </div>
       </div>
       <div class="form-section-label">Emergency Contact</div>
       <div class="form-row-2">
@@ -328,9 +330,12 @@
   function goToStep(n) {
     // Skip the kids step entirely for individual plans
     if (n === 3 && selectedPlan === 'individual') { n = 4; }
-    if (n === 2) document.getElementById('step2Sub').textContent = selectedPlan === 'individual'
-      ? 'Tell us about yourself.'
-      : 'Tell us about the primary account holder / parent or guardian.';
+    if (n === 2) {
+      document.getElementById('step2Sub').textContent = selectedPlan === 'individual'
+        ? 'Tell us about yourself.'
+        : 'Tell us about the primary account holder / parent or guardian.';
+      document.getElementById('p-player-fields').style.display = selectedPlan === 'individual' ? '' : 'none';
+    }
     showStep(n);
   }
 
