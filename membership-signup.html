@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sign up for an Individual or Family membership at Nitro Sports Academy in Spring Hill, TN. Complete your info, sign the waiver, and pay online." />
+  <meta name="robots" content="noindex" />
+  <title>Membership Signup | Nitro Sports Academy</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet" />
+  <!-- Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-X2GC65NEMX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-X2GC65NEMX');</script>
+  <style>
+    :root {
+      --blue: #2B4FA8; --blue-light: #3d65cc; --gold: #E8B84B;
+      --silver: #9AA0B4; --dark: #0D1321; --dark-mid: #1C2540; --white: #fff;
+    }
+    body { background: var(--dark); color: var(--white); font-family: 'Barlow', sans-serif; }
+
+    .signup-wrap { max-width: 760px; margin: 0 auto; padding: 48px 24px 80px; }
+    .signup-card { background: var(--dark-mid); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 40px 48px; }
+    @media (max-width: 600px) { .signup-card { padding: 24px 20px; } }
+
+    .progress { display: flex; gap: 8px; margin-bottom: 32px; }
+    .progress-step { flex: 1; height: 5px; border-radius: 4px; background: rgba(255,255,255,0.1); }
+    .progress-step.done { background: var(--gold); }
+
+    .step-title { font-family: 'Oswald', sans-serif; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .step-sub { color: var(--silver); font-size: 0.9rem; margin-bottom: 28px; }
+
+    .plan-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+    @media (max-width: 640px) { .plan-grid { grid-template-columns: 1fr; } }
+    .plan-card { border: 2px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 20px 16px; cursor: pointer; text-align: center; transition: border-color 0.2s, background 0.2s; }
+    .plan-card:hover { border-color: rgba(232,184,75,0.4); }
+    .plan-card.selected { border-color: var(--gold); background: rgba(232,184,75,0.08); }
+    .plan-card .plan-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.85rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--silver); margin-bottom: 8px; }
+    .plan-card .plan-price { font-family: 'Oswald', sans-serif; font-size: 1.6rem; font-weight: 700; color: var(--white); }
+    .plan-card .plan-period { font-size: 0.75rem; color: var(--silver); margin-top: 4px; }
+
+    .form-section-label { font-family: 'Barlow Condensed', sans-serif; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin: 24px 0 14px; border-bottom: 1px solid rgba(232,184,75,0.2); padding-bottom: 6px; }
+    .form-section-label:first-child { margin-top: 0; }
+    label { display: block; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--silver); margin-bottom: 5px; }
+    input, select { width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 5px; padding: 10px 14px; color: var(--white); font-family: 'Barlow', sans-serif; font-size: 0.95rem; outline: none; transition: border-color 0.2s; }
+    input:focus, select:focus { border-color: var(--blue-light); }
+    .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+    @media (max-width: 520px) { .form-row-2, .form-row-3 { grid-template-columns: 1fr; } }
+    .field { margin-bottom: 14px; }
+
+    .kid-card { border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 16px; margin-bottom: 16px; position: relative; }
+    .kid-card .kid-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--silver); margin-bottom: 12px; }
+    .remove-kid { position: absolute; top: 12px; right: 14px; background: none; border: none; color: #ff7b7b; cursor: pointer; font-size: 0.8rem; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; text-transform: uppercase; }
+    .btn-add-kid { background: rgba(255,255,255,0.06); border: 1px dashed rgba(255,255,255,0.25); border-radius: 6px; padding: 12px; width: 100%; color: var(--silver); font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.8rem; letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+    .btn-add-kid:hover { border-color: var(--gold); color: var(--gold); }
+
+    .agree-block { display: flex; gap: 12px; align-items: flex-start; background: rgba(43,79,168,0.1); border: 1px solid rgba(43,79,168,0.3); border-radius: 8px; padding: 18px 20px; margin: 24px 0; cursor: pointer; }
+    .agree-block input[type=checkbox] { width: 20px; min-width: 20px; height: 20px; margin-top: 2px; accent-color: var(--blue-light); cursor: pointer; }
+    .agree-block p { font-size: 0.9rem; line-height: 1.6; color: #c0c8d8; margin: 0; }
+    .agree-block strong { color: var(--white); }
+    .agree-block a { color: var(--blue-light); }
+
+    .review-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.08); font-size: 0.9rem; }
+    .review-row:last-child { border-bottom: none; }
+    .review-label { color: var(--silver); }
+    .review-value { color: var(--white); font-weight: 600; text-align: right; }
+    .review-total { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 2px solid rgba(232,184,75,0.3); }
+    .review-total .label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--silver); font-size: 0.85rem; }
+    .review-total .amount { font-family: 'Oswald', sans-serif; font-size: 1.8rem; font-weight: 700; color: var(--gold); }
+
+    .btn-row { display: flex; gap: 12px; margin-top: 32px; }
+    .btn-nav { flex: 1; border: none; border-radius: 6px; padding: 16px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: opacity 0.2s; }
+    .btn-nav:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-next { background: var(--gold); color: var(--dark); }
+    .btn-next:hover { opacity: 0.88; }
+    .btn-back { background: rgba(255,255,255,0.08); color: var(--white); flex: 0 0 120px; }
+    .btn-back:hover { background: rgba(255,255,255,0.14); }
+
+    .err-msg { color: #ff7b7b; font-size: 0.85rem; margin-top: 6px; display: none; }
+    .err-banner { background: rgba(220,50,50,0.12); border: 1px solid rgba(220,50,50,0.35); border-radius: 6px; padding: 12px 16px; color: #ff9b9b; font-size: 0.88rem; margin-bottom: 20px; display: none; }
+
+    .step { display: none; }
+    .step.active { display: block; }
+
+    .success-box, .loading-box { display: none; text-align: center; padding: 40px 24px; }
+    .success-box .icon, .loading-box .icon { font-size: 3rem; margin-bottom: 16px; }
+    .success-box h2, .loading-box h2 { font-family: 'Oswald', sans-serif; font-size: 1.6rem; text-transform: uppercase; margin-bottom: 12px; }
+    .success-box p, .loading-box p { color: var(--silver); line-height: 1.6; margin-bottom: 20px; }
+  </style>
+</head>
+<body>
+
+<header id="main-header">
+  <a class="logo-wrap" href="index.html">
+    <span style="font-family:'Oswald',sans-serif;font-size:1.3rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:#fff;">
+      <span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY
+    </span>
+  </a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="facility.html">Facility</a>
+    <a href="ourteam.html">Our Team</a>
+    <a href="lessons.html">Lessons</a>
+    <a href="membership.html">Membership</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="contact.html">Contact Us</a>
+  </nav>
+  <button class="hamburger" id="hamburger" aria-label="Menu"><span></span><span></span><span></span></button>
+</header>
+<nav class="mobile-nav" id="mobile-nav">
+  <a href="index.html">Home</a>
+  <a href="facility.html">Facility</a>
+  <a href="ourteam.html">Our Team</a>
+  <a href="lessons.html">Lessons</a>
+  <a href="membership.html">Membership</a>
+  <a href="schedule.html">Schedule</a>
+  <a href="gallery.html">Gallery</a>
+  <a href="contact.html">Contact Us</a>
+</nav>
+
+<div class="page-hero">
+  <div class="max-w">
+    <div class="section-label">Join Us</div>
+    <h1>Membership <span class="text-gold">Signup</span></h1>
+    <p>Choose your plan, tell us about your family, sign the waiver, and pay online. Pedro will reach out shortly after with your facility access code.</p>
+  </div>
+</div>
+
+<div class="signup-wrap">
+  <div class="signup-card">
+
+    <div class="progress" id="progress">
+      <div class="progress-step done" data-step="1"></div>
+      <div class="progress-step" data-step="2"></div>
+      <div class="progress-step" data-step="3"></div>
+      <div class="progress-step" data-step="4"></div>
+      <div class="progress-step" data-step="5"></div>
+    </div>
+
+    <div class="err-banner" id="errBanner"></div>
+
+    <!-- STEP 1: PLAN -->
+    <div class="step active" id="step-1">
+      <div class="step-title">Choose Your Plan</div>
+      <div class="step-sub">Select the membership that fits your family.</div>
+      <div class="plan-grid">
+        <div class="plan-card" data-plan="individual" onclick="selectPlan('individual')">
+          <div class="plan-name">Individual</div>
+          <div class="plan-price">$395</div>
+          <div class="plan-period">/ 12-month contract</div>
+        </div>
+        <div class="plan-card" data-plan="family_2" onclick="selectPlan('family_2')">
+          <div class="plan-name">Family — up to 2</div>
+          <div class="plan-price">$595</div>
+          <div class="plan-period">/ 12-month contract</div>
+        </div>
+        <div class="plan-card" data-plan="family_3plus" onclick="selectPlan('family_3plus')">
+          <div class="plan-name">Family — 3+</div>
+          <div class="plan-price">$645</div>
+          <div class="plan-period">/ 12-month contract</div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn-nav btn-next" id="step1NextBtn" onclick="goToStep(2)" disabled>Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: PRIMARY MEMBER INFO -->
+    <div class="step" id="step-2">
+      <div class="step-title">Your Information</div>
+      <div class="step-sub" id="step2Sub">Tell us about yourself.</div>
+
+      <div class="form-row-2">
+        <div><label>First Name *</label><input type="text" id="p-first" required></div>
+        <div><label>Last Name *</label><input type="text" id="p-last" required></div>
+      </div>
+      <div class="form-row-2">
+        <div><label>Email *</label><input type="email" id="p-email" required></div>
+        <div><label>Phone *</label><input type="tel" id="p-phone" required placeholder="(615) 555-0100"></div>
+      </div>
+      <div class="field"><label>Address</label><input type="text" id="p-address" placeholder="Street, City, State, ZIP"></div>
+      <div class="form-row-2">
+        <div><label>Date of Birth</label><input type="date" id="p-dob"></div>
+        <div><label>Current Team</label><input type="text" id="p-team"></div>
+      </div>
+      <div class="form-row-3">
+        <div><label>Years Playing</label><input type="number" id="p-years" min="0"></div>
+        <div><label>Primary Position</label><input type="text" id="p-pos1"></div>
+        <div><label>Secondary Position</label><input type="text" id="p-pos2"></div>
+      </div>
+      <div class="form-section-label">Emergency Contact</div>
+      <div class="form-row-2">
+        <div><label>Emergency Contact Name</label><input type="text" id="p-ecname"></div>
+        <div><label>Emergency Contact Phone</label><input type="tel" id="p-ecphone"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-nav btn-back" onclick="goToStep(1)">← Back</button>
+        <button class="btn-nav btn-next" onclick="validateStep2AndContinue()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: KIDS (family plans only) -->
+    <div class="step" id="step-3">
+      <div class="step-title">Family Members</div>
+      <div class="step-sub">Add each child who will be using the membership.</div>
+      <div id="kidsList"></div>
+      <button class="btn-add-kid" onclick="addKid()">+ Add a Child</button>
+      <div class="err-msg" id="kidsErr">Please add at least one child for a family membership.</div>
+
+      <div class="btn-row">
+        <button class="btn-nav btn-back" onclick="goToStep(2)">← Back</button>
+        <button class="btn-nav btn-next" onclick="validateStep3AndContinue()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: WAIVER -->
+    <div class="step" id="step-4">
+      <div class="step-title">Sign the Waiver</div>
+      <div class="step-sub">Required before anyone can access the facility. A typed name serves as your legal electronic signature. Full waiver terms are available <a href="waiver.html" target="_blank" style="color:var(--blue-light)">here</a>.</div>
+
+      <div class="field"><label>Emergency Contact Phone *</label><input type="tel" id="w-emergency-phone" required></div>
+      <div class="err-msg" id="wPhoneErr">Emergency phone is required.</div>
+
+      <div class="form-section-label">Electronic Signature</div>
+      <p style="color:var(--silver);font-size:0.85rem;margin-bottom:14px">By typing your full legal name below, you agree that this constitutes your electronic signature and has the same legal effect as a handwritten signature under the federal ESIGN Act and Tennessee UETA.</p>
+      <div class="field">
+        <label>Full Legal Name (Electronic Signature) *</label>
+        <input type="text" id="w-signature" required style="font-style:italic;font-size:1.05rem;">
+      </div>
+      <div class="err-msg" id="wSigErr">Signature is required.</div>
+
+      <div class="agree-block" onclick="toggleAgree()">
+        <input type="checkbox" id="agreeBox">
+        <p>I have read the <strong>Waiver and Release of Liability Agreement</strong> in full, understand its terms, understand that I have given up substantial rights by signing it, and sign it freely and voluntarily without inducement.</p>
+      </div>
+      <div class="err-msg" id="wAgreeErr">You must agree to the terms before signing.</div>
+
+      <div class="btn-row">
+        <button class="btn-nav btn-back" onclick="goToStep(prevStepFrom4())">← Back</button>
+        <button class="btn-nav btn-next" onclick="validateStep4AndContinue()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: REVIEW & PAY -->
+    <div class="step" id="step-5">
+      <div class="step-title">Review &amp; Pay</div>
+      <div class="step-sub">Double check your info, then proceed to payment.</div>
+      <div id="reviewBox"></div>
+
+      <div class="btn-row">
+        <button class="btn-nav btn-back" onclick="goToStep(4)">← Back</button>
+        <button class="btn-nav btn-next" id="payBtn" onclick="submitSignup()">Proceed to Payment →</button>
+      </div>
+    </div>
+
+    <div class="loading-box" id="loadingBox">
+      <div class="icon">⏳</div>
+      <h2>Setting Up Your Membership…</h2>
+      <p>Just a moment while we get your payment ready.</p>
+    </div>
+
+    <div class="success-box" id="successBox">
+      <div class="icon">✅</div>
+      <h2>Redirecting to Payment…</h2>
+      <p>If you're not redirected automatically, <a id="payLink" href="#" style="color:var(--blue-light)">click here to pay</a>.</p>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div style="font-family:'Oswald',sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:16px;"><span style="color:#3d65cc;">NITRO</span> SPORTS ACADEMY</div>
+      <p>A premier baseball and softball training facility dedicated to developing athletes at every level.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <a href="index.html">Home</a>
+      <a href="facility.html">Facility</a>
+      <a href="lessons.html">Lessons</a>
+      <a href="membership.html">Membership</a>
+      <a href="contact.html">Contact Us</a>
+    </div>
+    <div class="footer-col">
+      <h4>Connect</h4>
+      <a href="https://www.facebook.com/p/Nitro-Sports-Academy-100050620491788/" target="_blank">Facebook</a>
+      <a href="gallery.html">Gallery</a>
+      <a href="contact.html">Send a Message</a>
+      <p style="margin-top:12px;font-size:0.85rem;">📍 3710 John Lunn Rd, Ste 2<br>Spring Hill, TN 37174</p>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p>© 2025 Nitro Sports Academy. All rights reserved.</p>
+    <p>Built with ❤️ for the love of the game.</p>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+<script>
+  const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
+  let selectedPlan = null;
+  let kidCount = 0;
+
+  function selectPlan(plan) {
+    selectedPlan = plan;
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.toggle('selected', c.dataset.plan === plan));
+    document.getElementById('step1NextBtn').disabled = false;
+  }
+
+  function showStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(`step-${n}`).classList.add('active');
+    document.querySelectorAll('.progress-step').forEach(p => p.classList.toggle('done', parseInt(p.dataset.step) <= n));
+    document.getElementById('errBanner').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function goToStep(n) {
+    // Skip the kids step entirely for individual plans
+    if (n === 3 && selectedPlan === 'individual') { n = 4; }
+    if (n === 2) document.getElementById('step2Sub').textContent = selectedPlan === 'individual'
+      ? 'Tell us about yourself.'
+      : 'Tell us about the primary account holder / parent or guardian.';
+    showStep(n);
+  }
+
+  function prevStepFrom4() {
+    return selectedPlan === 'individual' ? 2 : 3;
+  }
+
+  function addKid() {
+    kidCount++;
+    const id = kidCount;
+    const div = document.createElement('div');
+    div.className = 'kid-card';
+    div.id = `kid-${id}`;
+    div.innerHTML = `
+      <button class="remove-kid" onclick="removeKid(${id})">Remove</button>
+      <div class="kid-title">Child ${id}</div>
+      <div class="form-row-2">
+        <div><label>First Name *</label><input type="text" class="kid-first" required></div>
+        <div><label>Last Name</label><input type="text" class="kid-last"></div>
+      </div>
+      <div class="form-row-2">
+        <div><label>Date of Birth</label><input type="date" class="kid-dob"></div>
+        <div><label>Current Team</label><input type="text" class="kid-team"></div>
+      </div>
+      <div class="form-row-3">
+        <div><label>Years Playing</label><input type="number" min="0" class="kid-years"></div>
+        <div><label>Primary Position</label><input type="text" class="kid-pos1"></div>
+        <div><label>Secondary Position</label><input type="text" class="kid-pos2"></div>
+      </div>`;
+    document.getElementById('kidsList').appendChild(div);
+  }
+
+  function removeKid(id) {
+    const el = document.getElementById(`kid-${id}`);
+    if (el) el.remove();
+  }
+
+  function getKids() {
+    return [...document.querySelectorAll('.kid-card')].map(card => ({
+      first_name: card.querySelector('.kid-first').value.trim(),
+      last_name: card.querySelector('.kid-last').value.trim() || null,
+      date_of_birth: card.querySelector('.kid-dob').value || null,
+      current_team: card.querySelector('.kid-team').value.trim() || null,
+      years_playing: parseInt(card.querySelector('.kid-years').value) || null,
+      primary_position: card.querySelector('.kid-pos1').value.trim() || null,
+      secondary_position: card.querySelector('.kid-pos2').value.trim() || null,
+    })).filter(k => k.first_name);
+  }
+
+  function showError(msg) {
+    const b = document.getElementById('errBanner');
+    b.textContent = msg;
+    b.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function validateStep2AndContinue() {
+    const first = document.getElementById('p-first').value.trim();
+    const last = document.getElementById('p-last').value.trim();
+    const email = document.getElementById('p-email').value.trim();
+    const phone = document.getElementById('p-phone').value.trim();
+    if (!first || !last || !email || !phone) {
+      showError('Please fill in your first name, last name, email, and phone to continue.');
+      return;
+    }
+    goToStep(selectedPlan === 'individual' ? 4 : 3);
+  }
+
+  function validateStep3AndContinue() {
+    const kids = getKids();
+    document.getElementById('kidsErr').style.display = 'none';
+    if (!kids.length) {
+      document.getElementById('kidsErr').style.display = 'block';
+      return;
+    }
+    goToStep(4);
+  }
+
+  function toggleAgree() {
+    const cb = document.getElementById('agreeBox');
+    cb.checked = !cb.checked;
+  }
+
+  function validateStep4AndContinue() {
+    const phone = document.getElementById('w-emergency-phone').value.trim();
+    const sig = document.getElementById('w-signature').value.trim();
+    const agreed = document.getElementById('agreeBox').checked;
+    ['wPhoneErr', 'wSigErr', 'wAgreeErr'].forEach(id => document.getElementById(id).style.display = 'none');
+    let valid = true;
+    if (!phone) { document.getElementById('wPhoneErr').style.display = 'block'; valid = false; }
+    if (!sig) { document.getElementById('wSigErr').style.display = 'block'; valid = false; }
+    if (!agreed) { document.getElementById('wAgreeErr').style.display = 'block'; valid = false; }
+    if (!valid) return;
+    renderReview();
+    showStep(5);
+  }
+
+  const PLAN_LABELS = { individual: 'Individual', family_2: 'Family (up to 2 siblings)', family_3plus: 'Family (3+ siblings)' };
+  const PLAN_PRICES = { individual: 395, family_2: 595, family_3plus: 645 };
+
+  function renderReview() {
+    const first = document.getElementById('p-first').value.trim();
+    const last = document.getElementById('p-last').value.trim();
+    const email = document.getElementById('p-email').value.trim();
+    const phone = document.getElementById('p-phone').value.trim();
+    const kids = getKids();
+    const price = PLAN_PRICES[selectedPlan];
+    let html = `
+      <div class="review-row"><span class="review-label">Plan</span><span class="review-value">${PLAN_LABELS[selectedPlan]}</span></div>
+      <div class="review-row"><span class="review-label">Member</span><span class="review-value">${first} ${last}</span></div>
+      <div class="review-row"><span class="review-label">Email</span><span class="review-value">${email}</span></div>
+      <div class="review-row"><span class="review-label">Phone</span><span class="review-value">${phone}</span></div>`;
+    kids.forEach((k, i) => {
+      html += `<div class="review-row"><span class="review-label">Child ${i + 1}</span><span class="review-value">${k.first_name} ${k.last_name || ''}</span></div>`;
+    });
+    html += `<div class="review-total"><span class="label">Total Due Today</span><span class="amount">$${price}</span></div>`;
+    document.getElementById('reviewBox').innerHTML = html;
+  }
+
+  async function submitSignup() {
+    const payload = {
+      plan: selectedPlan,
+      primary: {
+        first_name: document.getElementById('p-first').value.trim(),
+        last_name: document.getElementById('p-last').value.trim(),
+        email: document.getElementById('p-email').value.trim(),
+        phone: document.getElementById('p-phone').value.trim(),
+        address: document.getElementById('p-address').value.trim() || null,
+        date_of_birth: document.getElementById('p-dob').value || null,
+        current_team: document.getElementById('p-team').value.trim() || null,
+        years_playing: parseInt(document.getElementById('p-years').value) || null,
+        primary_position: document.getElementById('p-pos1').value.trim() || null,
+        secondary_position: document.getElementById('p-pos2').value.trim() || null,
+        emergency_contact_name: document.getElementById('p-ecname').value.trim() || null,
+        emergency_contact_phone: document.getElementById('p-ecphone').value.trim() || null,
+      },
+      kids: selectedPlan === 'individual' ? [] : getKids(),
+      waiver: {
+        participant_1_name: `${document.getElementById('p-first').value.trim()} ${document.getElementById('p-last').value.trim()}`,
+        guardian_name: `${document.getElementById('p-first').value.trim()} ${document.getElementById('p-last').value.trim()}`,
+        guardian_email: document.getElementById('p-email').value.trim(),
+        emergency_phone: document.getElementById('w-emergency-phone').value.trim(),
+        signature: document.getElementById('w-signature').value.trim(),
+      },
+    };
+    if (selectedPlan !== 'individual') {
+      const kids = getKids();
+      if (kids[0]) { payload.waiver.participant_2_name = kids[0].first_name; }
+      if (kids[1]) { payload.waiver.participant_3_name = kids[1].first_name; }
+    }
+
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('loadingBox').style.display = 'block';
+
+    try {
+      const res = await fetch(`${API}/membership-signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Server error');
+      document.getElementById('loadingBox').style.display = 'none';
+      document.getElementById('successBox').style.display = 'block';
+      document.getElementById('payLink').href = data.payment_link_url;
+      window.location.href = data.payment_link_url;
+    } catch (e) {
+      document.getElementById('loadingBox').style.display = 'none';
+      showStep(5);
+      showError('Something went wrong setting up your membership. Please try again or contact us directly.');
+    }
+  }
+</script>
+</body>
+</html>
