@@ -485,10 +485,14 @@ function switchCageFilter(filter) {
   renderCageLists();
 }
 
+function sortBookingsByDateDesc(list) {
+  return [...list].sort((a, b) => `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`));
+}
+
 function applyCageFilter(list) {
-  if (cageFilter === 'member') return list.filter(isBookingMember);
-  if (cageFilter === 'guest') return list.filter(b => !isBookingMember(b));
-  return list;
+  if (cageFilter === 'member') return sortBookingsByDateDesc(list.filter(isBookingMember));
+  if (cageFilter === 'guest') return sortBookingsByDateDesc(list.filter(b => !isBookingMember(b)));
+  return sortBookingsByDateDesc(list);
 }
 
 function renderCageLists() {
@@ -523,8 +527,8 @@ async function loadBookings() {
   cagePendingAll   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending');
   cagePaymentAll   = all.filter(b => b.booking_type === 'cage_request' && b.status === 'pending_payment');
   cageConfirmedAll = all.filter(b => b.booking_type === 'cage_request' && b.status === 'confirmed');
-  const ssPending     = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'pending');
-  const ssConfirmed   = all.filter(b => b.booking_type !== 'cage_request' && b.status === 'confirmed');
+  const ssPending     = sortBookingsByDateDesc(all.filter(b => b.booking_type !== 'cage_request' && b.status === 'pending'));
+  const ssConfirmed   = sortBookingsByDateDesc(all.filter(b => b.booking_type !== 'cage_request' && b.status === 'confirmed'));
 
   const totalPending = cagePendingAll.length + cagePaymentAll.length + ssPending.length;
   document.getElementById('tab-bookings').textContent = `Bookings${totalPending ? ` (${totalPending})` : ''}`;
