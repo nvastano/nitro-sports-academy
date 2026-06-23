@@ -37,8 +37,12 @@
   .badge-household{background:rgba(43,79,168,0.2);color:var(--blue-light);border:1px solid rgba(43,79,168,0.3)}
   .due-amount{font-family:'Oswald',sans-serif;font-size:1rem;color:var(--gold)}
   /* View tabs */
-  .view-tabs{display:flex;gap:4px;border-bottom:2px solid rgba(255,255,255,0.08);margin-bottom:24px}
-  .view-tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;color:var(--silver);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s}
+  .view-tabs{display:flex;gap:4px;border-bottom:2px solid rgba(255,255,255,0.08);margin-bottom:24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .view-tabs::-webkit-scrollbar{display:none}
+  .view-tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;color:var(--silver);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;flex:0 0 auto;white-space:nowrap}
+  @media (max-width:600px){
+    .view-tab{padding:10px 12px;font-size:0.78rem}
+  }
   .view-tab.active{color:var(--white);border-bottom-color:var(--blue-light)}
   .view-panel{display:none}
   .view-panel.active{display:block}
@@ -191,9 +195,10 @@
           <th class="sortable" onclick="sortClients('renewal_date')">Renewal<span class="sort-arrow" id="sort-renewal_date"></span></th>
           <th class="sortable" onclick="sortClients('amount_paid')">Paid<span class="sort-arrow" id="sort-amount_paid"></span></th>
           <th class="sortable" onclick="sortClients('amount_due')">Due<span class="sort-arrow" id="sort-amount_due"></span></th>
+          <th>Access Code</th>
           <th></th>
         </tr></thead>
-        <tbody id="clientTable"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        <tbody id="clientTable"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
       </table>
     </div>
   </div>
@@ -776,7 +781,7 @@ function sortClients(key) {
 
 function renderClientTable(clients) {
   const tbody = document.getElementById('clientTable');
-  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No clients found.</td></tr>'; return; }
+  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">No clients found.</td></tr>'; return; }
   tbody.innerHTML = clients.map(c => `
     <tr onclick="go('${c.id}')">
       <td><div class="client-name">${c.first_name} ${c.last_name}</div><div class="client-sub">${c.email ?? ''}</div></td>
@@ -786,6 +791,7 @@ function renderClientTable(clients) {
       <td style="color:var(--silver-light)">${c.renewal_date ?? '—'}</td>
       <td style="color:var(--silver-light)">$${(c.amount_paid ?? 0).toFixed(2)}</td>
       <td class="amount-due">$${(c.amount_due ?? 0).toFixed(2)}</td>
+      <td style="color:var(--silver-light)">${c.access_code ?? '—'}</td>
       <td>${(c.amount_due ?? 0) > 0 ? `<button onclick="event.stopPropagation();markMembershipPaid('${c.membership_id}')" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:6px;padding:6px 12px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer">Mark Paid</button>` : ''}</td>
     </tr>`).join('');
 }
