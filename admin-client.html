@@ -234,7 +234,11 @@
     <div style="display:grid;gap:14px">
       <div>
         <label>Household</label>
-        <select id="hhSelect"><option value="">— None (remove from household) —</option></select>
+        <select id="hhSelect" onchange="onHHSelectChange()"><option value="">— None (remove from household) —</option></select>
+      </div>
+      <div id="newHHNameField" style="display:none">
+        <label>New Household Name</label>
+        <input id="newHHName" placeholder="e.g. Brooks Family">
       </div>
       <div>
         <label>Role</label>
@@ -598,14 +602,30 @@ async function saveMembership() {
 function openHHModal() {
   const sel = document.getElementById('hhSelect');
   sel.innerHTML = '<option value="">— None (remove from household) —</option>' +
-    allHouseholds.map(h => `<option value="${h.id}" ${h.id === clientData.household_id ? 'selected' : ''}>${h.name}</option>`).join('');
+    allHouseholds.map(h => `<option value="${h.id}" ${h.id === clientData.household_id ? 'selected' : ''}>${h.name}</option>`).join('') +
+    '<option value="__new__">+ Create New Household…</option>';
   document.getElementById('hhRole').value = clientData.household_role ?? 'athlete';
+  document.getElementById('newHHNameField').style.display = 'none';
+  document.getElementById('newHHName').value = '';
   document.getElementById('hhModal').classList.add('open');
 }
 function closeHHModal() { document.getElementById('hhModal').classList.remove('open'); }
 
+function onHHSelectChange() {
+  const isNew = document.getElementById('hhSelect').value === '__new__';
+  document.getElementById('newHHNameField').style.display = isNew ? '' : 'none';
+}
+
 async function saveHousehold() {
-  const household_id = document.getElementById('hhSelect').value || null;
+  let household_id = document.getElementById('hhSelect').value || null;
+  if (household_id === '__new__') {
+    const name = document.getElementById('newHHName').value.trim();
+    if (!name) { showToast('Enter a household name', 'error'); return; }
+    const res = await fetch(`${API}/households`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ name }) });
+    if (!res.ok) { showToast('Error creating household', 'error'); return; }
+    const newHH = await res.json();
+    household_id = newHH.id;
+  }
   const household_role = household_id ? document.getElementById('hhRole').value : null;
   const form = document.getElementById('profileForm');
   const fd = new FormData(form);
