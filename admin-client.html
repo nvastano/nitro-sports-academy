@@ -610,15 +610,24 @@ function renderAccessCode(client) {
     el.innerHTML = `<div style="font-family:'Oswald',sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:0.05em">${client.access_code}</div>
       <p style="color:var(--silver);font-size:0.85rem;margin-top:6px">This code is permanent and will never change.</p>`;
   } else {
-    el.innerHTML = `<p style="color:var(--silver);font-size:0.9rem;margin-bottom:12px">No access code on file yet.</p>
-      <button class="btn-primary" onclick="generateAccessCode()">Generate Access Code</button>`;
+    el.innerHTML = `<p style="color:var(--silver);font-size:0.9rem;margin-bottom:12px">No access code on file yet. Enter the code they've chosen.</p>
+      <div style="display:flex;gap:10px;max-width:280px">
+        <input id="newAccessCode" placeholder="Their chosen code">
+        <button class="btn-primary" onclick="saveAccessCode()" style="flex:0 0 auto">Save</button>
+      </div>`;
   }
 }
 
-async function generateAccessCode() {
-  const res = await fetch(`${API}/clients/${clientId}/generate-access-code`, { method: 'POST', headers: authHeaders() });
-  if (!res.ok) { showToast('Error generating access code', 'error'); return; }
-  showToast('Access code generated');
+async function saveAccessCode() {
+  const code = document.getElementById('newAccessCode').value.trim();
+  if (!code) { showToast('Enter an access code', 'error'); return; }
+  const res = await fetch(`${API}/clients/${clientId}/access-code`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ access_code: code }) });
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    showToast(d.error ?? 'Error saving access code', 'error');
+    return;
+  }
+  showToast('Access code saved');
   await loadClient();
 }
 
