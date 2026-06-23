@@ -90,6 +90,11 @@
   label{display:block;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:5px}
   input,select.fi{width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:10px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;transition:border-color 0.2s}
   input:focus,select.fi:focus{border-color:var(--blue-light)}
+  .addr-wrap{position:relative}
+  .addr-suggestions{position:absolute;top:100%;left:0;right:0;background:var(--dark-mid);border:1px solid var(--blue-light);border-radius:6px;margin-top:4px;max-height:220px;overflow-y:auto;z-index:50;display:none}
+  .addr-suggestions.open{display:block}
+  .addr-suggestion{padding:9px 14px;font-size:0.85rem;color:var(--white);cursor:pointer}
+  .addr-suggestion:hover{background:rgba(61,101,204,0.2)}
   .modal-footer{display:flex;justify-content:flex-end;gap:12px;margin-top:24px}
   .btn-cancel{background:transparent;border:1px solid rgba(255,255,255,0.2);border-radius:6px;padding:10px 20px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);cursor:pointer}
   .btn-save{background:var(--blue);border:none;border-radius:6px;padding:10px 24px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--white);cursor:pointer;transition:background 0.2s}
@@ -278,7 +283,7 @@
         <div><label>Last Name *</label><input name="last_name" required></div>
         <div><label>Email</label><input name="email" type="email"></div>
         <div><label>Phone</label><input name="phone" type="tel"></div>
-        <div class="full"><label>Address</label><input name="address"></div>
+        <div class="full addr-wrap"><label>Address</label><input name="address" id="address-input" autocomplete="off"><div class="addr-suggestions" id="address-suggestions"></div></div>
         <div><label>Date of Birth</label><input name="date_of_birth" type="date"></div>
         <div><label>Years Playing</label><input name="years_playing" type="number" min="0"></div>
         <div><label>Current Team</label><input name="current_team"></div>
@@ -356,6 +361,37 @@ function authHeaders() {
   return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}` };
 }
 function logout() { localStorage.removeItem('nitro_token'); window.location.href = 'admin.html'; }
+
+function setupAddressAutocomplete(inputId, suggestionsId) {
+  const input = document.getElementById(inputId);
+  const box = document.getElementById(suggestionsId);
+  if (!input || !box) return;
+  let debounceTimer = null;
+  input.addEventListener('input', () => {
+    clearTimeout(debounceTimer);
+    const q = input.value.trim();
+    if (q.length < 4) { box.classList.remove('open'); box.innerHTML = ''; return; }
+    debounceTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=0&countrycodes=us&limit=5&q=${encodeURIComponent(q)}`);
+        const results = await res.json();
+        if (!results.length) { box.classList.remove('open'); box.innerHTML = ''; return; }
+        box.innerHTML = results.map(r => `<div class="addr-suggestion" data-addr="${r.display_name.replace(/"/g, '&quot;')}">${r.display_name}</div>`).join('');
+        box.classList.add('open');
+      } catch (e) { box.classList.remove('open'); }
+    }, 350);
+  });
+  box.addEventListener('click', (e) => {
+    const item = e.target.closest('.addr-suggestion');
+    if (!item) return;
+    input.value = item.dataset.addr;
+    box.classList.remove('open');
+    box.innerHTML = '';
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target !== input && !box.contains(e.target)) { box.classList.remove('open'); }
+  });
+}
 
 function membershipLabel(type) {
   return { individual: 'Individual', family_2: 'Family (2)', family_3plus: 'Family (3+)' }[type] ?? '—';
@@ -959,6 +995,7 @@ function renderCalendar(gcalEvents, pendingBookings) {
 getToken();
 document.getElementById('sort-name').textContent = ' ▲';
 Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
+setupAddressAutocomplete('address-input', 'address-suggestions');
 </script>
 </body>
 </html>
