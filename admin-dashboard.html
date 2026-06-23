@@ -706,6 +706,7 @@ async function loadClients() {
   const totalDue = clients.reduce((s, c) => s + (c.amount_due ?? 0), 0);
   document.getElementById('stat-due').textContent = `$${totalDue.toFixed(0)}`;
   filterClients();
+  filterHouseholds();
 }
 
 async function loadWaivers() {
