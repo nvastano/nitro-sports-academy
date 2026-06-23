@@ -139,6 +139,10 @@
   <!-- PROFILE -->
   <div class="tab-panel active" id="tab-profile">
     <div class="card">
+      <div class="card-title">Facility Access Code</div>
+      <div id="accessCodeBlock"></div>
+    </div>
+    <div class="card">
       <div class="card-title">Contact Info</div>
       <form id="profileForm" onsubmit="saveProfile(event)">
         <div class="field-grid">
@@ -461,6 +465,7 @@ async function loadClient() {
   }
 
   fillProfile(clientData);
+  renderAccessCode(clientData);
   renderMembership(clientData.membership ?? null);
   renderLeadBar(clientData);
   document.getElementById('page').style.display = 'block';
@@ -597,6 +602,24 @@ async function saveMembership() {
   closeRenewModal();
   showToast(editingMembershipId ? 'Membership updated' : 'Membership saved');
   loadClient();
+}
+
+function renderAccessCode(client) {
+  const el = document.getElementById('accessCodeBlock');
+  if (client.access_code) {
+    el.innerHTML = `<div style="font-family:'Oswald',sans-serif;font-size:1.8rem;color:var(--gold);letter-spacing:0.05em">${client.access_code}</div>
+      <p style="color:var(--silver);font-size:0.85rem;margin-top:6px">This code is permanent and will never change.</p>`;
+  } else {
+    el.innerHTML = `<p style="color:var(--silver);font-size:0.9rem;margin-bottom:12px">No access code on file yet.</p>
+      <button class="btn-primary" onclick="generateAccessCode()">Generate Access Code</button>`;
+  }
+}
+
+async function generateAccessCode() {
+  const res = await fetch(`${API}/clients/${clientId}/generate-access-code`, { method: 'POST', headers: authHeaders() });
+  if (!res.ok) { showToast('Error generating access code', 'error'); return; }
+  showToast('Access code generated');
+  await loadClient();
 }
 
 function openHHModal() {
