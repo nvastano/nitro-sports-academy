@@ -389,10 +389,42 @@ function renderMembership(m) {
         <button class="btn-gold" id="invoiceBtn" onclick="sendInvoice()" ${!clientData?.email ? 'disabled title="No email on file"' : ''}>
           Send Invoice Email
         </button>
+        <button class="btn-gold" id="renewalLinkBtn" onclick="sendRenewalLink('${m.id}')">Get Renewal Payment Link</button>
         ${(m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
         <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
         <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteMembership('${m.id}')">Delete</button>
       </div>
+      <div id="renewalLinkPanel"></div>
+    </div>`;
+}
+
+async function sendRenewalLink(membershipId) {
+  const btn = document.getElementById('renewalLinkBtn');
+  const panel = document.getElementById('renewalLinkPanel');
+  btn.disabled = true; btn.textContent = 'Generating…';
+  const res = await fetch(`${API}/memberships/${membershipId}/renewal-link`, { method: 'POST', headers: authHeaders() });
+  btn.disabled = false; btn.textContent = 'Get Renewal Payment Link';
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    showToast(d.error ?? 'Error generating renewal link', 'error');
+    return;
+  }
+  const data = await res.json();
+  const mailto = data.client_email
+    ? `mailto:${encodeURIComponent(data.client_email)}?subject=${encodeURIComponent(data.email_subject)}&body=${encodeURIComponent(data.email_body)}`
+    : null;
+  const sms = data.client_phone
+    ? `sms:${encodeURIComponent(data.client_phone)}?body=${encodeURIComponent(data.text_body)}`
+    : null;
+  panel.innerHTML = `
+    <div style="margin-top:16px;padding:16px;background:rgba(232,184,75,0.08);border:1px solid rgba(232,184,75,0.3);border-radius:8px">
+      <p style="color:var(--silver);font-size:0.85rem;margin-bottom:10px">Payment link ready — open one of these to review and send the message yourself.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
+        ${mailto ? `<a class="btn-primary" style="text-decoration:none" href="${mailto}">Open Email</a>` : '<span style="color:var(--silver-dark);font-size:0.85rem">No email on file</span>'}
+        ${sms ? `<a class="btn-primary" style="text-decoration:none" href="${sms}">Open Text Message</a>` : '<span style="color:var(--silver-dark);font-size:0.85rem">No phone on file</span>'}
+        <button class="btn-sm" onclick="navigator.clipboard.writeText('${data.url}');showToast('Link copied')">Copy Payment Link</button>
+      </div>
+      <div style="font-size:0.8rem;color:var(--silver-light);word-break:break-all">${data.url}</div>
     </div>`;
 }
 
