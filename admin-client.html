@@ -386,9 +386,6 @@ function renderMembership(m) {
       <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
       <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-        <button class="btn-gold" id="invoiceBtn" onclick="sendInvoice()" ${!clientData?.email ? 'disabled title="No email on file"' : ''}>
-          Send Invoice Email
-        </button>
         <button class="btn-gold" id="renewalLinkBtn" onclick="sendRenewalLink('${m.id}')">Get Renewal Payment Link</button>
         ${(m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
         <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
@@ -700,21 +697,6 @@ async function saveHousehold() {
   const res = await fetch(`${API}/clients/${clientId}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
   if (!res.ok) { showToast('Error updating household', 'error'); return; }
   closeHHModal(); showToast('Household updated'); await loadClient(); renderHouseholdTab();
-}
-
-async function sendInvoice() {
-  const btn = document.getElementById('invoiceBtn');
-  if (!btn) return;
-  btn.disabled = true; btn.textContent = 'Sending…';
-  const res = await fetch(`${API}/clients/${clientId}/invoice`, { method: 'POST', headers: authHeaders() });
-  if (!res.ok) {
-    const d = await res.json();
-    showToast(d.error ?? 'Error sending invoice', 'error');
-    btn.disabled = false; btn.textContent = 'Send Invoice Email'; return;
-  }
-  showToast('Invoice sent!');
-  btn.textContent = 'Invoice Sent ✓';
-  setTimeout(() => { btn.disabled = false; btn.textContent = 'Send Invoice Email'; }, 5000);
 }
 
 function renderLeadBar(client) {
