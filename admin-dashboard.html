@@ -19,11 +19,16 @@
   h1{font-family:'Oswald',sans-serif;font-size:1.8rem;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:24px}
   /* Stats */
   .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:32px}
-  .stat{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.3);border-radius:8px;padding:20px}
+  .stat{background:var(--dark-mid);border:1px solid rgba(43,79,168,0.3);border-radius:8px;padding:20px;cursor:pointer;transition:border-color 0.15s,transform 0.15s;text-align:left;font:inherit;width:100%;display:block}
+  .stat:hover{border-color:var(--blue-light);transform:translateY(-2px)}
+  .stat:focus-visible{outline:2px solid var(--blue-light);outline-offset:2px}
   .stat-num{font-family:'Oswald',sans-serif;font-size:2rem;font-weight:700;color:var(--blue-light)}
-  .stat-label{font-size:0.8rem;color:var(--silver);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px}
+  .stat-label{font-size:0.8rem;color:var(--silver);text-transform:uppercase;letter-spacing:0.08em;margin-top:4px;display:flex;align-items:center;gap:6px}
+  .stat-label .go-arrow{color:var(--blue-light);opacity:0;transition:opacity 0.15s}
+  .stat:hover .go-arrow{opacity:1}
   /* Renewals */
-  .renewals{background:var(--dark-mid);border:1px solid rgba(232,184,75,0.3);border-radius:8px;padding:24px;margin-bottom:32px}
+  .renewals{background:var(--dark-mid);border:1px solid rgba(232,184,75,0.3);border-radius:8px;padding:24px;margin-bottom:32px;transition:box-shadow 0.3s}
+  .renewals.flash{box-shadow:0 0 0 3px rgba(232,184,75,0.5)}
   .renewals h2{font-family:'Oswald',sans-serif;font-size:1rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);margin-bottom:16px}
   .renewal-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);flex-wrap:wrap;gap:8px;cursor:pointer}
   .renewal-row:last-child{border-bottom:none}
@@ -37,13 +42,15 @@
   .badge-household{background:rgba(43,79,168,0.2);color:var(--blue-light);border:1px solid rgba(43,79,168,0.3)}
   .due-amount{font-family:'Oswald',sans-serif;font-size:1rem;color:var(--gold)}
   /* View tabs */
-  .view-tabs{display:flex;gap:4px;border-bottom:2px solid rgba(255,255,255,0.08);margin-bottom:24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .view-tabs{display:flex;gap:6px;background:var(--dark-mid);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:6px;margin-bottom:24px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;position:sticky;top:64px;z-index:50}
   .view-tabs::-webkit-scrollbar{display:none}
-  .view-tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;color:var(--silver);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.2s;flex:0 0 auto;white-space:nowrap}
+  .view-tab{font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;padding:10px 20px;border-radius:6px;color:var(--silver);cursor:pointer;transition:all 0.15s;flex:0 0 auto;white-space:nowrap}
+  .view-tab:hover{color:var(--white);background:rgba(255,255,255,0.06)}
   @media (max-width:600px){
     .view-tab{padding:10px 12px;font-size:0.78rem}
   }
-  .view-tab.active{color:var(--white);border-bottom-color:var(--blue-light)}
+  .view-tab.active{color:var(--white);background:var(--blue);box-shadow:0 1px 4px rgba(43,79,168,0.5)}
+  .view-tab.active:hover{background:var(--blue)}
   .view-panel{display:none}
   .view-panel.active{display:block}
   .subtabs{display:flex;gap:6px;margin-bottom:16px}
@@ -144,14 +151,13 @@
   <h1>Dashboard</h1>
 
   <div class="stats">
-    <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total Clients</div></div>
-    <div class="stat"><div class="stat-num" id="stat-households">—</div><div class="stat-label">Households</div></div>
-    <div class="stat"><div class="stat-num" id="stat-active">—</div><div class="stat-label">Active Members</div></div>
-    <div class="stat"><div class="stat-num" id="stat-renewals">—</div><div class="stat-label">Renewals This Month</div></div>
-    <div class="stat"><div class="stat-num" id="stat-due">—</div><div class="stat-label">Balance Owed</div></div>
+    <button class="stat" onclick="goToClients()"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total Clients<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToHouseholds()"><div class="stat-num" id="stat-households">—</div><div class="stat-label">Households<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToRenewals()"><div class="stat-num" id="stat-renewals">—</div><div class="stat-label">Renewals This Month<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToBalanceOwed()"><div class="stat-num" id="stat-due">—</div><div class="stat-label">Balance Owed<span class="go-arrow">→</span></div></button>
   </div>
 
-  <div class="renewals">
+  <div class="renewals" id="renewals-section">
     <h2>⚠ Renewals Due in Next 30 Days</h2>
     <div id="renewals-list"><div class="loading">Loading…</div></div>
   </div>
@@ -413,6 +419,32 @@ function switchView(name) {
   document.getElementById(`view-${name}`).classList.add('active');
   if (name === 'bookings') loadBookings();
   if (name === 'calendar') loadCalendar();
+}
+
+function goToClients() {
+  switchView('clients');
+  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToHouseholds() {
+  switchView('households');
+  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToBalanceOwed() {
+  switchView('clients');
+  clientSort = { key: 'amount_due', dir: -1 };
+  document.querySelectorAll('#view-clients .sort-arrow').forEach(el => el.textContent = '');
+  document.getElementById('sort-amount_due').textContent = ' ▼';
+  filterClients();
+  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToRenewals() {
+  const el = document.getElementById('renewals-section');
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  el.classList.add('flash');
+  setTimeout(() => el.classList.remove('flash'), 1200);
 }
 
 async function loadLeads() {
@@ -702,7 +734,6 @@ async function loadClients() {
   allClients = await res.json();
   const clients = allClients.filter(c => !!c.membership_type);
   document.getElementById('stat-total').textContent = clients.length;
-  document.getElementById('stat-active').textContent = clients.filter(c => c.membership_status === 'active').length;
   const totalDue = clients.reduce((s, c) => s + (c.amount_due ?? 0), 0);
   document.getElementById('stat-due').textContent = `$${totalDue.toFixed(0)}`;
   filterClients();
