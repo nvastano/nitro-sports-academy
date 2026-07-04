@@ -64,7 +64,7 @@
     <div style="text-align: center; margin-bottom: 36px;">
       <div class="section-label">Member Scheduling</div>
       <h2 class="section-title">Cage & Lane <span class="text-blue">Availability</span></h2>
-      <p class="text-silver" style="max-width: 600px; margin: 0 auto;">Browse the schedule below. Members and guests can book any open slot on today's date after 1 PM. Members get an instant confirmation — guests sign a waiver and pay before their spot is confirmed.</p>
+      <p class="text-silver" style="max-width: 600px; margin: 0 auto;">Browse the schedule below. Weekend slots (Sat &amp; Sun) can be booked in advance anytime. Weekday slots open for same-day booking after 1 PM. Members get an instant confirmation — guests sign a waiver and pay before their spot is confirmed.</p>
     </div>
 
     <div style="display:flex; align-items:center; justify-content:center; gap:20px; margin-bottom:28px;">
@@ -369,6 +369,7 @@ function formatRowLabel(h, m) {
 
 function renderGrid(bookedPerCal) {
   const viewingToday = isToday(currentDate);
+  const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
   const { h: nowH, m: nowM } = getCTHoursMinutes(new Date());
   const nowMinutes = nowH * 60 + nowM;
   const bookingWindowOpen = nowMinutes >= 13 * 60; // 1 PM or later in browser's local time
@@ -380,8 +381,11 @@ function renderGrid(bookedPerCal) {
       const k       = slotKey(h, m);
       const label   = formatRowLabel(h, m);
       const slotMins = h * 60 + m;
-      // Only bookable if: viewing today, browser time is 1 PM+, and the slot hasn't passed yet
-      const isBookable = viewingToday && bookingWindowOpen && slotMins > nowMinutes;
+      // Weekends: bookable any day in advance, as long as slot hasn't passed if viewing today
+      // Weekdays: same-day only, booking window opens at 1 PM
+      const isBookable = isWeekend
+        ? (!viewingToday || slotMins > nowMinutes)
+        : (viewingToday && bookingWindowOpen && slotMins > nowMinutes);
 
       let row = `<div class="time-row${isHalf ? ' half-hour' : ''}">`;
       row += `<div class="row-label${isHalf ? ' half' : ''}">${label}</div>`;
