@@ -158,7 +158,7 @@
   </div>
 
   <div class="renewals" id="renewals-section">
-    <h2>⚠ Renewals Due in Next 30 Days</h2>
+    <h2>⚠ Renewals — Past Due &amp; Due in Next 30 Days</h2>
     <div id="renewals-list"><div class="loading">Loading…</div></div>
   </div>
 
@@ -489,18 +489,22 @@ async function loadRenewals() {
   const data = await res.json();
   document.getElementById('stat-renewals').textContent = data.length;
   const el = document.getElementById('renewals-list');
-  if (!data.length) { el.innerHTML = '<div style="color:var(--silver);font-size:0.9rem">No renewals due in the next 30 days.</div>'; return; }
-  el.innerHTML = data.map(r => `
+  const today = new Date().toISOString().slice(0,10);
+  if (!data.length) { el.innerHTML = '<div style="color:var(--silver);font-size:0.9rem">No renewals past due or due in the next 30 days.</div>'; return; }
+  el.innerHTML = data.map(r => {
+    const isPastDue = r.renewal_date < today;
+    return `
     <div class="renewal-row" onclick="go('${r.id}')">
       <div>
-        <div class="renewal-name">${r.first_name} ${r.last_name}${r.household_name ? ` <span style="font-weight:400;color:var(--silver)">· ${r.household_name}</span>` : ''}</div>
+        <div class="renewal-name">${r.first_name} ${r.last_name}${r.household_name ? ` <span style="font-weight:400;color:var(--silver)">· ${r.household_name}</span>` : ''}${isPastDue ? ' <span style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:rgba(220,50,50,0.15);color:#ff7b7b;padding:1px 6px;border-radius:10px;margin-left:4px;">Past Due</span>' : ''}</div>
         <div class="renewal-meta">${membershipLabel(r.type)} · ${r.email ?? ''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-        <div style="font-size:0.85rem;color:var(--silver)">Due ${r.renewal_date}</div>
-        <div class="due-amount">$${(r.amount_due ?? 0).toFixed(2)}</div>
+        <div style="font-size:0.85rem;color:${isPastDue ? '#ff7b7b' : 'var(--silver)'}">Due ${r.renewal_date}</div>
+        <div class="due-amount" style="color:${isPastDue ? '#ff7b7b' : ''}">$${(r.amount_due ?? 0).toFixed(2)}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 const DISC_ICON  = { hitting:'⚾', pitching:'🎯', catching:'🧤' };
