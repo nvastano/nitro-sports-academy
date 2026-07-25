@@ -1,0 +1,21 @@
+{
+  "name": "Nitro Admin",
+  "short_name": "Nitro Admin",
+  "description": "Nitro Sports Academy admin dashboard.",
+  "start_url": "/admin-dashboard.html",
+  "display": "standalone",
+  "background_color": "#0f1624",
+  "theme_color": "#1c2540",
+  "icons": [
+    {
+      "src": "/images/apple-touch-icon-admin.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-192-admin.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
