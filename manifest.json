@@ -1,0 +1,21 @@
+{
+  "name": "Nitro Sports Academy",
+  "short_name": "Nitro",
+  "description": "Premier baseball and softball training in Spring Hill, TN.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#0f1624",
+  "theme_color": "#3d65cc",
+  "icons": [
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
