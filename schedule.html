@@ -438,8 +438,8 @@ function openModal(cageName, h, m, isGuest) {
   document.getElementById('duration-row').style.display = isGuest ? 'block' : 'none';
   document.getElementById('guest-notice').style.display = isGuest ? 'block' : 'none';
   document.getElementById('modal-footnote').textContent = isGuest
-    ? 'Guests sign a waiver and complete payment before the spot is confirmed.'
-    : 'Instant confirmation — a calendar invite will be sent to your email.';
+    ? 'Guests sign a waiver and complete payment before the spot is confirmed. A confirmation text will be sent once payment is complete.'
+    : 'Instant confirmation — a calendar invite and confirmation text will be sent.';
   if (isGuest) selectDuration(30);
   document.getElementById('submit-btn').textContent    = 'Send Request';
   document.getElementById('submit-btn').disabled       = false;
@@ -528,7 +528,7 @@ async function submitRequest() {
       document.getElementById('success-icon').textContent = '💳';
       document.getElementById('success-title').textContent = 'One Last Step — Payment';
       if (data.payment_link_url) {
-        document.getElementById('success-body').innerHTML = `Your spot is held but not confirmed yet. Pay <strong style="color:#fff;">$${data.price.toFixed(2)}</strong> now to lock it in. A copy of this link was also emailed to you.`;
+        document.getElementById('success-body').innerHTML = `Your spot is held but not confirmed yet. Pay <strong style="color:#fff;">$${data.price.toFixed(2)}</strong> now to lock it in. A copy of this link was also emailed to you. Once payment clears you'll receive a confirmation text with your booking details.`;
         payLink.href = data.payment_link_url;
         payLink.style.display = 'inline-block';
       } else {
@@ -538,7 +538,7 @@ async function submitRequest() {
     } else {
       document.getElementById('success-icon').textContent = '✅';
       document.getElementById('success-title').textContent = "You're Booked!";
-      document.getElementById('success-body').innerHTML = 'Your slot is confirmed. Check your email for a <strong style="color:#fff;">calendar invite</strong> you can save directly to your calendar.';
+      document.getElementById('success-body').innerHTML = 'Your slot is confirmed. Check your email for a <strong style="color:#fff;">calendar invite</strong> and expect a confirmation text shortly.';
       payLink.style.display = 'none';
     }
     document.getElementById('success-overlay').style.display = 'flex';
