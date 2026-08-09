@@ -102,11 +102,17 @@ async function sendSMS(env, to, body) {
   const sid  = env.TWILIO_ACCOUNT_SID;
   const auth = env.TWILIO_AUTH_TOKEN;
   const from = env.TWILIO_PHONE_NUMBER;
-  if (!sid || !auth || !from) return; // not configured yet — skip silently
+  if (!sid || !auth || !from) {
+    console.error("SMS skipped: missing Twilio env vars", { sid: !!sid, auth: !!auth, from: !!from });
+    return;
+  }
   const toNorm = normalizePhone(to);
-  if (!toNorm || toNorm.length !== 10) return;
+  if (!toNorm || toNorm.length !== 10) {
+    console.error("SMS skipped: invalid phone number", to, "->", toNorm);
+    return;
+  }
   const url = `https://api.twilio.com/2010-04-01/Accounts/${sid}/Messages.json`;
-  await fetch(url, {
+  const res = await fetch(url, {
     method: "POST",
     headers: {
       "Authorization": "Basic " + btoa(`${sid}:${auth}`),
@@ -114,6 +120,12 @@ async function sendSMS(env, to, body) {
     },
     body: new URLSearchParams({ To: `+1${toNorm}`, From: from, Body: body }).toString(),
   });
+  if (!res.ok) {
+    const text = await res.text();
+    console.error("SMS Twilio error", res.status, text);
+  } else {
+    console.log("SMS sent to", toNorm);
+  }
 }
 __name(sendSMS, "sendSMS");
 // ─────────────────────────────────────────────────────────────────────────────
