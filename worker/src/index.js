@@ -501,7 +501,8 @@ async function sendBookingRequestNotification(booking, env, autoConfirmed = fals
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Time</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.time} (30 min)</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Player</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_name}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_email ?? "—"}</td></tr>
-      <tr><td style="color:#9AA0B4;padding:8px 0">Phone</td><td style="color:#fff;text-align:right;padding:8px 0">${booking.player_phone ?? "—"}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Phone</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_phone ?? "—"}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0">SMS Confirmation</td><td style="text-align:right;padding:8px 0;font-weight:600;color:${booking.sms_consent ? '#4ade80' : '#9AA0B4'}">${booking.sms_consent ? '✅ Opted in' : 'No'}</td></tr>
     </table>
   </div>
   <p style="color:#9AA0B4;font-size:13px;text-align:center">View bookings at <a href="https://nitrosportsacademy.com/admin-dashboard.html" style="color:#3d65cc">the admin dashboard</a>.</p>
@@ -708,7 +709,7 @@ var src_default = {
           gcalEventId = evt.id;
           await env.DB.prepare(`UPDATE bookings SET gcal_event_id=? WHERE id=?`).bind(gcalEventId, id).run();
         } catch(e) { console.error("GCal create error:", e.message); }
-        try { await sendBookingRequestNotification({ ...b }, env, true); } catch(e) { console.error("Pedro notification error:", e.message); }
+        try { await sendBookingRequestNotification({ ...b, sms_consent: smsConsent }, env, true); } catch(e) { console.error("Pedro notification error:", e.message); }
         if (b.player_email) {
           try { await sendAutoConfirmedEmail({ ...b }, id, env); } catch(e) { console.error("Player confirmation email error:", e.message); }
         }
@@ -741,7 +742,7 @@ var src_default = {
         await env.DB.prepare(`UPDATE bookings SET square_order_id=?, square_payment_link_url=? WHERE id=?`).bind(link.orderId, link.url, id).run();
       } catch(e) { console.error("Square payment link error:", e.message); }
 
-      try { await sendBookingRequestNotification({ ...b, time: `${b.time} (GUEST — payment pending, $${price})` }, env, false); } catch(e) { console.error("Pedro notification error:", e.message); }
+      try { await sendBookingRequestNotification({ ...b, time: `${b.time} (GUEST — payment pending, $${price})`, sms_consent: smsConsent }, env, false); } catch(e) { console.error("Pedro notification error:", e.message); }
       if (b.player_email) {
         try { await sendGuestPaymentPendingEmail({ ...b, duration }, price, paymentLinkUrl, env); } catch(e) { console.error("Guest email error:", e.message); }
       }
