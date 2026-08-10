@@ -713,8 +713,8 @@ var src_default = {
         if (b.player_email) {
           try { await sendAutoConfirmedEmail({ ...b }, id, env); } catch(e) { console.error("Player confirmation email error:", e.message); }
         }
-        // SMS: member booking confirmation (always send if phone provided)
-        if (b.player_phone) {
+        // SMS: member booking confirmation
+        if (smsConsent && b.player_phone) {
           try {
             await sendSMS(env, b.player_phone,
               `Nitro Sports Academy: You're booked! ${cageLabel} on ${b.date} at ${b.time}. Building access code: ${env.GUEST_ACCESS_CODE}. Questions? Text Pedro at 615-870-8077. Reply STOP to opt out.`
@@ -958,8 +958,8 @@ var src_default = {
             if (booking.player_email) {
               try { await sendAutoConfirmedEmail({ ...booking, cage: booking.cage_assigned }, booking.id, env); } catch(e) { console.error("Player confirmation email error:", e.message); }
             }
-            // SMS: guest booking confirmed after payment (always send if phone provided)
-            if (booking.player_phone) {
+            // SMS: guest booking confirmed after payment
+            if (booking.sms_consent && booking.player_phone) {
               try {
                 const cageLabel = CAGE_LABEL[booking.cage_assigned] ?? booking.cage_assigned;
                 await sendSMS(env, booking.player_phone,
