@@ -141,6 +141,7 @@
     <div class="tab active" onclick="switchTab('profile')">Profile</div>
     <div class="tab" onclick="switchTab('membership')">Membership</div>
     <div class="tab" onclick="switchTab('payments')">Payments</div>
+    <div class="tab" onclick="switchTab('bookings')">Cage Bookings</div>
     <div class="tab" onclick="switchTab('household')">Household</div>
   </div>
 
@@ -195,6 +196,14 @@
         <div><label>Notes</label><input type="text" id="payNotes" placeholder="Optional"></div>
         <div><button class="btn-primary" onclick="addPayment()" style="margin-top:20px">+ Record Payment</button></div>
       </div>
+    </div>
+  </div>
+
+  <!-- CAGE BOOKINGS -->
+  <div class="tab-panel" id="tab-bookings">
+    <div class="card">
+      <div class="card-title">Cage Booking History</div>
+      <div id="cageBookingsContent"><div class="empty">Loading…</div></div>
     </div>
   </div>
 
@@ -346,12 +355,40 @@ function showToast(msg, type = 'success') {
 }
 
 function switchTab(name) {
-  const tabs = ['profile','membership','payments','household'];
+  const tabs = ['profile','membership','payments','bookings','household'];
   document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', tabs[i] === name));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`tab-${name}`).classList.add('active');
   if (name === 'payments') loadPayments();
+  if (name === 'bookings') loadCageBookings();
   if (name === 'household') renderHouseholdTab();
+}
+
+const CAGE_LABEL = { cage_1:'Cage 1', cage_2:'Cage 2', cage_3:'Cage 3', pitching_lane:'Pitching Lane' };
+
+async function loadCageBookings() {
+  const el = document.getElementById('cageBookingsContent');
+  el.innerHTML = '<div class="empty">Loading…</div>';
+  const res = await fetch(`${API}/clients/${clientId}/cage-bookings`, { headers: authHeaders() });
+  if (!res.ok) { el.innerHTML = '<div class="empty">Error loading bookings.</div>'; return; }
+  const bookings = await res.json();
+  if (!bookings.length) { el.innerHTML = '<div class="empty">No cage bookings on record for this member.</div>'; return; }
+
+  const statusColor = { confirmed:'#4caf6e', pending_payment:'var(--gold)', pending:'var(--silver)', cancelled:'#ff7b7b' };
+  el.innerHTML = `
+    <div style="margin-bottom:12px;color:var(--silver);font-size:0.88rem">${bookings.length} booking${bookings.length !== 1 ? 's' : ''} total · ${bookings.reduce((s,b) => s + (b.duration ?? 30), 0)} minutes</div>
+    <table class="pay-table">
+      <thead><tr><th>Date</th><th>Time</th><th>Cage</th><th>Duration</th><th>Status</th></tr></thead>
+      <tbody>${bookings.map(b => `
+        <tr>
+          <td style="color:var(--silver-light)">${b.date}</td>
+          <td style="color:var(--silver-light)">${b.time}</td>
+          <td style="color:var(--white);font-weight:600">${CAGE_LABEL[b.cage_assigned] ?? b.cage_assigned ?? '—'}</td>
+          <td style="color:var(--silver)">${b.duration ?? 30} min</td>
+          <td><span style="font-size:0.78rem;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.06em;text-transform:uppercase;color:${statusColor[b.status] ?? 'var(--silver)'}">${b.status}</span></td>
+        </tr>`).join('')}
+      </tbody>
+    </table>`;
 }
 
 function membershipLabel(type) {

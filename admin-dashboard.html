@@ -173,6 +173,7 @@
   <div class="view-tabs">
     <div class="view-tab active" onclick="switchView('clients')">Clients</div>
     <div class="view-tab" onclick="switchView('bookings')" id="tab-bookings">Bookings</div>
+    <div class="view-tab" onclick="switchView('usage')">Usage</div>
     <div class="view-tab" onclick="switchView('leads')" id="tab-leads">Leads</div>
     <div class="view-tab" onclick="switchView('calendar')">Calendar</div>
   </div>
@@ -254,6 +255,19 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- USAGE VIEW -->
+  <div class="view-panel" id="view-usage">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;background:var(--dark-mid);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:5px">
+        <div id="usage-range-month" class="subtab active" onclick="setUsageRange('month')" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;padding:7px 16px;border-radius:6px;color:var(--white);cursor:pointer;background:var(--blue)">Month</div>
+        <div id="usage-range-week" class="subtab" onclick="setUsageRange('week')" style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;padding:7px 16px;border-radius:6px;color:var(--silver);cursor:pointer">Week</div>
+      </div>
+      <input type="date" id="usage-date" style="background:var(--dark-mid);border:1px solid rgba(255,255,255,0.12);border-radius:6px;padding:8px 14px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none" onchange="loadUsage()">
+      <span id="usage-period-label" style="font-family:'Barlow Condensed',sans-serif;font-size:0.9rem;color:var(--silver)"></span>
+    </div>
+    <div id="usage-content"><div class="loading">Loading…</div></div>
   </div>
 
   <!-- LEADS VIEW -->
@@ -453,11 +467,65 @@ function badgeHtml(status) {
 }
 
 function switchView(name) {
-  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','bookings','leads','calendar'][i] === name));
+  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','bookings','usage','leads','calendar'][i] === name));
   document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`view-${name}`).classList.add('active');
   if (name === 'bookings') loadBookings();
+  if (name === 'usage') loadUsage();
   if (name === 'calendar') loadCalendar();
+}
+
+// ── Usage / Booking Summary ───────────────────────────────────────────────────
+let usageRange = 'month';
+
+function setUsageRange(range) {
+  usageRange = range;
+  document.getElementById('usage-range-month').style.background = range === 'month' ? 'var(--blue)' : '';
+  document.getElementById('usage-range-month').style.color = range === 'month' ? 'var(--white)' : 'var(--silver)';
+  document.getElementById('usage-range-week').style.background = range === 'week' ? 'var(--blue)' : '';
+  document.getElementById('usage-range-week').style.color = range === 'week' ? 'var(--white)' : 'var(--silver)';
+  loadUsage();
+}
+
+async function loadUsage() {
+  const el = document.getElementById('usage-content');
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  const dateInput = document.getElementById('usage-date');
+  if (!dateInput.value) dateInput.value = new Date().toISOString().slice(0, 10);
+  const date = dateInput.value;
+  const res = await fetch(`${API}/bookings/summary?range=${usageRange}&date=${date}`, { headers: authHeaders() });
+  if (res.status === 401) { logout(); return; }
+  if (!res.ok) { el.innerHTML = '<div class="empty">Error loading usage data.</div>'; return; }
+  const data = await res.json();
+  document.getElementById('usage-period-label').textContent = `${data.start} → ${data.end}`;
+  if (!data.rows.length) {
+    el.innerHTML = '<div class="empty">No member bookings found in this period.</div>';
+    return;
+  }
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead><tr>
+          <th>Member</th>
+          <th style="text-align:right">Bookings</th>
+          <th style="text-align:right">Total Time</th>
+          <th>Detail</th>
+        </tr></thead>
+        <tbody>${data.rows.map(r => {
+          const details = (r.booking_detail ?? '').split('|').filter(Boolean).map(s => {
+            const [cage, date, time] = s.split(':');
+            return `${CAGE_LABEL[cage] ?? cage} ${date} ${time}`;
+          }).join(', ');
+          return `<tr onclick="go('${r.client_id}')">
+            <td><div class="client-name">${r.first_name} ${r.last_name}</div><div class="client-sub">${r.email ?? ''}</div></td>
+            <td style="text-align:right;font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--blue-light)">${r.total_bookings}</td>
+            <td style="text-align:right;color:var(--silver-light)">${r.total_minutes ?? (r.total_bookings * 30)} min</td>
+            <td style="color:var(--silver);font-size:0.82rem;max-width:320px">${details}</td>
+          </tr>`;
+        }).join('')}
+        </tbody>
+      </table>
+    </div>`;
 }
 
 function goToClients() {

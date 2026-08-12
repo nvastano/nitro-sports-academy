@@ -145,6 +145,21 @@ async function isActiveMember(email, phone, env) {
   }
   return candidates.some((c) => c.status === "active");
 }
+async function getClientId(email, phone, env) {
+  const e = (email ?? "").trim().toLowerCase();
+  const p = normalizePhone(phone);
+  if (!e && !p) return null;
+  if (e) {
+    const row = await env.DB.prepare(`SELECT c.id, m.status FROM clients c ${MEMBERSHIP_JOIN} WHERE trim(lower(c.email)) = ?`).bind(e).first();
+    if (row?.status === "active") return row.id;
+  }
+  if (p) {
+    const { results } = await env.DB.prepare(`SELECT c.id, c.phone, m.status FROM clients c ${MEMBERSHIP_JOIN}`).all();
+    const match = results.filter((c) => normalizePhone(c.phone) === p).find((c) => c.status === "active");
+    if (match) return match.id;
+  }
+  return null;
+}
 __name(isActiveMember, "isActiveMember");
 async function hasSignedWaiver(email, env) {
   const e = (email ?? "").trim().toLowerCase();
@@ -693,14 +708,15 @@ var src_default = {
       if (taken.length > 0) return err("This slot has already been requested", 409);
 
       const isMember = await isActiveMember(b.player_email, b.player_phone, env);
+      const clientId = await getClientId(b.player_email, b.player_phone, env);
       const id = uuid();
       const cageLabel = CAGE_LABEL[b.cage] ?? b.cage;
 
       if (isMember) {
         await env.DB.prepare(
-          `INSERT INTO bookings (id,date,time,discipline,player_name,player_email,player_phone,status,cage_assigned,booking_type,duration,is_member,payment_status,sms_consent)
-           VALUES (?,?,?,'cage_request',?,?,?,'confirmed',?,'cage_request',?,1,'n/a',?)`
-        ).bind(id, b.date, b.time, b.player_name.trim(), b.player_email?.trim() || null, b.player_phone?.trim() || null, b.cage, duration, smsConsent).run();
+          `INSERT INTO bookings (id,client_id,date,time,discipline,player_name,player_email,player_phone,status,cage_assigned,booking_type,duration,is_member,payment_status,sms_consent)
+           VALUES (?,?,?,?,'cage_request',?,?,?,'confirmed',?,'cage_request',?,1,'n/a',?)`
+        ).bind(id, clientId, b.date, b.time, b.player_name.trim(), b.player_email?.trim() || null, b.player_phone?.trim() || null, b.cage, duration, smsConsent).run();
         let gcalEventId = null;
         try {
           const token = await getGCalToken(env);
@@ -1400,6 +1416,56 @@ var src_default = {
       await env.DB.prepare("DELETE FROM payments WHERE id = ?").bind(pid).run();
       return json({ ok: true });
     }
+    // GET /clients/:id/cage-bookings — booking history for one client
+    const cageBookingsMatch = path.match(/^\/clients\/([^/]+)\/cage-bookings$/);
+    if (cageBookingsMatch && method === "GET") {
+      const cid = cageBookingsMatch[1];
+      const { results } = await env.DB.prepare(`
+        SELECT id, date, time, cage_assigned, duration, status, payment_status, price, created_at
+        FROM bookings
+        WHERE client_id = ? AND booking_type = 'cage_request'
+        ORDER BY date DESC, time DESC
+      `).bind(cid).all();
+      return json(results);
+    }
+
+    // GET /bookings/summary?range=week|month&date=YYYY-MM-DD — per-member booking counts
+    if (path === "/bookings/summary" && method === "GET") {
+      const range = url.searchParams.get("range") ?? "month";
+      const dateParam = url.searchParams.get("date") ?? new Date().toISOString().slice(0, 10);
+      const [y, mo, d] = dateParam.split("-").map(Number);
+      let start, end;
+      if (range === "week") {
+        const base = new Date(Date.UTC(y, mo - 1, d));
+        const day = base.getUTCDay();
+        const mon = new Date(base); mon.setUTCDate(base.getUTCDate() - (day === 0 ? 6 : day - 1));
+        const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6);
+        start = mon.toISOString().slice(0, 10);
+        end = sun.toISOString().slice(0, 10);
+      } else {
+        start = `${y}-${String(mo).padStart(2,"0")}-01`;
+        const lastDay = new Date(Date.UTC(y, mo, 0)).getUTCDate();
+        end = `${y}-${String(mo).padStart(2,"0")}-${lastDay}`;
+      }
+      const { results } = await env.DB.prepare(`
+        SELECT
+          b.client_id,
+          c.first_name, c.last_name, c.email,
+          COUNT(*) as total_bookings,
+          SUM(b.duration) as total_minutes,
+          GROUP_CONCAT(b.cage_assigned || ':' || b.date || ':' || b.time, '|') as booking_detail
+        FROM bookings b
+        JOIN clients c ON c.id = b.client_id
+        WHERE b.booking_type = 'cage_request'
+          AND b.status IN ('confirmed','pending_payment')
+          AND b.date >= ? AND b.date <= ?
+          AND b.client_id IS NOT NULL
+        GROUP BY b.client_id
+        ORDER BY total_bookings DESC
+      `).bind(start, end).all();
+      return json({ range, start, end, rows: results });
+    }
+
     const paymentsMatch = path.match(/^\/clients\/([^/]+)\/payments$/);
     if (paymentsMatch) {
       const clientId = paymentsMatch[1];
