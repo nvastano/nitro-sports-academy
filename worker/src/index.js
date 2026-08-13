@@ -1465,7 +1465,7 @@ var src_default = {
         GROUP BY b.client_id
         ORDER BY total_bookings DESC
       `).bind(start, end).all();
-      // Unlinked bookings — client_id IS NULL; classify by whether email matches a client record
+      // Unlinked bookings — client_id IS NULL; classify by whether email or full name matches a client record
       const { results: unlinkedRows } = await env.DB.prepare(`
         SELECT
           c.id as client_id,
@@ -1473,7 +1473,13 @@ var src_default = {
           b.player_name, b.player_email,
           b.cage_assigned, b.date, b.time, b.duration
         FROM bookings b
-        LEFT JOIN clients c ON trim(lower(c.email)) = trim(lower(b.player_email))
+        LEFT JOIN clients c ON (
+          (b.player_email IS NOT NULL AND b.player_email != '' AND trim(lower(c.email)) = trim(lower(b.player_email)))
+          OR (
+            (b.player_email IS NULL OR b.player_email = '' OR trim(lower(c.email)) != trim(lower(b.player_email)))
+            AND trim(lower(c.first_name || ' ' || c.last_name)) = trim(lower(b.player_name))
+          )
+        )
         WHERE b.booking_type = 'cage_request'
           AND b.status IN ('confirmed','pending_payment')
           AND b.date >= ? AND b.date <= ?
