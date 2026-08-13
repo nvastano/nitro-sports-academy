@@ -517,12 +517,15 @@ async function loadUsage() {
             const [cage, date, time] = s.split(':');
             return `${CAGE_LABEL[cage] ?? cage} ${date} ${time}`;
           }).join(', ');
-          const isMember = r.booker_type === 'member';
+          const isMember = r.booker_type === 'member' || !!r.client_id;
           const typeBadge = isMember
             ? `<span style="font-size:0.72rem;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(76,175,110,0.15);color:#4caf6e">Member</span>`
             : `<span style="font-size:0.72rem;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(232,184,75,0.12);color:var(--gold)">Guest</span>`;
-          return `<tr ${isMember ? `onclick="go('${r.client_id}')" style="cursor:pointer"` : 'style="cursor:default"'}>
-            <td><div class="client-name">${r.first_name}${r.last_name ? ' ' + r.last_name : ''}</div><div class="client-sub">${r.email ?? ''}</div></td>
+          const nameDisplay = isMember && r.client_id
+            ? `<a onclick="go('${r.client_id}')" style="cursor:pointer;color:var(--blue-light);text-decoration:underline;font-weight:700">${r.first_name}${r.last_name ? ' ' + r.last_name : ''}</a>`
+            : `<span style="font-weight:700">${r.first_name}${r.last_name ? ' ' + r.last_name : ''}</span>`;
+          return `<tr ${isMember && r.client_id ? `onclick="go('${r.client_id}')" style="cursor:pointer"` : 'style="cursor:default"'}>
+            <td><div class="client-name">${nameDisplay}</div><div class="client-sub">${r.email ?? ''}</div></td>
             <td>${typeBadge}</td>
             <td style="text-align:right;font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--blue-light)">${r.total_bookings}</td>
             <td style="text-align:right;color:var(--silver-light)">${r.total_minutes ?? (r.total_bookings * 30)} min</td>
