@@ -1465,24 +1465,63 @@ var src_default = {
         GROUP BY b.client_id
         ORDER BY total_bookings DESC
       `).bind(start, end).all();
-      // Guests — no client_id, group by email or name
-      const { results: guestRows } = await env.DB.prepare(`
+      // Unlinked bookings — client_id IS NULL; classify by whether email matches a client record
+      const { results: unlinkedRows } = await env.DB.prepare(`
         SELECT
-          NULL as client_id,
-          player_name as first_name, '' as last_name, player_email as email,
-          'guest' as booker_type,
-          COUNT(*) as total_bookings,
-          SUM(duration) as total_minutes,
-          GROUP_CONCAT(cage_assigned || ':' || date || ':' || time, '|') as booking_detail
-        FROM bookings
-        WHERE booking_type = 'cage_request'
-          AND status IN ('confirmed','pending_payment')
-          AND date >= ? AND date <= ?
-          AND client_id IS NULL
-        GROUP BY coalesce(player_email, player_name)
-        ORDER BY total_bookings DESC
+          c.id as client_id,
+          c.first_name, c.last_name, c.email,
+          b.player_name, b.player_email,
+          b.cage_assigned, b.date, b.time, b.duration
+        FROM bookings b
+        LEFT JOIN clients c ON trim(lower(c.email)) = trim(lower(b.player_email))
+        WHERE b.booking_type = 'cage_request'
+          AND b.status IN ('confirmed','pending_payment')
+          AND b.date >= ? AND b.date <= ?
+          AND b.client_id IS NULL
       `).bind(start, end).all();
-      const rows = [...memberRows, ...guestRows].sort((a, b) => b.total_bookings - a.total_bookings);
+
+      // Group unlinked rows — those with a matched client_id are members, rest are guests
+      const unlinkedMap = new Map();
+      for (const r of unlinkedRows) {
+        const key = r.client_id ?? (r.player_email?.toLowerCase() ?? r.player_name);
+        if (!unlinkedMap.has(key)) {
+          unlinkedMap.set(key, {
+            client_id: r.client_id ?? null,
+            first_name: r.client_id ? r.first_name : r.player_name,
+            last_name: r.client_id ? r.last_name : '',
+            email: r.client_id ? r.email : r.player_email,
+            booker_type: r.client_id ? 'member' : 'guest',
+            total_bookings: 0,
+            total_minutes: 0,
+            booking_details: [],
+          });
+        }
+        const entry = unlinkedMap.get(key);
+        entry.total_bookings += 1;
+        entry.total_minutes += (r.duration ?? 0);
+        entry.booking_details.push(`${r.cage_assigned}:${r.date}:${r.time}`);
+      }
+      const unlinkedGrouped = [...unlinkedMap.values()].map(e => ({
+        ...e,
+        booking_detail: e.booking_details.join('|'),
+      }));
+
+      // Merge unlinked members into memberRows (add to existing or append)
+      const memberMap = new Map(memberRows.map(r => [r.client_id, r]));
+      for (const u of unlinkedGrouped) {
+        if (u.booker_type === 'member' && u.client_id) {
+          if (memberMap.has(u.client_id)) {
+            const existing = memberMap.get(u.client_id);
+            existing.total_bookings += u.total_bookings;
+            existing.total_minutes += u.total_minutes;
+            existing.booking_detail += (existing.booking_detail ? '|' : '') + u.booking_detail;
+          } else {
+            memberMap.set(u.client_id, u);
+          }
+        }
+      }
+      const guestRows = unlinkedGrouped.filter(u => u.booker_type === 'guest');
+      const rows = [...memberMap.values(), ...guestRows].sort((a, b) => b.total_bookings - a.total_bookings);
       return json({ range, start, end, rows });
     }
 
