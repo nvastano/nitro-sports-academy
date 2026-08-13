@@ -1447,10 +1447,12 @@ var src_default = {
         const lastDay = new Date(Date.UTC(y, mo, 0)).getUTCDate();
         end = `${y}-${String(mo).padStart(2,"0")}-${lastDay}`;
       }
-      const { results } = await env.DB.prepare(`
+      // Members — linked to a client record
+      const { results: memberRows } = await env.DB.prepare(`
         SELECT
           b.client_id,
           c.first_name, c.last_name, c.email,
+          'member' as booker_type,
           COUNT(*) as total_bookings,
           SUM(b.duration) as total_minutes,
           GROUP_CONCAT(b.cage_assigned || ':' || b.date || ':' || b.time, '|') as booking_detail
@@ -1463,7 +1465,25 @@ var src_default = {
         GROUP BY b.client_id
         ORDER BY total_bookings DESC
       `).bind(start, end).all();
-      return json({ range, start, end, rows: results });
+      // Guests — no client_id, group by email or name
+      const { results: guestRows } = await env.DB.prepare(`
+        SELECT
+          NULL as client_id,
+          player_name as first_name, '' as last_name, player_email as email,
+          'guest' as booker_type,
+          COUNT(*) as total_bookings,
+          SUM(duration) as total_minutes,
+          GROUP_CONCAT(cage_assigned || ':' || date || ':' || time, '|') as booking_detail
+        FROM bookings
+        WHERE booking_type = 'cage_request'
+          AND status IN ('confirmed','pending_payment')
+          AND date >= ? AND date <= ?
+          AND client_id IS NULL
+        GROUP BY coalesce(player_email, player_name)
+        ORDER BY total_bookings DESC
+      `).bind(start, end).all();
+      const rows = [...memberRows, ...guestRows].sort((a, b) => b.total_bookings - a.total_bookings);
+      return json({ range, start, end, rows });
     }
 
     const paymentsMatch = path.match(/^\/clients\/([^/]+)\/payments$/);
@@ -1496,13 +1516,14 @@ var src_default = {
     if (method === "GET" && path === "/renewals/upcoming") {
       const days = parseInt(url.searchParams.get("days") ?? "30");
       const cutoff = new Date(Date.now() + days * 864e5).toISOString().slice(0, 10);
+      // Include: renewals due within window OR any active membership with a balance due
       const { results: individual } = await env.DB.prepare(`
         SELECT c.id, c.first_name, c.last_name, c.email, c.phone,
                m.id as membership_id, m.type, m.renewal_date, m.amount_due, m.custom_price, m.status,
                NULL as household_id, NULL as household_name
         FROM clients c JOIN memberships m ON m.client_id = c.id
-        WHERE m.renewal_date <= ?
-          AND m.status = 'active'
+        WHERE m.status = 'active'
+          AND (m.renewal_date <= ? OR m.amount_due > 0)
           AND m.id = (SELECT id FROM memberships WHERE client_id = c.id ORDER BY created_at DESC LIMIT 1)
       `).bind(cutoff).all();
       const { results: household } = await env.DB.prepare(`
@@ -1512,11 +1533,14 @@ var src_default = {
         FROM memberships m
         JOIN households h ON h.id = m.household_id
         JOIN clients c ON c.household_id = h.id AND c.household_role = 'contact'
-        WHERE m.renewal_date <= ?
-          AND m.status = 'active'
+        WHERE m.status = 'active'
+          AND (m.renewal_date <= ? OR m.amount_due > 0)
           AND m.id = (SELECT id FROM memberships WHERE household_id = h.id ORDER BY created_at DESC LIMIT 1)
       `).bind(cutoff).all();
-      const all = [...individual, ...household].sort((a, b) => a.renewal_date.localeCompare(b.renewal_date));
+      const seen = new Set();
+      const all = [...individual, ...household]
+        .filter(r => { if (seen.has(r.membership_id)) return false; seen.add(r.membership_id); return true; })
+        .sort((a, b) => (a.renewal_date ?? '').localeCompare(b.renewal_date ?? ''));
       all.forEach(r => { r.amount_due = computeMembershipDue(r); });
       return json(all);
     }

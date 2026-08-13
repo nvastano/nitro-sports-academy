@@ -166,7 +166,7 @@
   </div>
 
   <div class="renewals" id="renewals-section">
-    <h2>⚠ Renewals — Past Due &amp; Due in Next 30 Days</h2>
+    <h2>⚠ Unpaid Balances &amp; Renewals Due in Next 30 Days</h2>
     <div id="renewals-list"><div class="loading">Loading…</div></div>
   </div>
 
@@ -506,7 +506,8 @@ async function loadUsage() {
     <div class="table-wrap">
       <table>
         <thead><tr>
-          <th>Member</th>
+          <th>Name</th>
+          <th>Type</th>
           <th style="text-align:right">Bookings</th>
           <th style="text-align:right">Total Time</th>
           <th>Detail</th>
@@ -516,8 +517,13 @@ async function loadUsage() {
             const [cage, date, time] = s.split(':');
             return `${CAGE_LABEL[cage] ?? cage} ${date} ${time}`;
           }).join(', ');
-          return `<tr onclick="go('${r.client_id}')">
-            <td><div class="client-name">${r.first_name} ${r.last_name}</div><div class="client-sub">${r.email ?? ''}</div></td>
+          const isMember = r.booker_type === 'member';
+          const typeBadge = isMember
+            ? `<span style="font-size:0.72rem;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(76,175,110,0.15);color:#4caf6e">Member</span>`
+            : `<span style="font-size:0.72rem;font-weight:700;font-family:'Barlow Condensed',sans-serif;letter-spacing:0.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;background:rgba(232,184,75,0.12);color:var(--gold)">Guest</span>`;
+          return `<tr ${isMember ? `onclick="go('${r.client_id}')" style="cursor:pointer"` : 'style="cursor:default"'}>
+            <td><div class="client-name">${r.first_name}${r.last_name ? ' ' + r.last_name : ''}</div><div class="client-sub">${r.email ?? ''}</div></td>
+            <td>${typeBadge}</td>
             <td style="text-align:right;font-family:'Oswald',sans-serif;font-size:1.2rem;color:var(--blue-light)">${r.total_bookings}</td>
             <td style="text-align:right;color:var(--silver-light)">${r.total_minutes ?? (r.total_bookings * 30)} min</td>
             <td style="color:var(--silver);font-size:0.82rem;max-width:320px">${details}</td>
