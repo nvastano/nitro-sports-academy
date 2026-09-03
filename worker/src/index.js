@@ -1187,6 +1187,7 @@ var src_default = {
       let q = `
         SELECT c.*, h.name as household_name,
           m.type as membership_type, m.status as membership_status,
+          m.start_date as membership_start_date,
           m.renewal_date, m.amount_due, m.amount_paid, m.custom_price, m.id as membership_id
         FROM clients c
         LEFT JOIN households h ON h.id = c.household_id

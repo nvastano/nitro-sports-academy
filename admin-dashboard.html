@@ -206,6 +206,7 @@
           <th class="sortable" onclick="sortClients('household_name')">Household<span class="sort-arrow" id="sort-household_name"></span></th>
           <th class="sortable" onclick="sortClients('membership_type')">Membership<span class="sort-arrow" id="sort-membership_type"></span></th>
           <th class="sortable" onclick="sortClients('membership_status')">Status<span class="sort-arrow" id="sort-membership_status"></span></th>
+          <th class="sortable" onclick="sortClients('membership_start_date')">Joined<span class="sort-arrow" id="sort-membership_start_date"></span></th>
           <th class="sortable" onclick="sortClients('renewal_date')">Renewal<span class="sort-arrow" id="sort-renewal_date"></span></th>
           <th class="sortable" onclick="sortClients('amount_paid')">Paid<span class="sort-arrow" id="sort-amount_paid"></span></th>
           <th class="sortable" onclick="sortClients('amount_due')">Due<span class="sort-arrow" id="sort-amount_due"></span></th>
@@ -931,13 +932,14 @@ function sortClients(key) {
 
 function renderClientTable(clients) {
   const tbody = document.getElementById('clientTable');
-  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">No clients found.</td></tr>'; return; }
+  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="10" class="empty">No clients found.</td></tr>'; return; }
   tbody.innerHTML = clients.map(c => `
     <tr onclick="go('${c.id}')">
       <td><div class="client-name">${c.first_name} ${c.last_name}</div><div class="client-sub">${c.email ?? ''}</div></td>
       <td style="color:var(--silver-light)">${c.household_name ? `<span class="badge badge-household">${c.household_name}</span>` : '<span style="color:var(--silver-dark)">—</span>'}</td>
       <td>${membershipLabel(c.membership_type)}</td>
       <td>${badgeHtml(c.membership_status)}</td>
+      <td style="color:var(--silver-light)">${c.membership_start_date ?? '—'}</td>
       <td style="color:var(--silver-light)">${c.renewal_date ?? '—'}</td>
       <td style="color:var(--silver-light)">$${(c.amount_paid ?? 0).toFixed(2)}</td>
       <td class="amount-due">$${(c.amount_due ?? 0).toFixed(2)}</td>
