@@ -159,14 +159,6 @@
           <div><label>Last Name</label><input name="last_name" required></div>
           <div><label>Email</label><input name="email" type="email"></div>
           <div><label>Phone</label><input name="phone" type="tel"></div>
-          <div class="full addr-wrap"><label>Address</label><input name="address" id="address-input" autocomplete="off"><div class="addr-suggestions" id="address-suggestions"></div></div>
-          <div><label>Date of Birth</label><input name="date_of_birth" type="date"></div>
-          <div><label>Years Playing</label><input name="years_playing" type="number" min="0"></div>
-          <div><label>Current Team</label><input name="current_team"></div>
-          <div><label>Primary Position</label><input name="primary_position"></div>
-          <div><label>Secondary Position</label><input name="secondary_position"></div>
-          <div><label>Emergency Contact Name</label><input name="emergency_contact_name"></div>
-          <div><label>Emergency Contact Phone</label><input name="emergency_contact_phone" type="tel"></div>
           <div class="full"><button type="submit" class="btn-primary">Save Profile</button></div>
         </div>
       </form>
@@ -401,8 +393,7 @@ function badgeHtml(status) {
 
 function fillProfile(client) {
   const form = document.getElementById('profileForm');
-  ['first_name','last_name','email','phone','address','date_of_birth','years_playing',
-   'current_team','primary_position','secondary_position','emergency_contact_name','emergency_contact_phone']
+  ['first_name','last_name','email','phone']
     .forEach(k => { if (form[k]) form[k].value = client[k] ?? ''; });
 }
 
@@ -873,7 +864,6 @@ document.getElementById('emailModal').addEventListener('click', e => { if (e.tar
 
 getToken();
 Promise.all([loadClient(), loadHouseholds()]);
-setupAddressAutocomplete('address-input', 'address-suggestions');
 </script>
 </body>
 </html>
