@@ -615,6 +615,7 @@ async function loadRenewals() {
       <div>
         <div class="renewal-name">${r.first_name} ${r.last_name}${r.household_name ? ` <span style="font-weight:400;color:var(--silver)">· ${r.household_name}</span>` : ''}${isPastDue ? ' <span style="font-size:0.7rem;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:rgba(220,50,50,0.15);color:#ff7b7b;padding:1px 6px;border-radius:10px;margin-left:4px;">Past Due</span>' : ''}</div>
         <div class="renewal-meta">${membershipLabel(r.type)} · ${r.email ?? ''}</div>
+        ${r.last_renewal_email_sent ? (() => { const d = Math.floor((Date.now() - new Date(r.last_renewal_email_sent)) / 864e5); return `<div style="font-size:0.78rem;color:#4caf6e;margin-top:3px">✉ Payment email sent ${d === 0 ? 'today' : d === 1 ? 'yesterday' : d + ' days ago'}</div>`; })() : ''}
       </div>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
         <div style="font-size:0.85rem;color:${isPastDue ? '#ff7b7b' : 'var(--silver)'}">Due ${r.renewal_date}</div>

@@ -446,6 +446,7 @@ function renderMembership(m) {
     <div class="mem-row"><span class="mem-label">Amount Paid</span><span class="mem-value" style="color:#4caf6e">$${(m.amount_paid ?? 0).toFixed(2)}</span></div>
     <div class="mem-row"><span class="mem-label">Balance Due</span><span class="mem-value" style="color:var(--gold)">$${(m.amount_due ?? 0).toFixed(2)}</span></div>
     ${m.notes ? `<div class="mem-row"><span class="mem-label">Notes</span><span class="mem-value">${m.notes}</span></div>` : ''}
+    ${m.last_renewal_email_sent ? `<div class="mem-row"><span class="mem-label">Renewal Email Sent</span><span class="mem-value" style="color:#4caf6e">${new Date(m.last_renewal_email_sent).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>` : ''}
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
       <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
       <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>

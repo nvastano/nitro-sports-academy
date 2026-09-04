@@ -1399,7 +1399,9 @@ var src_default = {
         }),
       });
       if (!res.ok) return err(`Email error: ${await res.text()}`, 500);
-      return json({ ok: true });
+      const sentAt = new Date().toISOString();
+      await env.DB.prepare("UPDATE memberships SET last_renewal_email_sent=? WHERE id=?").bind(sentAt, mid).run();
+      return json({ ok: true, sent_at: sentAt });
     }
 
     const membershipDeleteMatch = path.match(/^\/memberships\/([^/]+)$/);
@@ -1587,6 +1589,7 @@ var src_default = {
       const { results: individual } = await env.DB.prepare(`
         SELECT c.id, c.first_name, c.last_name, c.email, c.phone,
                m.id as membership_id, m.type, m.renewal_date, m.amount_due, m.custom_price, m.status,
+               m.last_renewal_email_sent,
                NULL as household_id, NULL as household_name
         FROM clients c JOIN memberships m ON m.client_id = c.id
         WHERE m.status = 'active'
@@ -1596,6 +1599,7 @@ var src_default = {
       const { results: household } = await env.DB.prepare(`
         SELECT c.id, c.first_name, c.last_name, c.email, c.phone,
                m.id as membership_id, m.type, m.renewal_date, m.amount_due, m.custom_price, m.status,
+               m.last_renewal_email_sent,
                h.id as household_id, h.name as household_name
         FROM memberships m
         JOIN households h ON h.id = m.household_id
