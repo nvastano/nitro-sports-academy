@@ -1381,6 +1381,27 @@ var src_default = {
         text_body: textBody
       });
     }
+    const sendRenewalEmailMatch = path.match(/^\/memberships\/([^/]+)\/send-renewal-email$/);
+    if (sendRenewalEmailMatch && method === "POST") {
+      const mid = sendRenewalEmailMatch[1];
+      const { to, subject, body } = await request.json();
+      if (!to || !subject || !body) return err("to, subject, and body are required");
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "Nitro Sports Academy <noreply@nitrosportsacademy.com>",
+          reply_to: ["coach.pedro.tn@gmail.com"],
+          to: [to],
+          bcc: ["nicholas.vastano@gmail.com"],
+          subject,
+          text: body,
+        }),
+      });
+      if (!res.ok) return err(`Email error: ${await res.text()}`, 500);
+      return json({ ok: true });
+    }
+
     const membershipDeleteMatch = path.match(/^\/memberships\/([^/]+)$/);
     if (membershipDeleteMatch) {
       const mid = membershipDeleteMatch[1];

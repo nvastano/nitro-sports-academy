@@ -270,6 +270,34 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Renewal Payment Email Compose Modal -->
+<div class="modal-bg" id="renewalEmailModal">
+  <div class="modal" style="max-width:580px">
+    <h2>Send Payment Email</h2>
+    <div style="display:grid;gap:14px">
+      <div>
+        <label>To</label>
+        <input type="email" id="renewalEmailTo" readonly style="opacity:0.6;cursor:default">
+      </div>
+      <div>
+        <label>Subject</label>
+        <input type="text" id="renewalEmailSubject">
+      </div>
+      <div>
+        <label>Message</label>
+        <textarea id="renewalEmailBody" rows="10" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;resize:vertical;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--blue-light)'" onblur="this.style.borderColor='rgba(255,255,255,0.1)'"></textarea>
+      </div>
+      <div style="font-size:0.8rem;color:var(--silver);background:rgba(255,255,255,0.03);border-radius:6px;padding:10px 14px">
+        Payment link is embedded in the message. The member clicks it to pay securely through Square.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeRenewalEmailModal()">Cancel</button>
+      <button class="btn-gold" id="renewalEmailSendBtn" onclick="submitRenewalEmail()">Send Email</button>
+    </div>
+  </div>
+</div>
+
 <!-- Email Modal -->
 <div class="modal-bg" id="emailModal">
   <div class="modal" style="max-width:540px">
@@ -422,7 +450,7 @@ function renderMembership(m) {
       <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
       <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-        <button class="btn-gold" id="renewalLinkBtn" onclick="sendRenewalLink('${m.id}')">Get Renewal Payment Link</button>
+        <button class="btn-gold" id="renewalLinkBtn" onclick="openRenewalEmailCompose('${m.id}')">Send Payment Email</button>
         ${(m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
         <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
         <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteMembership('${m.id}')">Delete</button>
@@ -431,34 +459,51 @@ function renderMembership(m) {
     </div>`;
 }
 
-async function sendRenewalLink(membershipId) {
+let _renewalMembershipId = null;
+
+async function openRenewalEmailCompose(membershipId) {
   const btn = document.getElementById('renewalLinkBtn');
-  const panel = document.getElementById('renewalLinkPanel');
-  btn.disabled = true; btn.textContent = 'Generating…';
+  btn.disabled = true; btn.textContent = 'Generating link…';
   const res = await fetch(`${API}/memberships/${membershipId}/renewal-link`, { method: 'POST', headers: authHeaders() });
-  btn.disabled = false; btn.textContent = 'Get Renewal Payment Link';
+  btn.disabled = false; btn.textContent = 'Send Payment Email';
   if (!res.ok) {
     const d = await res.json().catch(() => ({}));
-    showToast(d.error ?? 'Error generating renewal link', 'error');
+    showToast(d.error ?? 'Error generating payment link', 'error');
     return;
   }
   const data = await res.json();
-  const mailto = data.client_email
-    ? `mailto:${encodeURIComponent(data.client_email)}?subject=${encodeURIComponent(data.email_subject)}&body=${encodeURIComponent(data.email_body)}`
-    : null;
-  const sms = data.client_phone
-    ? `sms:${encodeURIComponent(data.client_phone)}?body=${encodeURIComponent(data.text_body)}`
-    : null;
-  panel.innerHTML = `
-    <div style="margin-top:16px;padding:16px;background:rgba(232,184,75,0.08);border:1px solid rgba(232,184,75,0.3);border-radius:8px">
-      <p style="color:var(--silver);font-size:0.85rem;margin-bottom:10px">Payment link ready — open one of these to review and send the message yourself.</p>
-      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">
-        ${mailto ? `<a class="btn-primary" style="text-decoration:none" href="${mailto}">Open Email</a>` : '<span style="color:var(--silver-dark);font-size:0.85rem">No email on file</span>'}
-        ${sms ? `<a class="btn-primary" style="text-decoration:none" href="${sms}">Open Text Message</a>` : '<span style="color:var(--silver-dark);font-size:0.85rem">No phone on file</span>'}
-        <button class="btn-sm" onclick="navigator.clipboard.writeText('${data.url}');showToast('Link copied')">Copy Payment Link</button>
-      </div>
-      <div style="font-size:0.8rem;color:var(--silver-light);word-break:break-all">${data.url}</div>
-    </div>`;
+  _renewalMembershipId = membershipId;
+  document.getElementById('renewalEmailTo').value = data.client_email ?? '';
+  document.getElementById('renewalEmailSubject').value = data.email_subject ?? '';
+  document.getElementById('renewalEmailBody').value = data.email_body ?? '';
+  document.getElementById('renewalEmailModal').classList.add('open');
+}
+
+function closeRenewalEmailModal() {
+  document.getElementById('renewalEmailModal').classList.remove('open');
+  _renewalMembershipId = null;
+}
+
+async function submitRenewalEmail() {
+  const btn = document.getElementById('renewalEmailSendBtn');
+  const to = document.getElementById('renewalEmailTo').value.trim();
+  const subject = document.getElementById('renewalEmailSubject').value.trim();
+  const body = document.getElementById('renewalEmailBody').value.trim();
+  if (!to) { showToast('No email address on file', 'error'); return; }
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const res = await fetch(`${API}/memberships/${_renewalMembershipId}/send-renewal-email`, {
+    method: 'POST',
+    headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ to, subject, body }),
+  });
+  btn.disabled = false; btn.textContent = 'Send Email';
+  if (!res.ok) {
+    const d = await res.json().catch(() => ({}));
+    showToast(d.error ?? 'Error sending email', 'error');
+    return;
+  }
+  showToast('Payment email sent!');
+  closeRenewalEmailModal();
 }
 
 function renderHouseholdTab() {
