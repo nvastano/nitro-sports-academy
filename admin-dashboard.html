@@ -176,6 +176,7 @@
     <div class="view-tab" onclick="switchView('usage')">Usage</div>
     <div class="view-tab" onclick="switchView('leads')" id="tab-leads">Leads</div>
     <div class="view-tab" onclick="switchView('calendar')">Calendar</div>
+    <div class="view-tab" onclick="switchView('marketplace')">Marketplace</div>
   </div>
 
   <!-- CLIENTS VIEW -->
@@ -274,6 +275,18 @@
   <!-- LEADS VIEW -->
   <div class="view-panel" id="view-leads">
     <div id="leads-list"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- MARKETPLACE VIEW -->
+  <div class="view-panel" id="view-marketplace">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-size:0.75rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--silver);margin-bottom:4px">Marketplace</div>
+        <a href="marketplace.html" target="_blank" style="font-size:0.82rem;color:var(--blue-light);text-decoration:none">View public page ↗</a>
+      </div>
+      <button class="btn-add" onclick="openListingModal()">+ New Listing</button>
+    </div>
+    <div id="marketplace-content"><div class="loading">Loading…</div></div>
   </div>
 
   <!-- CALENDAR VIEW -->
@@ -468,12 +481,13 @@ function badgeHtml(status) {
 }
 
 function switchView(name) {
-  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','bookings','usage','leads','calendar'][i] === name));
+  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','bookings','usage','leads','calendar','marketplace'][i] === name));
   document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`view-${name}`).classList.add('active');
   if (name === 'bookings') loadBookings();
   if (name === 'usage') loadUsage();
   if (name === 'calendar') loadCalendar();
+  if (name === 'marketplace') loadMarketplace();
 }
 
 // ── Usage / Booking Summary ───────────────────────────────────────────────────
@@ -1178,10 +1192,176 @@ function renderCalendar(gcalEvents, pendingBookings) {
     </table>`;
 }
 
+// ── Marketplace ───────────────────────────────────────────────────────────────
+const COND_LABEL = { new:'New', like_new:'Like New', good:'Good', fair:'Fair' };
+const CAT_LABEL = { bat:'Bat', helmet:'Helmet', glove:'Glove', cleats:'Cleats', bag:'Bag', other:'Other' };
+let marketplaceListings = [];
+let editingListingId = null;
+
+async function loadMarketplace() {
+  const el = document.getElementById('marketplace-content');
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  const res = await fetch(`${API}/marketplace/listings`, { headers: authHeaders() });
+  marketplaceListings = await res.json();
+  if (!marketplaceListings.length) { el.innerHTML = '<div class="empty">No listings yet.</div>'; return; }
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Photo</th><th>Title</th><th>Category</th><th>Condition</th><th>Price</th><th>Seller</th><th>Status</th><th></th></tr></thead>
+    <tbody>${marketplaceListings.map(l => `<tr>
+      <td>${l.image_url ? `<img src="${l.image_url}" style="width:52px;height:40px;object-fit:cover;border-radius:5px;background:#111">` : '<div style="width:52px;height:40px;background:rgba(255,255,255,0.05);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">⚾</div>'}</td>
+      <td><div class="client-name">${l.title}</div>${l.description ? `<div class="client-sub" style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.description}</div>` : ''}</td>
+      <td style="color:var(--silver-light)">${CAT_LABEL[l.category] ?? l.category ?? '—'}</td>
+      <td style="color:var(--silver-light)">${COND_LABEL[l.condition] ?? l.condition ?? '—'}</td>
+      <td style="font-family:'Oswald',sans-serif;color:var(--gold)">$${parseFloat(l.price).toFixed(2)}</td>
+      <td style="color:var(--silver-light)">${l.seller_name ?? '—'}</td>
+      <td>${l.status === 'available' ? '<span class="badge badge-active">Available</span>' : l.status === 'sold' ? '<span class="badge badge-expired">Sold</span>' : '<span class="badge badge-pending">' + l.status + '</span>'}</td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 0">
+        <button onclick="openListingModal('${l.id}')" style="background:var(--blue);border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#fff;cursor:pointer">Edit</button>
+        ${l.status === 'available' ? `<button onclick="markListingSold('${l.id}')" style="background:var(--gold);border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#1a1a1a;cursor:pointer">Mark Sold</button>` : ''}
+        <button onclick="deleteListing('${l.id}')" style="background:transparent;border:1px solid rgba(220,50,50,0.4);border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#ff7b7b;cursor:pointer">Delete</button>
+      </td>
+    </tr>`).join('')}
+    </tbody></table></div>`;
+}
+
+function openListingModal(id) {
+  editingListingId = id ?? null;
+  const l = id ? marketplaceListings.find(x => x.id === id) : null;
+  document.getElementById('listingModalTitle').textContent = l ? 'Edit Listing' : 'New Listing';
+  document.getElementById('lTitle').value = l?.title ?? '';
+  document.getElementById('lDescription').value = l?.description ?? '';
+  document.getElementById('lPrice').value = l?.price ?? '';
+  document.getElementById('lCondition').value = l?.condition ?? '';
+  document.getElementById('lCategory').value = l?.category ?? '';
+  document.getElementById('lSellerName').value = l?.seller_name ?? '';
+  document.getElementById('lSellerContact').value = l?.seller_contact ?? '';
+  document.getElementById('lImageUrl').value = l?.image_url ?? '';
+  document.getElementById('lStatus').value = l?.status ?? 'available';
+  document.getElementById('lStatusRow').style.display = l ? '' : 'none';
+  syncListingThumb();
+  document.getElementById('listingModal').classList.add('open');
+}
+function closeListingModal() { document.getElementById('listingModal').classList.remove('open'); editingListingId = null; }
+
+function syncListingThumb() {
+  const url = document.getElementById('lImageUrl').value.trim();
+  const t = document.getElementById('lThumb');
+  t.src = url; t.style.display = url ? '' : 'none';
+}
+
+async function uploadListingImage() {
+  const file = document.getElementById('lFile').files?.[0];
+  if (!file) return;
+  const btn = document.getElementById('lUploadBtn');
+  btn.disabled = true; btn.textContent = 'Uploading…';
+  try {
+    const res = await fetch(`${API}/marketplace/upload`, {
+      method: 'POST',
+      headers: { 'Content-Type': file.type, ...authHeaders() },
+      body: file,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error ?? 'Upload failed');
+    document.getElementById('lImageUrl').value = data.url;
+    syncListingThumb();
+  } catch(e) { showToast(e.message, 'error'); }
+  finally { btn.disabled = false; btn.textContent = 'Upload Photo'; document.getElementById('lFile').value = ''; }
+}
+
+async function saveListing() {
+  const body = {
+    title: document.getElementById('lTitle').value.trim(),
+    description: document.getElementById('lDescription').value.trim(),
+    price: parseFloat(document.getElementById('lPrice').value),
+    condition: document.getElementById('lCondition').value,
+    category: document.getElementById('lCategory').value,
+    seller_name: document.getElementById('lSellerName').value.trim(),
+    seller_contact: document.getElementById('lSellerContact').value.trim(),
+    image_url: document.getElementById('lImageUrl').value.trim(),
+    status: document.getElementById('lStatus').value,
+  };
+  if (!body.title || !body.price) { showToast('Title and price are required', 'error'); return; }
+  const url = editingListingId ? `${API}/marketplace/listings/${editingListingId}` : `${API}/marketplace/listings`;
+  const method = editingListingId ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) { showToast('Error saving listing', 'error'); return; }
+  showToast(editingListingId ? 'Listing updated' : 'Listing created');
+  closeListingModal();
+  loadMarketplace();
+}
+
+async function markListingSold(id) {
+  const l = marketplaceListings.find(x => x.id === id);
+  if (!l) return;
+  await fetch(`${API}/marketplace/listings/${id}`, { method: 'PUT', headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify({ ...l, status: 'sold' }) });
+  showToast('Marked as sold');
+  loadMarketplace();
+}
+
+async function deleteListing(id) {
+  if (!confirm('Delete this listing?')) return;
+  await fetch(`${API}/marketplace/listings/${id}`, { method: 'DELETE', headers: authHeaders() });
+  showToast('Listing deleted');
+  loadMarketplace();
+}
+
 getToken();
 document.getElementById('sort-name').textContent = ' ▲';
 Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
 setupAddressAutocomplete('address-input', 'address-suggestions');
 </script>
+
+<!-- Listing Modal -->
+<div class="modal-bg" id="listingModal">
+  <div class="modal" style="max-width:560px">
+    <h2 id="listingModalTitle">New Listing</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="full" style="grid-column:1/-1"><label>Title *</label><input id="lTitle" placeholder="e.g. Easton Ghost Bat 32/29"></div>
+      <div><label>Price *</label><input id="lPrice" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div><label>Condition</label>
+        <select id="lCondition" class="fi">
+          <option value="">— Select —</option>
+          <option value="new">New</option>
+          <option value="like_new">Like New</option>
+          <option value="good">Good</option>
+          <option value="fair">Fair</option>
+        </select>
+      </div>
+      <div><label>Category</label>
+        <select id="lCategory" class="fi">
+          <option value="">— Select —</option>
+          <option value="bat">Bat</option>
+          <option value="helmet">Helmet</option>
+          <option value="glove">Glove</option>
+          <option value="cleats">Cleats</option>
+          <option value="bag">Bag</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div id="lStatusRow"><label>Status</label>
+        <select id="lStatus" class="fi">
+          <option value="available">Available</option>
+          <option value="sold">Sold</option>
+        </select>
+      </div>
+      <div class="full" style="grid-column:1/-1"><label>Description</label><textarea id="lDescription" rows="3" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:5px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;resize:vertical"></textarea></div>
+      <div><label>Seller Name</label><input id="lSellerName" placeholder="Who's selling?"></div>
+      <div><label>Seller Contact</label><input id="lSellerContact" placeholder="Phone or email"></div>
+      <div class="full" style="grid-column:1/-1">
+        <label>Photo</label>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+          <button id="lUploadBtn" type="button" onclick="document.getElementById('lFile').click()" style="background:var(--blue);border:none;border-radius:6px;padding:8px 18px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.8rem;letter-spacing:0.08em;text-transform:uppercase;color:#fff;cursor:pointer">Upload Photo</button>
+          <input type="file" id="lFile" accept="image/*" style="display:none" onchange="uploadListingImage()">
+          <span style="color:var(--silver);font-size:0.8rem">or paste URL below</span>
+        </div>
+        <input id="lImageUrl" placeholder="https://…" oninput="syncListingThumb()">
+        <img id="lThumb" style="display:none;margin-top:10px;width:120px;height:90px;object-fit:cover;border-radius:6px;border:1px solid rgba(255,255,255,0.1)" alt="">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeListingModal()">Cancel</button>
+      <button class="btn-primary" onclick="saveListing()">Save Listing</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

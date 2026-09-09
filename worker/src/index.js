@@ -1014,8 +1014,96 @@ var src_default = {
       }
       return json({ ok: true });
     }
+    // ── Marketplace (public) ────────────────────────────────────────────────
+
+    // GET /marketplace/listings — all active listings
+    if (method === "GET" && path === "/marketplace/listings") {
+      const { results } = await env.DB.prepare(
+        `SELECT * FROM listings WHERE status != 'deleted' ORDER BY created_at DESC`
+      ).all();
+      return json(results);
+    }
+
+    // GET /marketplace/images/:id — serve image from KV
+    const imgMatch = path.match(/^\/marketplace\/images\/([^/]+)$/);
+    if (imgMatch && method === "GET") {
+      if (!env.IMAGES) return err("Image storage not configured", 501);
+      const { value, metadata } = await env.IMAGES.getWithMetadata(imgMatch[1], { type: "arrayBuffer" });
+      if (!value) return err("Not found", 404);
+      return new Response(value, { headers: { ...CORS_HEADERS, "Content-Type": metadata?.type ?? "image/jpeg", "Cache-Control": "public, max-age=31536000" } });
+    }
+
+    // POST /marketplace/listings/:id/interest — "I'm interested" notification
+    const interestMatch = path.match(/^\/marketplace\/listings\/([^/]+)\/interest$/);
+    if (interestMatch && method === "POST") {
+      const lid = interestMatch[1];
+      const listing = await env.DB.prepare("SELECT * FROM listings WHERE id=?").bind(lid).first();
+      if (!listing) return err("Listing not found", 404);
+      const { name, contact } = await request.json();
+      if (!name || !contact) return err("name and contact required");
+      // Email Pedro
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          from: "Nitro Marketplace <noreply@nitrosportsacademy.com>",
+          to: ["coach.pedro.tn@gmail.com"],
+          bcc: ["nicholas.vastano@gmail.com"],
+          subject: `Marketplace interest: ${listing.title}`,
+          text: `Someone is interested in "${listing.title}" ($${listing.price}).\n\nName: ${name}\nContact: ${contact}\n\nSeller: ${listing.seller_name}\nSeller contact: ${listing.seller_contact ?? '—'}`,
+        }),
+      });
+      return json({ ok: true });
+    }
+
+    // ── Marketplace (admin-only below) ──────────────────────────────────────
+
     const claims = await requireAuth(request, env);
     if (!claims) return err("Unauthorized", 401);
+
+    // POST /marketplace/upload — upload image to KV
+    if (method === "POST" && path === "/marketplace/upload") {
+      if (!env.IMAGES) return err("Image storage not configured", 501);
+      const type = (request.headers.get("Content-Type") ?? "").split(";")[0].trim().toLowerCase();
+      const allowed = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+      if (!allowed[type]) return err("Please upload a JPG, PNG, WebP, or GIF image.");
+      const bytes = await request.arrayBuffer();
+      if (!bytes.byteLength) return err("Empty file");
+      if (bytes.byteLength > 5 * 1024 * 1024) return err("Images must be 5 MB or smaller.");
+      const id = `${uuid()}.${allowed[type]}`;
+      await env.IMAGES.put(id, bytes, { metadata: { type } });
+      const origin = new URL(request.url).origin;
+      return json({ id, url: `${origin}/marketplace/images/${id}` });
+    }
+
+    // POST /marketplace/listings — create listing
+    if (method === "POST" && path === "/marketplace/listings") {
+      const b = await request.json();
+      if (!b.title || !b.price) return err("title and price required");
+      const id = uuid();
+      await env.DB.prepare(
+        `INSERT INTO listings (id,title,description,price,condition,category,seller_name,seller_contact,image_url,status,created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,'available',datetime('now'))`
+      ).bind(id, b.title, b.description ?? null, b.price, b.condition ?? null, b.category ?? null, b.seller_name ?? null, b.seller_contact ?? null, b.image_url ?? null).run();
+      return json(await env.DB.prepare("SELECT * FROM listings WHERE id=?").bind(id).first(), 201);
+    }
+
+    // PUT /marketplace/listings/:id — update listing
+    const listingEditMatch = path.match(/^\/marketplace\/listings\/([^/]+)$/);
+    if (listingEditMatch && method === "PUT") {
+      const lid = listingEditMatch[1];
+      const b = await request.json();
+      await env.DB.prepare(
+        `UPDATE listings SET title=?,description=?,price=?,condition=?,category=?,seller_name=?,seller_contact=?,image_url=?,status=? WHERE id=?`
+      ).bind(b.title, b.description ?? null, b.price, b.condition ?? null, b.category ?? null, b.seller_name ?? null, b.seller_contact ?? null, b.image_url ?? null, b.status ?? "available", lid).run();
+      return json(await env.DB.prepare("SELECT * FROM listings WHERE id=?").bind(lid).first());
+    }
+
+    // DELETE /marketplace/listings/:id
+    if (listingEditMatch && method === "DELETE") {
+      await env.DB.prepare("UPDATE listings SET status='deleted' WHERE id=?").bind(listingEditMatch[1]).run();
+      return json({ ok: true });
+    }
     if (method === "GET" && path === "/debug/membership-check") {
       const email = (url.searchParams.get("email") ?? "").trim().toLowerCase();
       const phone = url.searchParams.get("phone") ?? "";
