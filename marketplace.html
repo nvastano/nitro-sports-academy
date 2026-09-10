@@ -87,7 +87,7 @@
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div>
           <label>Category</label>
-          <input id="sCategory" list="sCategoryList" placeholder="e.g. Bat, Glove…" autocomplete="off">
+          <input id="sCategory" list="sCategoryList" placeholder="e.g. Bat, Glove…" autocomplete="off" oninput="toggleBatFields()">
           <datalist id="sCategoryList"></datalist>
         </div>
         <div>
@@ -102,6 +102,10 @@
         </div>
       </div>
       <div><label>Price ($) *</label><input id="sPrice" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div id="sBatFields" style="display:none;grid-template-columns:1fr 1fr;gap:12px">
+        <div><label>Length (inches)</label><input id="sBatLength" placeholder='e.g. 33"'></div>
+        <div><label>Drop</label><input id="sBatDrop" placeholder="e.g. -3"></div>
+      </div>
       <div><label>Description</label><textarea id="sDesc" rows="3" placeholder="Size, brand, any details…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;resize:vertical"></textarea></div>
       <div>
         <label>Photo (optional)</label>
@@ -182,6 +186,9 @@ function openSubmitModal() {
   document.getElementById('sDesc').value = '';
   document.getElementById('sSellerName').value = '';
   document.getElementById('sSellerContact').value = '';
+  document.getElementById('sBatLength').value = '';
+  document.getElementById('sBatDrop').value = '';
+  document.getElementById('sBatFields').style.display = 'none';
   document.getElementById('sPhoto').value = '';
   document.getElementById('sPhotoPreview').style.display = 'none';
   document.getElementById('sPhotoMsg').textContent = '';
@@ -210,6 +217,11 @@ document.getElementById('sPhoto').addEventListener('change', function() {
 
 function closeSubmitModal() {
   document.getElementById('submitModal').classList.remove('open');
+}
+
+function toggleBatFields() {
+  const cat = document.getElementById('sCategory').value.trim().toLowerCase();
+  document.getElementById('sBatFields').style.display = cat === 'bat' || cat === 'bats' ? 'grid' : 'none';
 }
 
 async function submitListing() {
@@ -248,7 +260,17 @@ async function submitListing() {
         price: parseFloat(price),
         category: document.getElementById('sCategory').value.trim() || null,
         condition: document.getElementById('sCondition').value || null,
-        description: document.getElementById('sDesc').value.trim() || null,
+        description: (() => {
+          const cat = document.getElementById('sCategory').value.trim().toLowerCase();
+          const baseDesc = document.getElementById('sDesc').value.trim();
+          if (cat === 'bat' || cat === 'bats') {
+            const len = document.getElementById('sBatLength').value.trim();
+            const drop = document.getElementById('sBatDrop').value.trim();
+            const specs = [len ? `Length: ${len}"` : null, drop ? `Drop: ${drop}` : null].filter(Boolean).join(' | ');
+            return specs ? (specs + (baseDesc ? '\n' + baseDesc : '')) : baseDesc || null;
+          }
+          return baseDesc || null;
+        })(),
         seller_name: sellerName,
         seller_contact: sellerContact,
         image_url: imageUrl,
