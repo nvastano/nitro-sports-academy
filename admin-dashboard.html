@@ -1205,24 +1205,65 @@ async function loadMarketplace() {
   const cats = [...new Set(marketplaceListings.map(l => l.category).filter(Boolean))].sort();
   const dl = document.getElementById('lCategoryList');
   if (dl) dl.innerHTML = cats.map(c => `<option value="${c}">`).join('');
-  if (!marketplaceListings.length) { el.innerHTML = '<div class="empty">No listings yet.</div>'; return; }
-  el.innerHTML = `<div class="table-wrap"><table>
-    <thead><tr><th>Photo</th><th>Title</th><th>Category</th><th>Condition</th><th>Price</th><th>Seller</th><th>Status</th><th></th></tr></thead>
-    <tbody>${marketplaceListings.map(l => `<tr>
-      <td>${l.image_url ? `<img src="${l.image_url}" style="width:52px;height:40px;object-fit:cover;border-radius:5px;background:#111">` : '<div style="width:52px;height:40px;background:rgba(255,255,255,0.05);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">⚾</div>'}</td>
-      <td><div class="client-name">${l.title}</div>${l.description ? `<div class="client-sub" style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.description}</div>` : ''}</td>
-      <td style="color:var(--silver-light)">${l.category ?? '—'}</td>
-      <td style="color:var(--silver-light)">${COND_LABEL[l.condition] ?? l.condition ?? '—'}</td>
-      <td style="font-family:'Oswald',sans-serif;color:var(--gold)">$${parseFloat(l.price).toFixed(2)}</td>
-      <td style="color:var(--silver-light)">${l.seller_name ?? '—'}</td>
-      <td>${l.status === 'available' ? '<span class="badge badge-active">Available</span>' : l.status === 'sold' ? '<span class="badge badge-expired">Sold</span>' : '<span class="badge badge-pending">' + l.status + '</span>'}</td>
-      <td style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 0">
-        <button onclick="openListingModal('${l.id}')" style="background:var(--blue);border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#fff;cursor:pointer">Edit</button>
-        ${l.status === 'available' ? `<button onclick="markListingSold('${l.id}')" style="background:var(--gold);border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#1a1a1a;cursor:pointer">Mark Sold</button>` : ''}
-        <button onclick="deleteListing('${l.id}')" style="background:transparent;border:1px solid rgba(220,50,50,0.4);border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#ff7b7b;cursor:pointer">Delete</button>
-      </td>
-    </tr>`).join('')}
-    </tbody></table></div>`;
+
+  const pending = marketplaceListings.filter(l => l.status === 'pending');
+  const live = marketplaceListings.filter(l => l.status !== 'pending');
+
+  const btnStyle = `background:var(--blue);border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#fff;cursor:pointer`;
+  const btnDanger = `background:transparent;border:1px solid rgba(220,50,50,0.4);border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#ff7b7b;cursor:pointer`;
+  const btnGold = `background:var(--gold);border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#1a1a1a;cursor:pointer`;
+  const btnGreen = `background:#2d6a3f;border:none;border-radius:5px;padding:5px 12px;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;color:#fff;cursor:pointer`;
+
+  const rowHtml = (l, isPending) => `<tr>
+    <td>${l.image_url ? `<img src="${l.image_url}" style="width:52px;height:40px;object-fit:cover;border-radius:5px;background:#111">` : '<div style="width:52px;height:40px;background:rgba(255,255,255,0.05);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:1.2rem">⚾</div>'}</td>
+    <td><div class="client-name">${l.title}</div>${l.description ? `<div class="client-sub" style="max-width:240px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.description}</div>` : ''}</td>
+    <td style="color:var(--silver-light)">${l.category ?? '—'}</td>
+    <td style="color:var(--silver-light)">${COND_LABEL[l.condition] ?? l.condition ?? '—'}</td>
+    <td style="font-family:'Oswald',sans-serif;color:var(--gold)">$${parseFloat(l.price).toFixed(2)}</td>
+    <td style="color:var(--silver-light)">${l.seller_name ?? '—'}<br><span style="font-size:0.75rem;color:var(--silver)">${l.seller_contact ?? ''}</span></td>
+    <td style="display:flex;gap:6px;flex-wrap:wrap;padding:8px 0">
+      ${isPending
+        ? `<button onclick="approveListing('${l.id}')" style="${btnGreen}">Approve</button>
+           <button onclick="deleteListing('${l.id}')" style="${btnDanger}">Reject</button>`
+        : `<button onclick="openListingModal('${l.id}')" style="${btnStyle}">Edit</button>
+           ${l.status === 'available' ? `<button onclick="markListingSold('${l.id}')" style="${btnGold}">Mark Sold</button>` : ''}
+           <button onclick="deleteListing('${l.id}')" style="${btnDanger}">Delete</button>`
+      }
+    </td>
+  </tr>`;
+
+  let html = '';
+
+  if (pending.length) {
+    html += `<div style="margin-bottom:24px">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--gold);margin-bottom:12px">
+        Pending Approval (${pending.length})
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>Photo</th><th>Title</th><th>Category</th><th>Condition</th><th>Price</th><th>Seller / Contact</th><th></th></tr></thead>
+        <tbody>${pending.map(l => rowHtml(l, true)).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  if (live.length) {
+    html += `<div class="table-wrap"><table>
+      <thead><tr><th>Photo</th><th>Title</th><th>Category</th><th>Condition</th><th>Price</th><th>Seller</th><th></th></tr></thead>
+      <tbody>${live.map(l => rowHtml(l, false)).join('')}</tbody>
+    </table></div>`;
+  }
+
+  if (!pending.length && !live.length) {
+    html = '<div class="empty">No listings yet.</div>';
+  }
+
+  el.innerHTML = html;
+}
+
+async function approveListing(id) {
+  await fetch(`${API}/marketplace/listings/${id}/approve`, { method: 'POST', headers: authHeaders() });
+  showToast('Listing approved — now live');
+  loadMarketplace();
 }
 
 function openListingModal(id) {

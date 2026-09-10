@@ -1056,6 +1056,34 @@ var src_default = {
       return json({ ok: true });
     }
 
+    // POST /marketplace/submit — public self-listing (creates pending, notifies admin)
+    if (method === "POST" && path === "/marketplace/submit") {
+      const b = await request.json();
+      if (!b.title || !b.price || !b.seller_name || !b.seller_contact) {
+        return err("title, price, seller_name, and seller_contact required");
+      }
+      const id = uuid();
+      await env.DB.prepare(
+        `INSERT INTO listings (id,title,description,price,condition,category,seller_name,seller_contact,image_url,status,created_at)
+         VALUES (?,?,?,?,?,?,?,?,?,'pending',datetime('now'))`
+      ).bind(id, b.title.trim(), b.description?.trim() ?? null, parseFloat(b.price), b.condition ?? null, b.category?.trim() ?? null, b.seller_name.trim(), b.seller_contact.trim(), null).run();
+      // Notify Pedro and Nick
+      try {
+        await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            from: "Nitro Marketplace <noreply@nitrosportsacademy.com>",
+            to: ["coach.pedro.tn@gmail.com"],
+            bcc: ["nicholas.vastano@gmail.com"],
+            subject: `New Marketplace Submission — ${b.title.trim()}`,
+            text: `Someone submitted a new listing for review.\n\nTitle: ${b.title.trim()}\nPrice: $${parseFloat(b.price).toFixed(2)}\nCategory: ${b.category ?? '—'}\nCondition: ${b.condition ?? '—'}\nDescription: ${b.description ?? '—'}\n\nSeller: ${b.seller_name.trim()}\nContact: ${b.seller_contact.trim()}\n\nApprove or reject it in the admin dashboard:\nhttps://nitrosportsacademy.com/admin-dashboard.html`,
+          }),
+        });
+      } catch(e) { console.error("Marketplace submission email error:", e.message); }
+      return json({ ok: true, id }, 201);
+    }
+
     // ── Marketplace (admin-only below) ──────────────────────────────────────
 
     const claims = await requireAuth(request, env);
@@ -1086,6 +1114,14 @@ var src_default = {
          VALUES (?,?,?,?,?,?,?,?,?,'available',datetime('now'))`
       ).bind(id, b.title, b.description ?? null, b.price, b.condition ?? null, b.category ?? null, b.seller_name ?? null, b.seller_contact ?? null, b.image_url ?? null).run();
       return json(await env.DB.prepare("SELECT * FROM listings WHERE id=?").bind(id).first(), 201);
+    }
+
+    // POST /marketplace/listings/:id/approve — approve pending submission
+    const approveMatch = path.match(/^\/marketplace\/listings\/([^/]+)\/approve$/);
+    if (approveMatch && method === "POST") {
+      const lid = approveMatch[1];
+      await env.DB.prepare("UPDATE listings SET status='available' WHERE id=? AND status='pending'").bind(lid).run();
+      return json(await env.DB.prepare("SELECT * FROM listings WHERE id=?").bind(lid).first());
     }
 
     // PUT /marketplace/listings/:id — update listing

@@ -65,7 +65,10 @@
     <div class="logo">Nitro <span>Marketplace</span></div>
     <div class="header-sub">Buy &amp; sell baseball gear with the Nitro community</div>
   </div>
-  <a href="index.html" style="color:var(--silver);font-size:0.85rem;text-decoration:none">← Back to Nitro</a>
+  <div style="display:flex;gap:12px;align-items:center">
+    <button class="btn-primary" onclick="openSubmitModal()" style="font-size:0.8rem;padding:8px 18px">+ List an Item</button>
+    <a href="index.html" style="color:var(--silver);font-size:0.85rem;text-decoration:none">← Back to Nitro</a>
+  </div>
 </header>
 
 <div class="filters" id="filterBar">
@@ -73,6 +76,43 @@
 </div>
 
 <div class="grid" id="grid"><div class="empty">Loading listings…</div></div>
+
+<!-- Submit listing modal -->
+<div class="modal-bg" id="submitModal">
+  <div class="modal">
+    <h2>List an Item</h2>
+    <p style="font-size:0.9rem;color:var(--silver-light);margin-bottom:20px">Submit your gear for sale. Pedro will review it before it goes live.</p>
+    <div style="display:grid;gap:14px">
+      <div><label>Item Title *</label><input id="sTitle" placeholder="e.g. Rawlings 33&quot; BBCOR Bat"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div>
+          <label>Category</label>
+          <input id="sCategory" list="sCategoryList" placeholder="e.g. Bat, Glove…" autocomplete="off">
+          <datalist id="sCategoryList"></datalist>
+        </div>
+        <div>
+          <label>Condition</label>
+          <select id="sCondition" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none">
+            <option value="">— Select —</option>
+            <option value="new">New</option>
+            <option value="like_new">Like New</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+          </select>
+        </div>
+      </div>
+      <div><label>Price ($) *</label><input id="sPrice" type="number" min="0" step="0.01" placeholder="0.00"></div>
+      <div><label>Description</label><textarea id="sDesc" rows="3" placeholder="Size, brand, any details…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;resize:vertical"></textarea></div>
+      <div><label>Your Name *</label><input id="sSellerName" placeholder="Full name"></div>
+      <div><label>Your Phone or Email *</label><input id="sSellerContact" placeholder="Best way for Pedro to reach you"></div>
+    </div>
+    <div id="sMsg"></div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeSubmitModal()">Cancel</button>
+      <button class="btn-primary" id="sSubmitBtn" onclick="submitListing()">Submit for Review</button>
+    </div>
+  </div>
+</div>
 
 <!-- Interest modal -->
 <div class="modal-bg" id="interestModal">
@@ -115,7 +155,6 @@ async function load() {
 function buildFilters() {
   const bar = document.getElementById('filterBar');
   const cats = [...new Set(allListings.map(l => l.category).filter(Boolean))].sort();
-  // Remove all buttons except "All"
   bar.innerHTML = '<button class="filter-btn active" onclick="setFilter(\'\')">All</button>';
   cats.forEach(c => {
     const btn = document.createElement('button');
@@ -124,7 +163,64 @@ function buildFilters() {
     btn.onclick = () => setFilter(c);
     bar.appendChild(btn);
   });
+  // Populate submit modal category datalist
+  const dl = document.getElementById('sCategoryList');
+  if (dl) dl.innerHTML = cats.map(c => `<option value="${c}">`).join('');
 }
+
+function openSubmitModal() {
+  document.getElementById('sTitle').value = '';
+  document.getElementById('sCategory').value = '';
+  document.getElementById('sCondition').value = '';
+  document.getElementById('sPrice').value = '';
+  document.getElementById('sDesc').value = '';
+  document.getElementById('sSellerName').value = '';
+  document.getElementById('sSellerContact').value = '';
+  document.getElementById('sMsg').innerHTML = '';
+  const btn = document.getElementById('sSubmitBtn');
+  btn.disabled = false; btn.textContent = 'Submit for Review'; btn.style.display = '';
+  document.getElementById('submitModal').classList.add('open');
+}
+
+function closeSubmitModal() {
+  document.getElementById('submitModal').classList.remove('open');
+}
+
+async function submitListing() {
+  const title = document.getElementById('sTitle').value.trim();
+  const price = document.getElementById('sPrice').value.trim();
+  const sellerName = document.getElementById('sSellerName').value.trim();
+  const sellerContact = document.getElementById('sSellerContact').value.trim();
+  const msgEl = document.getElementById('sMsg');
+  if (!title || !price || !sellerName || !sellerContact) {
+    msgEl.innerHTML = '<div class="msg error">Please fill in all required fields.</div>'; return;
+  }
+  const btn = document.getElementById('sSubmitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    const res = await fetch(`${API}/marketplace/submit`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        price: parseFloat(price),
+        category: document.getElementById('sCategory').value.trim() || null,
+        condition: document.getElementById('sCondition').value || null,
+        description: document.getElementById('sDesc').value.trim() || null,
+        seller_name: sellerName,
+        seller_contact: sellerContact,
+      }),
+    });
+    if (!res.ok) throw new Error('Something went wrong');
+    msgEl.innerHTML = '<div class="msg success">Submitted! Pedro will review it and reach out if approved.</div>';
+    btn.style.display = 'none';
+  } catch {
+    msgEl.innerHTML = '<div class="msg error">Something went wrong — try texting Pedro at 615-870-8077.</div>';
+    btn.disabled = false; btn.textContent = 'Submit for Review';
+  }
+}
+
+document.getElementById('submitModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeSubmitModal(); });
 
 function setFilter(cat) {
   currentFilter = cat;
