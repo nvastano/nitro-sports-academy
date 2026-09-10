@@ -1256,7 +1256,7 @@ async function uploadListingImage() {
   try {
     const res = await fetch(`${API}/marketplace/upload`, {
       method: 'POST',
-      headers: { 'Content-Type': file.type, ...authHeaders() },
+      headers: { ...authHeaders(), 'Content-Type': file.type },
       body: file,
     });
     const data = await res.json();
