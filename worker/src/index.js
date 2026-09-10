@@ -1757,9 +1757,9 @@ var src_default = {
       const { results } = await stmt.all();
       return json(results);
     }
-    const approveMatch = path.match(/^\/bookings\/([^/]+)\/approve$/);
-    if (approveMatch && method === "PUT") {
-      const bid = approveMatch[1];
+    const bookingApproveMatch = path.match(/^\/bookings\/([^/]+)\/approve$/);
+    if (bookingApproveMatch && method === "PUT") {
+      const bid = bookingApproveMatch[1];
       const booking = await env.DB.prepare("SELECT * FROM bookings WHERE id=?").bind(bid).first();
       if (!booking) return err("Booking not found", 404);
       if (booking.status === "confirmed") return err("Already confirmed");
