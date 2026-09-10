@@ -1117,9 +1117,9 @@ var src_default = {
     }
 
     // POST /marketplace/listings/:id/approve — approve pending submission
-    const approveMatch = path.match(/^\/marketplace\/listings\/([^/]+)\/approve$/);
-    if (approveMatch && method === "POST") {
-      const lid = approveMatch[1];
+    const listingApproveMatch = path.match(/^\/marketplace\/listings\/([^/]+)\/approve$/);
+    if (listingApproveMatch && method === "POST") {
+      const lid = listingApproveMatch[1];
       await env.DB.prepare("UPDATE listings SET status='available' WHERE id=? AND status='pending'").bind(lid).run();
       return json(await env.DB.prepare("SELECT * FROM listings WHERE id=?").bind(lid).first());
     }
