@@ -1056,6 +1056,21 @@ var src_default = {
       return json({ ok: true });
     }
 
+    // POST /marketplace/upload/public — public image upload (no auth)
+    if (method === "POST" && path === "/marketplace/upload/public") {
+      if (!env.IMAGES) return err("Image storage not configured", 501);
+      const type = (request.headers.get("Content-Type") ?? "").split(";")[0].trim().toLowerCase();
+      const allowed = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp", "image/gif": "gif" };
+      if (!allowed[type]) return err("Please upload a JPG, PNG, WebP, or GIF image.");
+      const bytes = await request.arrayBuffer();
+      if (!bytes.byteLength) return err("Empty file");
+      if (bytes.byteLength > 5 * 1024 * 1024) return err("Images must be 5 MB or smaller.");
+      const id = `${uuid()}.${allowed[type]}`;
+      await env.IMAGES.put(id, bytes, { metadata: { type } });
+      const origin = new URL(request.url).origin;
+      return json({ id, url: `${origin}/marketplace/images/${id}` });
+    }
+
     // POST /marketplace/submit — public self-listing (creates pending, notifies admin)
     if (method === "POST" && path === "/marketplace/submit") {
       const b = await request.json();
@@ -1066,7 +1081,7 @@ var src_default = {
       await env.DB.prepare(
         `INSERT INTO listings (id,title,description,price,condition,category,seller_name,seller_contact,image_url,status,created_at)
          VALUES (?,?,?,?,?,?,?,?,?,'pending',datetime('now'))`
-      ).bind(id, b.title.trim(), b.description?.trim() ?? null, parseFloat(b.price), b.condition ?? null, b.category?.trim() ?? null, b.seller_name.trim(), b.seller_contact.trim(), null).run();
+      ).bind(id, b.title.trim(), b.description?.trim() ?? null, parseFloat(b.price), b.condition ?? null, b.category?.trim() ?? null, b.seller_name.trim(), b.seller_contact.trim(), b.image_url ?? null).run();
       // Notify Pedro and Nick
       try {
         await fetch("https://api.resend.com/emails", {

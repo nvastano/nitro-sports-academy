@@ -103,6 +103,12 @@
       </div>
       <div><label>Price ($) *</label><input id="sPrice" type="number" min="0" step="0.01" placeholder="0.00"></div>
       <div><label>Description</label><textarea id="sDesc" rows="3" placeholder="Size, brand, any details…" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:6px;padding:10px 13px;color:var(--white);font-family:'Barlow',sans-serif;font-size:0.9rem;outline:none;resize:vertical"></textarea></div>
+      <div>
+        <label>Photo (optional)</label>
+        <input type="file" id="sPhoto" accept="image/jpeg,image/png,image/webp,image/gif" style="padding:8px 0;cursor:pointer">
+        <div id="sPhotoPreview" style="margin-top:8px;display:none"><img id="sPhotoImg" style="width:100%;max-height:200px;object-fit:cover;border-radius:6px;background:#111"></div>
+        <div id="sPhotoMsg" style="font-size:0.8rem;color:var(--silver);margin-top:4px"></div>
+      </div>
       <div><label>Your Name *</label><input id="sSellerName" placeholder="Full name"></div>
       <div><label>Your Phone or Email *</label><input id="sSellerContact" placeholder="Best way for Pedro to reach you"></div>
     </div>
@@ -176,11 +182,31 @@ function openSubmitModal() {
   document.getElementById('sDesc').value = '';
   document.getElementById('sSellerName').value = '';
   document.getElementById('sSellerContact').value = '';
+  document.getElementById('sPhoto').value = '';
+  document.getElementById('sPhotoPreview').style.display = 'none';
+  document.getElementById('sPhotoMsg').textContent = '';
   document.getElementById('sMsg').innerHTML = '';
   const btn = document.getElementById('sSubmitBtn');
   btn.disabled = false; btn.textContent = 'Submit for Review'; btn.style.display = '';
   document.getElementById('submitModal').classList.add('open');
 }
+
+document.getElementById('sPhoto').addEventListener('change', function() {
+  const file = this.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) {
+    document.getElementById('sPhotoMsg').textContent = 'Image must be 5 MB or smaller.';
+    this.value = '';
+    return;
+  }
+  document.getElementById('sPhotoMsg').textContent = '';
+  const reader = new FileReader();
+  reader.onload = e => {
+    document.getElementById('sPhotoImg').src = e.target.result;
+    document.getElementById('sPhotoPreview').style.display = '';
+  };
+  reader.readAsDataURL(file);
+});
 
 function closeSubmitModal() {
   document.getElementById('submitModal').classList.remove('open');
@@ -198,6 +224,22 @@ async function submitListing() {
   const btn = document.getElementById('sSubmitBtn');
   btn.disabled = true; btn.textContent = 'Submitting…';
   try {
+    // Upload photo if provided
+    let imageUrl = null;
+    const photoFile = document.getElementById('sPhoto').files[0];
+    if (photoFile) {
+      btn.textContent = 'Uploading photo…';
+      const uploadRes = await fetch(`${API}/marketplace/upload/public`, {
+        method: 'POST',
+        headers: { 'Content-Type': photoFile.type },
+        body: photoFile,
+      });
+      if (uploadRes.ok) {
+        const uploadData = await uploadRes.json();
+        imageUrl = uploadData.url;
+      }
+    }
+    btn.textContent = 'Submitting…';
     const res = await fetch(`${API}/marketplace/submit`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -209,6 +251,7 @@ async function submitListing() {
         description: document.getElementById('sDesc').value.trim() || null,
         seller_name: sellerName,
         seller_contact: sellerContact,
+        image_url: imageUrl,
       }),
     });
     if (!res.ok) throw new Error('Something went wrong');
