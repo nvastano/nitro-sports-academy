@@ -70,12 +70,6 @@
 
 <div class="filters" id="filterBar">
   <button class="filter-btn active" onclick="setFilter('')">All</button>
-  <button class="filter-btn" onclick="setFilter('bat')">Bats</button>
-  <button class="filter-btn" onclick="setFilter('helmet')">Helmets</button>
-  <button class="filter-btn" onclick="setFilter('glove')">Gloves</button>
-  <button class="filter-btn" onclick="setFilter('cleats')">Cleats</button>
-  <button class="filter-btn" onclick="setFilter('bag')">Bags</button>
-  <button class="filter-btn" onclick="setFilter('other')">Other</button>
 </div>
 
 <div class="grid" id="grid"><div class="empty">Loading listings…</div></div>
@@ -114,12 +108,31 @@ let activeListing = null;
 async function load() {
   const res = await fetch(`${API}/marketplace/listings`);
   allListings = await res.json();
+  buildFilters();
   render();
+}
+
+function buildFilters() {
+  const bar = document.getElementById('filterBar');
+  const cats = [...new Set(allListings.map(l => l.category).filter(Boolean))].sort();
+  // Remove all buttons except "All"
+  bar.innerHTML = '<button class="filter-btn active" onclick="setFilter(\'\')">All</button>';
+  cats.forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'filter-btn';
+    btn.textContent = c.charAt(0).toUpperCase() + c.slice(1);
+    btn.onclick = () => setFilter(c);
+    bar.appendChild(btn);
+  });
 }
 
 function setFilter(cat) {
   currentFilter = cat;
-  document.querySelectorAll('.filter-btn').forEach(b => b.classList.toggle('active', b.textContent.toLowerCase().replace(' ','_') === cat || (cat === '' && b.textContent === 'All')));
+  document.querySelectorAll('.filter-btn').forEach(b => {
+    const isAll = cat === '' && b.textContent === 'All';
+    const isMatch = cat !== '' && b.textContent.toLowerCase() === cat.toLowerCase();
+    b.classList.toggle('active', isAll || isMatch);
+  });
   render();
 }
 
