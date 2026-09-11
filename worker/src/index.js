@@ -1041,7 +1041,42 @@ var src_default = {
       if (!listing) return err("Listing not found", 404);
       const { name, contact } = await request.json();
       if (!name || !contact) return err("name and contact required");
-      // Email Pedro
+      // Build tap-to-contact links
+      const buyerContact = contact.trim();
+      const sellerContact = (listing.seller_contact ?? '').trim();
+      function contactLink(c, label) {
+        if (!c) return `<span style="color:#9AA0B4">${label}: —</span>`;
+        const digits = c.replace(/\D/g, '');
+        const isPhone = digits.length >= 10 && /^\+?[\d\s\-().]+$/.test(c);
+        const isEmail = c.includes('@');
+        if (isPhone) return `<a href="sms:+1${digits.slice(-10)}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">📱 Text ${label}</a>`;
+        if (isEmail) return `<a href="mailto:${c}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">✉️ Email ${label}</a>`;
+        return `<span style="color:#fff">${c}</span>`;
+      }
+      const html = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0D1321;font-family:Arial,sans-serif;color:#C8CDD9">
+<div style="max-width:480px;margin:0 auto;padding:32px 20px">
+  <div style="font-size:1rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:20px"><span style="color:#3d65cc">NITRO</span> MARKETPLACE</div>
+  <div style="background:#1C2540;border-radius:10px;padding:24px;margin-bottom:16px">
+    <div style="font-size:13px;color:#9AA0B4;margin-bottom:4px">Someone wants to buy</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">${listing.title}</div>
+    <div style="font-size:22px;font-weight:700;color:#E8B84B">$${parseFloat(listing.price).toFixed(2)}</div>
+  </div>
+  <div style="display:grid;gap:12px;margin-bottom:20px">
+    <div style="background:#1C2540;border-radius:10px;padding:20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9AA0B4;margin-bottom:6px">Buyer</div>
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:12px">${name}</div>
+      <div>${contactLink(buyerContact, 'Buyer')}</div>
+      ${!buyerContact.includes('@') && !(/^\+?[\d\s\-().]+$/.test(buyerContact)) ? `<div style="color:#fff;margin-top:4px">${buyerContact}</div>` : ''}
+    </div>
+    <div style="background:#1C2540;border-radius:10px;padding:20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9AA0B4;margin-bottom:6px">Seller</div>
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:12px">${listing.seller_name ?? '—'}</div>
+      <div>${contactLink(sellerContact, 'Seller')}</div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:#6B7189;text-align:center;margin:0">Forward their contact info to each other and you're done — the rest is between them.</p>
+</div>
+</body></html>`;
       await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
@@ -1049,8 +1084,8 @@ var src_default = {
           from: "Nitro Marketplace <noreply@nitrosportsacademy.com>",
           to: ["coach.pedro.tn@gmail.com"],
           bcc: ["nicholas.vastano@gmail.com"],
-          subject: `Marketplace interest: ${listing.title}`,
-          text: `Someone is interested in "${listing.title}" ($${listing.price}).\n\nName: ${name}\nContact: ${contact}\n\nSeller: ${listing.seller_name}\nSeller contact: ${listing.seller_contact ?? '—'}`,
+          subject: `🔗 Connect buyer & seller — ${listing.title}`,
+          html,
         }),
       });
       return json({ ok: true });
