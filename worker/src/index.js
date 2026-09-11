@@ -1045,13 +1045,16 @@ var src_default = {
       const buyerContact = contact.trim();
       const sellerContact = (listing.seller_contact ?? '').trim();
       function contactLink(c, label) {
-        if (!c) return `<span style="color:#9AA0B4">${label}: —</span>`;
+        if (!c) return `<span style="color:#9AA0B4">—</span>`;
         const digits = c.replace(/\D/g, '');
-        const isPhone = digits.length >= 10 && /^\+?[\d\s\-().]+$/.test(c);
         const isEmail = c.includes('@');
-        if (isPhone) return `<a href="sms:+1${digits.slice(-10)}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">📱 Text ${label}</a>`;
-        if (isEmail) return `<a href="mailto:${c}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:10px 20px;border-radius:6px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">✉️ Email ${label}</a>`;
-        return `<span style="color:#fff">${c}</span>`;
+        const isPhone = !isEmail && digits.length >= 10;
+        if (isPhone) {
+          const e164 = '+1' + digits.slice(-10);
+          return `<a href="tel:${e164}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;margin-bottom:8px">📞 Call ${label}</a>&nbsp;&nbsp;<a href="sms:${e164}" style="display:inline-block;background:#1a3a7a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;">💬 Text ${label}</a>`;
+        }
+        if (isEmail) return `<a href="mailto:${c}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;">✉️ Email ${label}</a>`;
+        return `<span style="color:#fff;font-size:14px">${c}</span>`;
       }
       const html = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0D1321;font-family:Arial,sans-serif;color:#C8CDD9">
 <div style="max-width:480px;margin:0 auto;padding:32px 20px">
@@ -1065,12 +1068,13 @@ var src_default = {
     <div style="background:#1C2540;border-radius:10px;padding:20px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9AA0B4;margin-bottom:6px">Buyer</div>
       <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:12px">${name}</div>
+      <div style="font-size:13px;color:#9AA0B4;margin-bottom:8px">${buyerContact}</div>
       <div>${contactLink(buyerContact, 'Buyer')}</div>
-      ${!buyerContact.includes('@') && !(/^\+?[\d\s\-().]+$/.test(buyerContact)) ? `<div style="color:#fff;margin-top:4px">${buyerContact}</div>` : ''}
     </div>
     <div style="background:#1C2540;border-radius:10px;padding:20px">
       <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#9AA0B4;margin-bottom:6px">Seller</div>
-      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:12px">${listing.seller_name ?? '—'}</div>
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:4px">${listing.seller_name ?? '—'}</div>
+      <div style="font-size:13px;color:#9AA0B4;margin-bottom:8px">${sellerContact}</div>
       <div>${contactLink(sellerContact, 'Seller')}</div>
     </div>
   </div>
