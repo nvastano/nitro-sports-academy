@@ -1051,7 +1051,8 @@ var src_default = {
         const isPhone = !isEmail && digits.length >= 10;
         if (isPhone) {
           const e164 = '+1' + digits.slice(-10);
-          return `<a href="tel:${e164}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;margin-bottom:8px">📞 Call ${label}</a>&nbsp;&nbsp;<a href="sms:${e164}" style="display:inline-block;background:#1a3a7a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;">💬 Text ${label}</a>`;
+          const smsBody = encodeURIComponent(`Hey, this is Pedro from Nitro Sports Academy. Someone is interested in your listing!`);
+          return `<a href="tel:${e164}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;margin-bottom:8px">📞 Call ${label}</a>&nbsp;&nbsp;<a href="sms:${e164}?body=${smsBody}" style="display:inline-block;background:#1a3a7a;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;">💬 Text ${label}</a>`;
         }
         if (isEmail) return `<a href="mailto:${c}" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:12px 24px;border-radius:6px;font-family:Arial,sans-serif;font-size:15px;font-weight:700;">✉️ Email ${label}</a>`;
         return `<span style="color:#fff;font-size:14px">${c}</span>`;
@@ -1090,6 +1091,7 @@ var src_default = {
           bcc: ["nicholas.vastano@gmail.com"],
           subject: `🔗 Connect buyer & seller — ${listing.title}`,
           html,
+          headers: { "X-Resend-Track-Clicks": "false" },
         }),
       });
       return json({ ok: true });
