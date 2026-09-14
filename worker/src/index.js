@@ -803,7 +803,21 @@ var src_default = {
         request.headers.get("CF-Connecting-IP") ?? null, new Date().toISOString()
       ).run();
 
-      const price = MEMBERSHIP_PRICES[plan];
+      let price = MEMBERSHIP_PRICES[plan];
+      let promoId = null;
+      if (b.promo_code) {
+        const promo = await env.DB.prepare("SELECT * FROM promo_codes WHERE upper(code)=upper(?) AND active=1").bind(b.promo_code.trim()).first();
+        if (promo && !(promo.expires_at && new Date(promo.expires_at) < new Date()) && !(promo.max_uses && promo.use_count >= promo.max_uses)) {
+          const applies = promo.applies_to ? JSON.parse(promo.applies_to) : null;
+          if (!applies || applies.includes(plan)) {
+            const discount = promo.discount_type === 'percent'
+              ? Math.round(price * promo.discount_value / 100 * 100) / 100
+              : promo.discount_value;
+            price = Math.max(0, price - discount);
+            promoId = promo.id;
+          }
+        }
+      }
       const startDate = new Date().toISOString().slice(0, 10);
       const renewal = new Date();
       renewal.setFullYear(renewal.getFullYear() + 1);
@@ -869,6 +883,11 @@ var src_default = {
       } catch(e) { console.error("Membership payment link error:", e.message); }
 
       if (!paymentLinkUrl) return err("Could not create payment link. Please contact us directly.", 500);
+
+      if (promoId) {
+        await env.DB.prepare("UPDATE promo_codes SET use_count=use_count+1 WHERE id=?").bind(promoId).run();
+      }
+
       return json({ membership_id: membershipId, payment_link_url: paymentLinkUrl }, 201);
     }
     if (method === "GET" && path === "/waivers/check") {
@@ -1014,6 +1033,24 @@ var src_default = {
       }
       return json({ ok: true });
     }
+    // POST /promo-codes/validate — public, check a code and return discount
+    if (method === "POST" && path === "/promo-codes/validate") {
+      const { code, plan } = await request.json();
+      if (!code) return err("code required");
+      const promo = await env.DB.prepare("SELECT * FROM promo_codes WHERE upper(code)=upper(?) AND active=1").bind(code.trim()).first();
+      if (!promo) return err("Invalid promo code", 404);
+      if (promo.expires_at && new Date(promo.expires_at) < new Date()) return err("This promo code has expired", 410);
+      if (promo.max_uses && promo.use_count >= promo.max_uses) return err("This promo code has reached its limit", 410);
+      const applies = promo.applies_to ? JSON.parse(promo.applies_to) : null;
+      if (applies && plan && !applies.includes(plan)) return err("This code doesn't apply to the selected plan", 400);
+      const basePrice = plan ? (MEMBERSHIP_PRICES[plan] ?? 0) : 0;
+      const discount = promo.discount_type === 'percent'
+        ? Math.round(basePrice * promo.discount_value / 100 * 100) / 100
+        : promo.discount_value;
+      const finalPrice = Math.max(0, basePrice - discount);
+      return json({ valid: true, discount_type: promo.discount_type, discount_value: promo.discount_value, discount, final_price: finalPrice });
+    }
+
     // ── Marketplace (public) ────────────────────────────────────────────────
 
     // GET /marketplace/listings — all active listings
@@ -1140,10 +1177,68 @@ var src_default = {
       return json({ ok: true, id }, 201);
     }
 
+    // ── Promo Codes (admin-only) ────────────────────────────────────────────
+    // Note: validate endpoint is public (above); CRUD is admin-only (below auth gate)
+
     // ── Marketplace (admin-only below) ──────────────────────────────────────
 
     const claims = await requireAuth(request, env);
     if (!claims) return err("Unauthorized", 401);
+
+    // GET /promo-codes — list all promo codes
+    if (method === "GET" && path === "/promo-codes") {
+      const { results } = await env.DB.prepare("SELECT * FROM promo_codes ORDER BY created_at DESC").all();
+      return json(results);
+    }
+
+    // POST /promo-codes — create promo code
+    if (method === "POST" && path === "/promo-codes") {
+      const b = await request.json();
+      if (!b.code || !b.discount_type || b.discount_value == null) return err("code, discount_type, and discount_value required");
+      if (!["flat", "percent"].includes(b.discount_type)) return err("discount_type must be flat or percent");
+      const id = uuid();
+      await env.DB.prepare(`
+        INSERT INTO promo_codes (id,code,discount_type,discount_value,applies_to,expires_at,max_uses,use_count,active)
+        VALUES (?,upper(?),?,?,?,?,?,0,1)
+      `).bind(id, b.code.trim(), b.discount_type, b.discount_value,
+        b.applies_to ? JSON.stringify(b.applies_to) : null,
+        b.expires_at ?? null, b.max_uses ?? null).run();
+      return json(await env.DB.prepare("SELECT * FROM promo_codes WHERE id=?").bind(id).first(), 201);
+    }
+
+    // PUT /promo-codes/:id — update promo code
+    const promoUpdateMatch = path.match(/^\/promo-codes\/([^/]+)$/);
+    if (promoUpdateMatch && method === "PUT") {
+      const pid = promoUpdateMatch[1];
+      const b = await request.json();
+      const existing = await env.DB.prepare("SELECT * FROM promo_codes WHERE id=?").bind(pid).first();
+      if (!existing) return err("Promo code not found", 404);
+      await env.DB.prepare(`
+        UPDATE promo_codes SET
+          code=upper(?), discount_type=?, discount_value=?, applies_to=?,
+          expires_at=?, max_uses=?, active=?
+        WHERE id=?
+      `).bind(
+        (b.code ?? existing.code).trim(), b.discount_type ?? existing.discount_type,
+        b.discount_value ?? existing.discount_value,
+        b.applies_to != null ? JSON.stringify(b.applies_to) : existing.applies_to,
+        b.expires_at !== undefined ? b.expires_at : existing.expires_at,
+        b.max_uses !== undefined ? b.max_uses : existing.max_uses,
+        b.active !== undefined ? (b.active ? 1 : 0) : existing.active,
+        pid
+      ).run();
+      return json(await env.DB.prepare("SELECT * FROM promo_codes WHERE id=?").bind(pid).first());
+    }
+
+    // DELETE /promo-codes/:id — delete promo code
+    const promoDeleteMatch = path.match(/^\/promo-codes\/([^/]+)$/);
+    if (promoDeleteMatch && method === "DELETE") {
+      const pid = promoDeleteMatch[1];
+      const existing = await env.DB.prepare("SELECT * FROM promo_codes WHERE id=?").bind(pid).first();
+      if (!existing) return err("Promo code not found", 404);
+      await env.DB.prepare("DELETE FROM promo_codes WHERE id=?").bind(pid).run();
+      return json({ ok: true });
+    }
 
     // POST /marketplace/upload — upload image to KV
     if (method === "POST" && path === "/marketplace/upload") {

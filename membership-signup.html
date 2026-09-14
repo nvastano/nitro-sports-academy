@@ -251,6 +251,15 @@
       <div class="step-sub">Double check your info, then proceed to payment.</div>
       <div id="reviewBox"></div>
 
+      <div style="margin-top:20px;background:rgba(43,79,168,0.1);border:1px solid rgba(43,79,168,0.3);border-radius:8px;padding:16px">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--silver);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Promo Code (optional)</div>
+        <div style="display:flex;gap:10px">
+          <input id="promoCodeInput" type="text" placeholder="Enter code" style="flex:1;background:var(--dark-mid);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:10px 14px;color:var(--white);font-size:0.95rem;outline:none;text-transform:uppercase">
+          <button onclick="applyPromoCode()" style="background:var(--blue);border:none;border-radius:6px;padding:10px 18px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Apply</button>
+        </div>
+        <div id="promoMsg" style="font-size:0.85rem;margin-top:8px;display:none"></div>
+      </div>
+
       <div class="btn-row">
         <button class="btn-nav btn-back" onclick="goToStep(4)">← Back</button>
         <button class="btn-nav btn-next" id="payBtn" onclick="submitSignup()">Proceed to Payment →</button>
@@ -304,10 +313,12 @@
 <script>
   const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
   let selectedPlan = null;
+  let appliedPromo = null;
   let kidCount = 0;
 
   function selectPlan(plan) {
     selectedPlan = plan;
+    appliedPromo = null;
     document.querySelectorAll('.plan-card').forEach(c => c.classList.toggle('selected', c.dataset.plan === plan));
     document.getElementById('step1NextBtn').disabled = false;
   }
@@ -433,14 +444,14 @@
 
   const PLAN_LABELS = { individual: 'Individual', family_2: 'Family (up to 2 siblings)', family_3plus: 'Family (3+ siblings)' };
   const PLAN_PRICES = { individual: 395, family_2: 595, family_3plus: 645 };
-
   function renderReview() {
     const first = document.getElementById('p-first').value.trim();
     const last = document.getElementById('p-last').value.trim();
     const email = document.getElementById('p-email').value.trim();
     const phone = document.getElementById('p-phone').value.trim();
     const kids = getKids();
-    const price = PLAN_PRICES[selectedPlan];
+    const basePrice = PLAN_PRICES[selectedPlan];
+    const finalPrice = appliedPromo ? appliedPromo.final_price : basePrice;
     let html = `
       <div class="review-row"><span class="review-label">Plan</span><span class="review-value">${PLAN_LABELS[selectedPlan]}</span></div>
       <div class="review-row"><span class="review-label">Member</span><span class="review-value">${first} ${last}</span></div>
@@ -449,8 +460,44 @@
     kids.forEach((k, i) => {
       html += `<div class="review-row"><span class="review-label">Child ${i + 1}</span><span class="review-value">${k.first_name} ${k.last_name || ''}</span></div>`;
     });
-    html += `<div class="review-total"><span class="label">Total Due Today</span><span class="amount">$${price}</span></div>`;
+    if (appliedPromo) {
+      html += `<div class="review-row"><span class="review-label">Original Price</span><span class="review-value">$${basePrice}</span></div>`;
+      html += `<div class="review-row"><span class="review-label">Promo (${appliedPromo.code})</span><span class="review-value" style="color:#4caf6e">-$${appliedPromo.discount.toFixed(2)}</span></div>`;
+    }
+    html += `<div class="review-total"><span class="label">Total Due Today</span><span class="amount">$${finalPrice}</span></div>`;
     document.getElementById('reviewBox').innerHTML = html;
+  }
+
+  async function applyPromoCode() {
+    const code = document.getElementById('promoCodeInput').value.trim();
+    const msg = document.getElementById('promoMsg');
+    if (!code) return;
+    msg.style.display = 'block';
+    msg.style.color = 'var(--silver)';
+    msg.textContent = 'Checking…';
+    try {
+      const res = await fetch(`${API}/promo-codes/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, plan: selectedPlan }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.style.color = '#ff7b7b';
+        msg.textContent = data.error || 'Invalid code';
+        appliedPromo = null;
+      } else {
+        msg.style.color = '#4caf6e';
+        const discLabel = data.discount_type === 'percent' ? `${data.discount_value}% off` : `$${data.discount_value} off`;
+        msg.textContent = `✓ ${discLabel} applied! You save $${data.discount.toFixed(2)}.`;
+        appliedPromo = { code: code.toUpperCase(), discount: data.discount, final_price: data.final_price };
+      }
+    } catch(e) {
+      msg.style.color = '#ff7b7b';
+      msg.textContent = 'Could not validate code. Try again.';
+      appliedPromo = null;
+    }
+    renderReview();
   }
 
   async function submitSignup() {
@@ -471,6 +518,7 @@
         emergency_contact_phone: document.getElementById('p-ecphone').value.trim() || null,
       },
       kids: selectedPlan === 'individual' ? [] : getKids(),
+      promo_code: appliedPromo ? appliedPromo.code : undefined,
       waiver: {
         participant_1_name: `${document.getElementById('p-first').value.trim()} ${document.getElementById('p-last').value.trim()}`,
         guardian_name: `${document.getElementById('p-first').value.trim()} ${document.getElementById('p-last').value.trim()}`,

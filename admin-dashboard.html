@@ -177,6 +177,7 @@
     <div class="view-tab" onclick="switchView('leads')" id="tab-leads">Leads</div>
     <div class="view-tab" onclick="switchView('calendar')">Calendar</div>
     <div class="view-tab" onclick="switchView('marketplace')">Marketplace</div>
+    <div class="view-tab" onclick="switchView('promo-codes')">Promo Codes</div>
   </div>
 
   <!-- CLIENTS VIEW -->
@@ -287,6 +288,15 @@
       <button class="btn-add" onclick="openListingModal()">+ New Listing</button>
     </div>
     <div id="marketplace-content"><div class="loading">Loading…</div></div>
+  </div>
+
+  <!-- PROMO CODES VIEW -->
+  <div class="view-panel" id="view-promo-codes">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+      <h2 style="font-family:'Oswald',sans-serif;font-size:1.1rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--white)">Promo Codes</h2>
+      <button class="btn-add" onclick="openPromoModal()">+ New Code</button>
+    </div>
+    <div id="promo-content"><div class="loading">Loading…</div></div>
   </div>
 
   <!-- CALENDAR VIEW -->
@@ -481,13 +491,14 @@ function badgeHtml(status) {
 }
 
 function switchView(name) {
-  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','bookings','usage','leads','calendar','marketplace'][i] === name));
+  document.querySelectorAll('.view-tab').forEach((t, i) => t.classList.toggle('active', ['clients','bookings','usage','leads','calendar','marketplace','promo-codes'][i] === name));
   document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
   document.getElementById(`view-${name}`).classList.add('active');
   if (name === 'bookings') loadBookings();
   if (name === 'usage') loadUsage();
   if (name === 'calendar') loadCalendar();
   if (name === 'marketplace') loadMarketplace();
+  if (name === 'promo-codes') loadPromoCodes();
 }
 
 // ── Usage / Booking Summary ───────────────────────────────────────────────────
@@ -1347,6 +1358,88 @@ async function deleteListing(id) {
   loadMarketplace();
 }
 
+// ── Promo Codes ───────────────────────────────────────────────────────────────
+
+let promoCodes = [];
+let editingPromoId = null;
+
+async function loadPromoCodes() {
+  const el = document.getElementById('promo-content');
+  el.innerHTML = '<div class="loading">Loading…</div>';
+  const res = await fetch(`${API}/promo-codes`, { headers: authHeaders() });
+  promoCodes = await res.json();
+  if (!promoCodes.length) { el.innerHTML = '<p style="color:var(--silver);text-align:center;padding:40px 0">No promo codes yet. Create one to get started.</p>'; return; }
+  const planLabel = { individual: 'Individual', family_2: 'Family 2', family_3plus: 'Family 3+' };
+  el.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr>
+      <th>Code</th><th>Discount</th><th>Applies To</th><th>Expires</th><th>Uses</th><th>Status</th><th></th>
+    </tr></thead>
+    <tbody>${promoCodes.map(p => {
+      const discLabel = p.discount_type === 'percent' ? `${p.discount_value}% off` : `$${parseFloat(p.discount_value).toFixed(2)} off`;
+      const applies = p.applies_to ? JSON.parse(p.applies_to).map(k => planLabel[k] ?? k).join(', ') : 'All plans';
+      const expires = p.expires_at ? new Date(p.expires_at).toLocaleDateString() : '—';
+      const uses = p.max_uses ? `${p.use_count}/${p.max_uses}` : p.use_count;
+      const active = p.active ? '<span class="badge badge-active">Active</span>' : '<span class="badge badge-expired">Inactive</span>';
+      return `<tr onclick="openPromoModal('${p.id}')">
+        <td><strong style="font-family:monospace;color:var(--blue-light)">${p.code}</strong></td>
+        <td>${discLabel}</td>
+        <td>${applies}</td>
+        <td>${expires}</td>
+        <td>${uses}</td>
+        <td>${active}</td>
+        <td><button class="btn-add" style="background:#c0392b;font-size:0.75rem;padding:6px 12px" onclick="event.stopPropagation();deletePromo('${p.id}')">Delete</button></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table></div>`;
+}
+
+function openPromoModal(id) {
+  editingPromoId = id ?? null;
+  const p = id ? promoCodes.find(x => x.id === id) : null;
+  document.getElementById('promoModalTitle').textContent = p ? 'Edit Promo Code' : 'New Promo Code';
+  document.getElementById('pCode').value = p ? p.code : '';
+  document.getElementById('pDiscountType').value = p ? p.discount_type : 'flat';
+  document.getElementById('pDiscountValue').value = p ? p.discount_value : '';
+  const applies = p && p.applies_to ? JSON.parse(p.applies_to) : [];
+  document.querySelectorAll('[name="pApplies"]').forEach(cb => cb.checked = !applies.length || applies.includes(cb.value));
+  document.getElementById('pExpires').value = p && p.expires_at ? p.expires_at.slice(0, 10) : '';
+  document.getElementById('pMaxUses').value = p && p.max_uses ? p.max_uses : '';
+  document.getElementById('pActive').checked = p ? !!p.active : true;
+  document.getElementById('promoModal').classList.add('open');
+}
+
+function closePromoModal() { document.getElementById('promoModal').classList.remove('open'); }
+
+async function savePromo() {
+  const checked = [...document.querySelectorAll('[name="pApplies"]:checked')].map(c => c.value);
+  const all = [...document.querySelectorAll('[name="pApplies"]')];
+  const body = {
+    code: document.getElementById('pCode').value.trim(),
+    discount_type: document.getElementById('pDiscountType').value,
+    discount_value: parseFloat(document.getElementById('pDiscountValue').value),
+    applies_to: checked.length === all.length ? null : checked,
+    expires_at: document.getElementById('pExpires').value || null,
+    max_uses: document.getElementById('pMaxUses').value ? parseInt(document.getElementById('pMaxUses').value) : null,
+    active: document.getElementById('pActive').checked,
+  };
+  if (!body.code) { showToast('Code is required', 'error'); return; }
+  if (isNaN(body.discount_value) || body.discount_value <= 0) { showToast('Enter a valid discount value', 'error'); return; }
+  const url = editingPromoId ? `${API}/promo-codes/${editingPromoId}` : `${API}/promo-codes`;
+  const method = editingPromoId ? 'PUT' : 'POST';
+  const res = await fetch(url, { method, headers: { ...authHeaders(), 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json(); showToast(e.error ?? 'Error saving promo code', 'error'); return; }
+  showToast(editingPromoId ? 'Promo code updated' : 'Promo code created');
+  closePromoModal();
+  loadPromoCodes();
+}
+
+async function deletePromo(id) {
+  if (!confirm('Delete this promo code?')) return;
+  await fetch(`${API}/promo-codes/${id}`, { method: 'DELETE', headers: authHeaders() });
+  showToast('Promo code deleted');
+  loadPromoCodes();
+}
+
 getToken();
 document.getElementById('sort-name').textContent = ' ▲';
 Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
@@ -1396,6 +1489,41 @@ setupAddressAutocomplete('address-input', 'address-suggestions');
     <div class="modal-footer">
       <button class="btn-cancel" onclick="closeListingModal()">Cancel</button>
       <button class="btn-primary" onclick="saveListing()">Save Listing</button>
+    </div>
+  </div>
+</div>
+<!-- Promo Code Modal -->
+<div class="modal-bg" id="promoModal">
+  <div class="modal" style="max-width:480px">
+    <h2 id="promoModalTitle">New Promo Code</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div style="grid-column:1/-1"><label>Code *</label><input id="pCode" placeholder="e.g. NITRO20" style="text-transform:uppercase"></div>
+      <div><label>Discount Type</label>
+        <select id="pDiscountType" style="width:100%">
+          <option value="flat">Flat $ off</option>
+          <option value="percent">Percent % off</option>
+        </select>
+      </div>
+      <div><label>Discount Value *</label><input id="pDiscountValue" type="number" min="0" step="0.01" placeholder="e.g. 50"></div>
+      <div style="grid-column:1/-1">
+        <label>Applies To (check all that apply)</label>
+        <div style="display:flex;gap:16px;margin-top:8px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem"><input type="checkbox" name="pApplies" value="individual"> Individual ($395)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem"><input type="checkbox" name="pApplies" value="family_2"> Family 2 ($595)</label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.9rem"><input type="checkbox" name="pApplies" value="family_3plus"> Family 3+ ($645)</label>
+        </div>
+        <div style="font-size:0.78rem;color:var(--silver);margin-top:6px">Leave all checked to apply to all plans</div>
+      </div>
+      <div><label>Expires (optional)</label><input id="pExpires" type="date"></div>
+      <div><label>Max Uses (optional)</label><input id="pMaxUses" type="number" min="1" step="1" placeholder="Unlimited"></div>
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:10px">
+        <input type="checkbox" id="pActive" checked>
+        <label for="pActive" style="cursor:pointer;font-size:0.9rem">Active</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closePromoModal()">Cancel</button>
+      <button class="btn-primary" onclick="savePromo()">Save Code</button>
     </div>
   </div>
 </div>
