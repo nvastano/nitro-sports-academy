@@ -313,7 +313,10 @@
 
   (function preselectPlanFromQuery() {
     const plan = new URLSearchParams(window.location.search).get('plan');
-    if (plan && document.querySelector(`.plan-card[data-plan="${plan}"]`)) selectPlan(plan);
+    if (plan && document.querySelector(`.plan-card[data-plan="${plan}"]`)) {
+      selectPlan(plan);
+      goToStep(2);
+    }
   })();
 
   function showStep(n) {
