@@ -836,7 +836,7 @@ var src_default = {
         await env.DB.prepare(`
           INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
           VALUES (?,?,?,?,?,?,?,?,?)
-        `).bind(membershipId, primaryClientId, plan, startDate, renewalDate, 0, price, "pending_payment", "Signed up online").run();
+        `).bind(membershipId, primaryClientId, plan, startDate, renewalDate, 0, price, "pending", "Signed up online").run();
       } else {
         const householdId = uuid();
         await env.DB.prepare("INSERT INTO households (id,name,notes) VALUES (?,?,?)")
@@ -862,7 +862,7 @@ var src_default = {
         await env.DB.prepare(`
           INSERT INTO memberships (id,household_id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
           VALUES (?,?,NULL,?,?,?,?,?,?,?)
-        `).bind(membershipId, householdId, plan, startDate, renewalDate, 0, price, "pending_payment", "Signed up online").run();
+        `).bind(membershipId, householdId, plan, startDate, renewalDate, 0, price, "pending", "Signed up online").run();
       }
 
       let paymentLinkUrl = null;
@@ -994,7 +994,7 @@ var src_default = {
             }
           }
           const membership = await env.DB.prepare(
-            "SELECT * FROM memberships WHERE square_order_id=? AND status='pending_payment'"
+            "SELECT * FROM memberships WHERE square_order_id=? AND status='pending'"
           ).bind(payment.order_id).first();
           if (membership) {
             const price = membership.custom_price ?? MEMBERSHIP_PRICES[membership.type] ?? 0;
