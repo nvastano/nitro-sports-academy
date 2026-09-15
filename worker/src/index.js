@@ -827,15 +827,11 @@ var src_default = {
 
       if (plan === "individual") {
         await env.DB.prepare(`
-          INSERT INTO clients (id,first_name,last_name,email,phone,address,date_of_birth,
-            current_team,years_playing,primary_position,secondary_position,
-            emergency_contact_name,emergency_contact_phone,lead_status)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
+          VALUES (?,?,?,?,?,?,?,?)
         `).bind(
           primaryClientId, primary.first_name, primary.last_name, email, primary.phone,
-          primary.address ?? null, primary.date_of_birth ?? null, primary.current_team ?? null,
-          primary.years_playing ?? null, primary.primary_position ?? null, primary.secondary_position ?? null,
-          primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "member"
+          primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted"
         ).run();
         await env.DB.prepare(`
           INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
@@ -846,27 +842,21 @@ var src_default = {
         await env.DB.prepare("INSERT INTO households (id,name,notes) VALUES (?,?,?)")
           .bind(householdId, `${primary.last_name} Family`, null).run();
         await env.DB.prepare(`
-          INSERT INTO clients (id,first_name,last_name,email,phone,address,date_of_birth,
-            current_team,years_playing,primary_position,secondary_position,
-            emergency_contact_name,emergency_contact_phone,household_id,household_role,lead_status)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+          INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,household_id,household_role,lead_status)
+          VALUES (?,?,?,?,?,?,?,?,?,?)
         `).bind(
           primaryClientId, primary.first_name, primary.last_name, email, primary.phone,
-          primary.address ?? null, primary.date_of_birth ?? null, primary.current_team ?? null,
-          primary.years_playing ?? null, primary.primary_position ?? null, primary.secondary_position ?? null,
           primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null,
-          householdId, "contact", "member"
+          householdId, "contact", "converted"
         ).run();
         for (const kid of kids) {
           if (!kid.first_name) continue;
           await env.DB.prepare(`
-            INSERT INTO clients (id,first_name,last_name,date_of_birth,current_team,years_playing,
-              primary_position,secondary_position,household_id,household_role,lead_status)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?)
+            INSERT INTO clients (id,first_name,last_name,household_id,household_role,lead_status)
+            VALUES (?,?,?,?,?,?)
           `).bind(
-            uuid(), kid.first_name, kid.last_name ?? "", kid.date_of_birth ?? null, kid.current_team ?? null,
-            kid.years_playing ?? null, kid.primary_position ?? null, kid.secondary_position ?? null,
-            householdId, "child", "member"
+            uuid(), kid.first_name, kid.last_name ?? "",
+            householdId, "child", "converted"
           ).run();
         }
         await env.DB.prepare(`
