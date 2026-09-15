@@ -179,18 +179,6 @@
         <div><label>Email *</label><input type="email" id="p-email" required></div>
         <div><label>Phone *</label><input type="tel" id="p-phone" required placeholder="(615) 555-0100"></div>
       </div>
-      <div class="field"><label>Address</label><input type="text" id="p-address" placeholder="Street, City, State, ZIP"></div>
-      <div id="p-player-fields">
-        <div class="form-row-2">
-          <div><label>Date of Birth</label><input type="date" id="p-dob"></div>
-          <div><label>Current Team</label><input type="text" id="p-team"></div>
-        </div>
-        <div class="form-row-3">
-          <div><label>Years Playing</label><input type="number" id="p-years" min="0"></div>
-          <div><label>Primary Position</label><input type="text" id="p-pos1"></div>
-          <div><label>Secondary Position</label><input type="text" id="p-pos2"></div>
-        </div>
-      </div>
       <div class="form-section-label">Emergency Contact</div>
       <div class="form-row-2">
         <div><label>Emergency Contact Name</label><input type="text" id="p-ecname"></div>
@@ -364,15 +352,6 @@
       <div class="form-row-2">
         <div><label>First Name *</label><input type="text" class="kid-first" required></div>
         <div><label>Last Name</label><input type="text" class="kid-last"></div>
-      </div>
-      <div class="form-row-2">
-        <div><label>Date of Birth</label><input type="date" class="kid-dob"></div>
-        <div><label>Current Team</label><input type="text" class="kid-team"></div>
-      </div>
-      <div class="form-row-3">
-        <div><label>Years Playing</label><input type="number" min="0" class="kid-years"></div>
-        <div><label>Primary Position</label><input type="text" class="kid-pos1"></div>
-        <div><label>Secondary Position</label><input type="text" class="kid-pos2"></div>
       </div>`;
     document.getElementById('kidsList').appendChild(div);
   }
@@ -386,11 +365,6 @@
     return [...document.querySelectorAll('.kid-card')].map(card => ({
       first_name: card.querySelector('.kid-first').value.trim(),
       last_name: card.querySelector('.kid-last').value.trim() || null,
-      date_of_birth: card.querySelector('.kid-dob').value || null,
-      current_team: card.querySelector('.kid-team').value.trim() || null,
-      years_playing: parseInt(card.querySelector('.kid-years').value) || null,
-      primary_position: card.querySelector('.kid-pos1').value.trim() || null,
-      secondary_position: card.querySelector('.kid-pos2').value.trim() || null,
     })).filter(k => k.first_name);
   }
 
@@ -508,12 +482,6 @@
         last_name: document.getElementById('p-last').value.trim(),
         email: document.getElementById('p-email').value.trim(),
         phone: document.getElementById('p-phone').value.trim(),
-        address: document.getElementById('p-address').value.trim() || null,
-        date_of_birth: document.getElementById('p-dob').value || null,
-        current_team: document.getElementById('p-team').value.trim() || null,
-        years_playing: parseInt(document.getElementById('p-years').value) || null,
-        primary_position: document.getElementById('p-pos1').value.trim() || null,
-        secondary_position: document.getElementById('p-pos2').value.trim() || null,
         emergency_contact_name: document.getElementById('p-ecname').value.trim() || null,
         emergency_contact_phone: document.getElementById('p-ecphone').value.trim() || null,
       },
