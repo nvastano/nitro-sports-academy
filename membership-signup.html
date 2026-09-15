@@ -311,14 +311,6 @@
     document.getElementById('step1NextBtn').disabled = false;
   }
 
-  (function preselectPlanFromQuery() {
-    const plan = new URLSearchParams(window.location.search).get('plan');
-    if (plan && document.querySelector(`.plan-card[data-plan="${plan}"]`)) {
-      selectPlan(plan);
-      goToStep(2);
-    }
-  })();
-
   function showStep(n) {
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
     document.getElementById(`step-${n}`).classList.add('active');
@@ -334,7 +326,6 @@
       document.getElementById('step2Sub').textContent = selectedPlan === 'individual'
         ? 'Tell us about yourself.'
         : 'Tell us about the primary account holder / parent or guardian.';
-      document.getElementById('p-player-fields').style.display = selectedPlan === 'individual' ? '' : 'none';
     }
     showStep(n);
   }
@@ -525,6 +516,15 @@
       showError('Something went wrong setting up your membership. Please try again or contact us directly.');
     }
   }
+
+  // Run after all functions are defined
+  (function preselectPlanFromQuery() {
+    const plan = new URLSearchParams(window.location.search).get('plan');
+    if (plan && document.querySelector(`.plan-card[data-plan="${plan}"]`)) {
+      selectPlan(plan);
+      goToStep(2);
+    }
+  })();
 </script>
 </body>
 </html>
