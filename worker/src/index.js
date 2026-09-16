@@ -825,48 +825,29 @@ var src_default = {
       const membershipId = uuid();
       const primaryClientId = uuid();
 
+      // Reuse existing client record if same email already signed up (retry-safe)
+      const existingClient = await env.DB.prepare("SELECT id FROM clients WHERE trim(lower(email))=?").bind(email).first();
+      const clientId = existingClient ? existingClient.id : primaryClientId;
+
       let paymentLinkUrl = null;
       let signupErr = null;
       try {
-        if (plan === "individual") {
+        if (!existingClient) {
           await env.DB.prepare(`
             INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
             VALUES (?,?,?,?,?,?,?,?)
           `).bind(
-            primaryClientId, primary.first_name, primary.last_name, email, primary.phone,
+            clientId, primary.first_name, primary.last_name, email, primary.phone,
             primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted"
           ).run();
-          await env.DB.prepare(`
-            INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
-            VALUES (?,?,?,?,?,?,?,?,?)
-          `).bind(membershipId, primaryClientId, plan, startDate, renewalDate, 0, price, "pending", "Signed up online").run();
-        } else {
-          const householdId = uuid();
-          await env.DB.prepare("INSERT INTO households (id,name,notes) VALUES (?,?,?)")
-            .bind(householdId, `${primary.last_name} Family`, null).run();
-          await env.DB.prepare(`
-            INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,household_id,household_role,lead_status)
-            VALUES (?,?,?,?,?,?,?,?,?,?)
-          `).bind(
-            primaryClientId, primary.first_name, primary.last_name, email, primary.phone,
-            primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null,
-            householdId, "contact", "converted"
-          ).run();
-          for (const kid of kids) {
-            if (!kid.first_name) continue;
-            await env.DB.prepare(`
-              INSERT INTO clients (id,first_name,last_name,household_id,household_role,lead_status)
-              VALUES (?,?,?,?,?,?)
-            `).bind(
-              uuid(), kid.first_name, kid.last_name ?? "",
-              householdId, "child", "converted"
-            ).run();
-          }
-          await env.DB.prepare(`
-            INSERT INTO memberships (id,household_id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
-            VALUES (?,?,NULL,?,?,?,?,?,?,?)
-          `).bind(membershipId, householdId, plan, startDate, renewalDate, 0, price, "pending", "Signed up online").run();
         }
+        // Build notes: include kids' names for family plans
+        const kidNames = kids.filter(k => k.first_name).map(k => `${k.first_name} ${k.last_name ?? ''}`.trim()).join(', ');
+        const notes = kidNames ? `Signed up online. Children: ${kidNames}` : 'Signed up online';
+        await env.DB.prepare(`
+          INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
+          VALUES (?,?,?,?,?,?,?,?,?)
+        `).bind(membershipId, clientId, plan, startDate, renewalDate, 0, price, "pending", notes).run();
         const link = await createMembershipPaymentLink(membershipId, MEMBERSHIP_TYPE_LABEL[plan] ?? plan, price, email, env);
         paymentLinkUrl = link.url;
         await env.DB.prepare("UPDATE memberships SET square_order_id=? WHERE id=?").bind(link.orderId, membershipId).run();
