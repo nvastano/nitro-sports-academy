@@ -513,7 +513,7 @@
     } catch (e) {
       document.getElementById('loadingBox').style.display = 'none';
       showStep(5);
-      showError('Something went wrong setting up your membership. Please try again or contact us directly.');
+      showError((e.message && e.message !== 'Server error') ? e.message : 'Something went wrong setting up your membership. Please try again or contact us directly.');
     }
   }
 
