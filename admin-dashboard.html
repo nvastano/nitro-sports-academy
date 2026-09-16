@@ -160,7 +160,7 @@
 
   <div class="stats">
     <button class="stat" onclick="goToClients()"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total Clients<span class="go-arrow">→</span></div></button>
-    <button class="stat" onclick="goToHouseholds()"><div class="stat-num" id="stat-households">—</div><div class="stat-label">Households<span class="go-arrow">→</span></div></button>
+
     <button class="stat" onclick="goToRenewals()"><div class="stat-num" id="stat-renewals">—</div><div class="stat-label">Renewals This Month<span class="go-arrow">→</span></div></button>
     <button class="stat" onclick="goToBalanceOwed()"><div class="stat-num" id="stat-due">—</div><div class="stat-label">Balance Owed<span class="go-arrow">→</span></div></button>
   </div>
@@ -205,7 +205,6 @@
       <table>
         <thead><tr>
           <th class="sortable" onclick="sortClients('name')">Client<span class="sort-arrow" id="sort-name"></span></th>
-          <th class="sortable" onclick="sortClients('household_name')">Household<span class="sort-arrow" id="sort-household_name"></span></th>
           <th class="sortable" onclick="sortClients('membership_type')">Membership<span class="sort-arrow" id="sort-membership_type"></span></th>
           <th class="sortable" onclick="sortClients('membership_status')">Status<span class="sort-arrow" id="sort-membership_status"></span></th>
           <th class="sortable" onclick="sortClients('membership_start_date')">Joined<span class="sort-arrow" id="sort-membership_start_date"></span></th>
@@ -316,17 +315,6 @@
   </div>
 
 
-  <!-- HOUSEHOLDS VIEW -->
-  <div class="view-panel" id="view-households">
-    <div class="toolbar">
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input type="text" id="hhSearch" placeholder="Search households…" oninput="filterHouseholds()">
-      </div>
-      <button class="btn-add" onclick="openHouseholdModal()">+ Add Household</button>
-    </div>
-    <div class="hh-grid" id="hhGrid"><div class="loading">Loading…</div></div>
-  </div>
 </div>
 
 <!-- New Member Quick-Create Modal -->
@@ -381,22 +369,6 @@
         <div><label>Emergency Contact Name</label><input name="emergency_contact_name"></div>
         <div><label>Emergency Contact Phone</label><input name="emergency_contact_phone" type="tel"></div>
         <div class="full" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;margin-top:4px">
-          <div class="divider-label">Household (optional)</div>
-        </div>
-        <div class="full">
-          <label>Assign to Household</label>
-          <select name="household_id" class="fi" id="householdSelect">
-            <option value="">— None (individual) —</option>
-          </select>
-        </div>
-        <div>
-          <label>Role in Household</label>
-          <select name="household_role" class="fi">
-            <option value="athlete">Athlete</option>
-            <option value="contact">Contact / Parent</option>
-          </select>
-        </div>
-        <div class="full" style="border-top:1px solid rgba(255,255,255,0.08);padding-top:16px;margin-top:4px">
           <div class="divider-label">Membership (optional)</div>
         </div>
         <div>
@@ -420,26 +392,10 @@
   </div>
 </div>
 
-<!-- Add Household Modal -->
-<div class="modal-bg" id="householdModal">
-  <div class="modal">
-    <h2>Add Household</h2>
-    <form id="addHouseholdForm" onsubmit="saveHousehold(event)">
-      <div style="display:grid;gap:16px">
-        <div><label>Household Name * (e.g. "The Johnson Family")</label><input name="name" required placeholder="The Johnson Family"></div>
-        <div><label>Notes</label><input name="notes"></div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn-cancel" onclick="closeHouseholdModal()">Cancel</button>
-        <button type="submit" class="btn-save">Create Household</button>
-      </div>
-    </form>
-  </div>
-</div>
 
 <script>
 const API = 'https://nitro-crm.nicholas-vastano.workers.dev';
-let allClients = [], allHouseholds = [], allWaivers = [];
+let allClients = [], allWaivers = [];
 
 function getToken() {
   const t = localStorage.getItem('nitro_token');
@@ -568,10 +524,6 @@ function goToClients() {
   document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-function goToHouseholds() {
-  switchView('households');
-  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
 
 function goToBalanceOwed() {
   switchView('clients');
@@ -882,7 +834,6 @@ async function loadClients() {
   const totalDue = clients.reduce((s, c) => s + (c.amount_due ?? 0), 0);
   document.getElementById('stat-due').textContent = `$${totalDue.toFixed(0)}`;
   filterClients();
-  filterHouseholds();
 }
 
 async function loadWaivers() {
@@ -891,21 +842,6 @@ async function loadWaivers() {
   allWaivers = await res.json();
 }
 
-async function loadHouseholds() {
-  const res = await fetch(`${API}/households`, { headers: authHeaders() });
-  allHouseholds = await res.json();
-  document.getElementById('stat-households').textContent = allHouseholds.length;
-  populateHouseholdSelect();
-  filterHouseholds();
-}
-
-function populateHouseholdSelect() {
-  const sel = document.getElementById('householdSelect');
-  const existing = sel.value;
-  sel.innerHTML = '<option value="">— None (individual) —</option>' +
-    allHouseholds.map(h => `<option value="${h.id}">${h.name}</option>`).join('');
-  sel.value = existing;
-}
 
 let clientSort = { key: 'name', dir: 1 };
 
@@ -982,43 +918,12 @@ async function markMembershipPaid(membershipId) {
   await loadClients();
 }
 
-function filterHouseholds() {
-  const s = document.getElementById('hhSearch').value.toLowerCase();
-  const filtered = allHouseholds.filter(h => !s || h.name.toLowerCase().includes(s));
-  renderHouseholds(filtered);
-}
-
-function renderHouseholds(households) {
-  const grid = document.getElementById('hhGrid');
-  if (!households.length) { grid.innerHTML = '<div class="empty">No households found.</div>'; return; }
-  // For each household, show members from allClients
-  grid.innerHTML = households.map(h => {
-    const members = allClients.filter(c => c.household_id === h.id);
-    const contacts = members.filter(m => m.household_role === 'contact');
-    const athletes = members.filter(m => m.household_role !== 'contact');
-    return `<div class="hh-card" onclick="goHousehold('${h.id}')">
-      <div class="hh-name">
-        ${h.name}
-        <span style="font-size:0.75rem;color:var(--silver)">${h.member_count ?? members.length} member${(h.member_count ?? members.length) !== 1 ? 's' : ''}</span>
-      </div>
-      <div class="hh-members">
-        ${contacts.map(m => `<div class="hh-member"><span class="hh-member-name">${m.first_name} ${m.last_name}</span><span class="hh-role">Contact</span></div>`).join('')}
-        ${athletes.map(m => `<div class="hh-member"><span class="hh-member-name">${m.first_name} ${m.last_name}</span><span class="hh-role">Athlete</span></div>`).join('')}
-        ${members.length === 0 ? '<div style="color:var(--silver-dark);font-size:0.85rem">No members yet</div>' : ''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
 function go(id) { window.location.href = `admin-client.html?id=${id}`; }
-function goHousehold(id) { window.location.href = `admin-household.html?id=${id}`; }
 
 function openNewMemberModal() { document.getElementById('newMemberModal').classList.add('open'); }
 function closeNewMemberModal() { document.getElementById('newMemberModal').classList.remove('open'); document.getElementById('newMemberForm').reset(); }
-function openClientModal() { populateHouseholdSelect(); document.getElementById('clientModal').classList.add('open'); }
+function openClientModal() { document.getElementById('clientModal').classList.add('open'); }
 function closeClientModal() { document.getElementById('clientModal').classList.remove('open'); document.getElementById('addClientForm').reset(); }
-function openHouseholdModal() { document.getElementById('householdModal').classList.add('open'); }
-function closeHouseholdModal() { document.getElementById('householdModal').classList.remove('open'); document.getElementById('addHouseholdForm').reset(); }
 
 async function saveNewMember(e) {
   e.preventDefault();
@@ -1050,8 +955,6 @@ async function saveClient(e) {
   const membershipType = body.membership_type; const startDate = body.start_date;
   const renewalDate = body.renewal_date; const amountPaid = parseFloat(body.amount_paid) || 0;
   delete body.membership_type; delete body.start_date; delete body.renewal_date; delete body.amount_paid;
-  if (!body.household_id) delete body.household_id;
-  if (!body.household_role) delete body.household_role;
   if (body.years_playing) body.years_playing = parseInt(body.years_playing);
   const res = await fetch(`${API}/clients`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
   if (!res.ok) { alert('Error saving client'); return; }
@@ -1063,23 +966,11 @@ async function saveClient(e) {
     });
   }
   closeClientModal();
-  await Promise.all([loadClients(), loadHouseholds()]);
-}
-
-async function saveHousehold(e) {
-  e.preventDefault();
-  const fd = new FormData(e.target);
-  const body = Object.fromEntries(fd.entries());
-  const res = await fetch(`${API}/households`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
-  if (!res.ok) { alert('Error creating household'); return; }
-  closeHouseholdModal();
-  await loadHouseholds();
-  switchView('households');
+  await loadClients();
 }
 
 document.getElementById('newMemberModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeNewMemberModal(); });
 document.getElementById('clientModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeClientModal(); });
-document.getElementById('householdModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeHouseholdModal(); });
 
 // ============ CALENDAR ============
 let calDate = new Date();
@@ -1442,7 +1333,7 @@ async function deletePromo(id) {
 
 getToken();
 document.getElementById('sort-name').textContent = ' ▲';
-Promise.all([loadClients(), loadHouseholds(), loadRenewals(), loadLeads()]);
+Promise.all([loadClients(), loadRenewals(), loadLeads()]);
 setupAddressAutocomplete('address-input', 'address-suggestions');
 </script>
 
