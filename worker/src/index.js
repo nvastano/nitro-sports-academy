@@ -805,6 +805,7 @@ var src_default = {
 
       let price = MEMBERSHIP_PRICES[plan];
       let promoId = null;
+      let promoCode = null;
       if (b.promo_code) {
         const promo = await env.DB.prepare("SELECT * FROM promo_codes WHERE upper(code)=upper(?) AND active=1").bind(b.promo_code.trim()).first();
         if (promo && !(promo.expires_at && new Date(promo.expires_at) < new Date()) && !(promo.max_uses && promo.use_count >= promo.max_uses)) {
@@ -815,6 +816,7 @@ var src_default = {
               : promo.discount_value;
             price = Math.max(0, price - discount);
             promoId = promo.id;
+            promoCode = promo.code;
           }
         }
       }
@@ -845,9 +847,9 @@ var src_default = {
         const kidNames = kids.filter(k => k.first_name).map(k => `${k.first_name} ${k.last_name ?? ''}`.trim()).join(', ');
         const notes = kidNames ? `Signed up online. Children: ${kidNames}` : 'Signed up online';
         await env.DB.prepare(`
-          INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes)
-          VALUES (?,?,?,?,?,?,?,?,?)
-        `).bind(membershipId, clientId, plan, startDate, renewalDate, 0, price, "pending", notes).run();
+          INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,promo_code)
+          VALUES (?,?,?,?,?,?,?,?,?,?)
+        `).bind(membershipId, clientId, plan, startDate, renewalDate, 0, price, "pending", notes, promoCode).run();
         const link = await createMembershipPaymentLink(membershipId, MEMBERSHIP_TYPE_LABEL[plan] ?? plan, price, email, env);
         paymentLinkUrl = link.url;
         await env.DB.prepare("UPDATE memberships SET square_order_id=? WHERE id=?").bind(link.orderId, membershipId).run();
@@ -1162,6 +1164,21 @@ var src_default = {
     // GET /promo-codes — list all promo codes
     if (method === "GET" && path === "/promo-codes") {
       const { results } = await env.DB.prepare("SELECT * FROM promo_codes ORDER BY created_at DESC").all();
+      return json(results);
+    }
+
+    // GET /promo-codes/:code/usage — list members who used this code
+    const promoUsageMatch = path.match(/^\/promo-codes\/([^/]+)\/usage$/);
+    if (promoUsageMatch && method === "GET") {
+      const code = promoUsageMatch[1];
+      const { results } = await env.DB.prepare(`
+        SELECT c.id, c.first_name, c.last_name, c.email,
+               m.type as plan, m.amount_due as amount_paid_actual, m.status as membership_status, m.start_date
+        FROM memberships m
+        JOIN clients c ON c.id = m.client_id
+        WHERE upper(m.promo_code)=upper(?)
+        ORDER BY m.created_at DESC
+      `).bind(code).all();
       return json(results);
     }
 
