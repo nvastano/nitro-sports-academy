@@ -981,7 +981,7 @@ var src_default = {
             "SELECT * FROM memberships WHERE square_order_id=? AND status='pending'"
           ).bind(payment.order_id).first();
           if (membership) {
-            const price = membership.custom_price ?? MEMBERSHIP_PRICES[membership.type] ?? 0;
+            const price = membership.custom_price ?? membership.amount_due ?? MEMBERSHIP_PRICES[membership.type] ?? 0;
             await env.DB.prepare("UPDATE memberships SET status='active', amount_paid=?, amount_due=0 WHERE id=?")
               .bind(price, membership.id).run();
             try {

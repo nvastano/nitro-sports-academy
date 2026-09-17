@@ -894,11 +894,10 @@ function sortClients(key) {
 
 function renderClientTable(clients) {
   const tbody = document.getElementById('clientTable');
-  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="10" class="empty">No clients found.</td></tr>'; return; }
+  if (!clients.length) { tbody.innerHTML = '<tr><td colspan="9" class="empty">No clients found.</td></tr>'; return; }
   tbody.innerHTML = clients.map(c => `
     <tr onclick="go('${c.id}')">
       <td><div class="client-name">${c.first_name} ${c.last_name}</div><div class="client-sub">${c.email ?? ''}</div></td>
-      <td style="color:var(--silver-light)">${c.household_name ? `<span class="badge badge-household">${c.household_name}</span>` : '<span style="color:var(--silver-dark)">—</span>'}</td>
       <td>${membershipLabel(c.membership_type)}</td>
       <td>${badgeHtml(c.membership_status)}</td>
       <td style="color:var(--silver-light)">${c.membership_start_date ?? '—'}</td>
