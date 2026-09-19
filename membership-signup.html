@@ -171,10 +171,10 @@
       </div>
     </div>
 
-    <!-- STEP 2: PRIMARY MEMBER INFO -->
+    <!-- STEP 2: CONTACT INFO -->
     <div class="step" id="step-2">
-      <div class="step-title">Your Information</div>
-      <div class="step-sub" id="step2Sub">Tell us about yourself.</div>
+      <div class="step-title">Contact Information</div>
+      <div class="step-sub" id="step2Sub">The account holder — parent, guardian, or the member themselves.</div>
 
       <div class="form-row-2">
         <div><label>First Name *</label><input type="text" id="p-first" required></div>
@@ -184,11 +184,6 @@
         <div><label>Email *</label><input type="email" id="p-email" required></div>
         <div><label>Phone *</label><input type="tel" id="p-phone" required placeholder="(615) 555-0100"></div>
       </div>
-      <div class="form-section-label">Emergency Contact</div>
-      <div class="form-row-2">
-        <div><label>Emergency Contact Name</label><input type="text" id="p-ecname"></div>
-        <div><label>Emergency Contact Phone</label><input type="tel" id="p-ecphone"></div>
-      </div>
 
       <div class="btn-row">
         <button class="btn-nav btn-back" onclick="goToStep(1)">← Back</button>
@@ -196,13 +191,13 @@
       </div>
     </div>
 
-    <!-- STEP 3: KIDS (family plans only) -->
+    <!-- STEP 3: PLAYER INFO (all plans) -->
     <div class="step" id="step-3">
-      <div class="step-title">Family Members</div>
-      <div class="step-sub">Add each child who will be using the membership.</div>
+      <div class="step-title" id="step3Title">Player Information</div>
+      <div class="step-sub" id="step3Sub">Tell us about the athlete(s) who will be using the membership.</div>
       <div id="kidsList"></div>
-      <button class="btn-add-kid" onclick="addKid()">+ Add a Child</button>
-      <div class="err-msg" id="kidsErr">Please add at least one child for a family membership.</div>
+      <button class="btn-add-kid" id="addPlayerBtn" onclick="addKid()">+ Add Another Player</button>
+      <div class="err-msg" id="kidsErr">Please add at least one player.</div>
 
       <div class="btn-row">
         <button class="btn-nav btn-back" onclick="goToStep(2)">← Back</button>
@@ -214,9 +209,6 @@
     <div class="step" id="step-4">
       <div class="step-title">Sign the Waiver</div>
       <div class="step-sub">Required before anyone can access the facility. A typed name serves as your legal electronic signature. Full waiver terms are available <a href="waiver.html" target="_blank" style="color:var(--blue-light)">here</a>.</div>
-
-      <div class="field"><label>Emergency Contact Phone *</label><input type="tel" id="w-emergency-phone" required></div>
-      <div class="err-msg" id="wPhoneErr">Emergency phone is required.</div>
 
       <div class="form-section-label">Electronic Signature</div>
       <p style="color:var(--silver);font-size:0.85rem;margin-bottom:14px">By typing your full legal name below, you agree that this constitutes your electronic signature and has the same legal effect as a handwritten signature under the federal ESIGN Act and Tennessee UETA.</p>
@@ -335,19 +327,25 @@
   }
 
   function goToStep(n) {
-    // Skip the kids step for individual and monthly plans
-    if (n === 3 && (selectedPlan === 'individual' || selectedPlan === 'monthly')) { n = 4; }
     if (n === 2) {
-      document.getElementById('step2Sub').textContent = selectedPlan === 'individual'
-        ? 'Tell us about yourself.'
-        : 'Tell us about the primary account holder / parent or guardian.';
+      const isFamily = selectedPlan === 'family_2' || selectedPlan === 'family_3plus';
+      document.getElementById('step2Sub').textContent = isFamily
+        ? 'Tell us about the primary account holder — parent or guardian.'
+        : 'Tell us about yourself.';
+    }
+    if (n === 3) {
+      const isFamily = selectedPlan === 'family_2' || selectedPlan === 'family_3plus';
+      document.getElementById('step3Title').textContent = isFamily ? 'Player Information' : 'Player Information';
+      document.getElementById('step3Sub').textContent = isFamily
+        ? 'Add each child who will be using the membership.'
+        : 'Tell us about the athlete who will be using this membership.';
+      document.getElementById('addPlayerBtn').style.display = isFamily ? 'block' : 'none';
+      if (!document.querySelectorAll('.kid-card').length) addKid();
     }
     showStep(n);
   }
 
-  function prevStepFrom4() {
-    return selectedPlan === 'individual' ? 2 : 3;
-  }
+  function prevStepFrom4() { return 3; }
 
   function addKid() {
     kidCount++;
@@ -393,7 +391,7 @@
       showError('Please fill in your first name, last name, email, and phone to continue.');
       return;
     }
-    goToStep(selectedPlan === 'individual' ? 4 : 3);
+    goToStep(3);
   }
 
   function validateStep3AndContinue() {
@@ -412,12 +410,10 @@
   }
 
   function validateStep4AndContinue() {
-    const phone = document.getElementById('w-emergency-phone').value.trim();
     const sig = document.getElementById('w-signature').value.trim();
     const agreed = document.getElementById('agreeBox').checked;
-    ['wPhoneErr', 'wSigErr', 'wAgreeErr'].forEach(id => document.getElementById(id).style.display = 'none');
+    ['wSigErr', 'wAgreeErr'].forEach(id => document.getElementById(id).style.display = 'none');
     let valid = true;
-    if (!phone) { document.getElementById('wPhoneErr').style.display = 'block'; valid = false; }
     if (!sig) { document.getElementById('wSigErr').style.display = 'block'; valid = false; }
     if (!agreed) { document.getElementById('wAgreeErr').style.display = 'block'; valid = false; }
     if (!valid) return;
@@ -440,8 +436,10 @@
       <div class="review-row"><span class="review-label">Member</span><span class="review-value">${first} ${last}</span></div>
       <div class="review-row"><span class="review-label">Email</span><span class="review-value">${email}</span></div>
       <div class="review-row"><span class="review-label">Phone</span><span class="review-value">${phone}</span></div>`;
+    const isFamily = selectedPlan === 'family_2' || selectedPlan === 'family_3plus';
     kids.forEach((k, i) => {
-      html += `<div class="review-row"><span class="review-label">Child ${i + 1}</span><span class="review-value">${k.first_name} ${k.last_name || ''}</span></div>`;
+      const label = isFamily ? `Child ${i + 1}` : 'Player';
+      html += `<div class="review-row"><span class="review-label">${label}</span><span class="review-value">${k.first_name} ${k.last_name || ''}</span></div>`;
     });
     if (appliedPromo) {
       html += `<div class="review-row"><span class="review-label">Original Price</span><span class="review-value">$${basePrice}</span></div>`;
@@ -513,8 +511,9 @@
       }});
       await squareCard.attach('#card-container');
     } catch(e) {
-      document.getElementById('card-errors').textContent = 'Could not load card form. Please refresh and try again.';
-      document.getElementById('card-errors').style.display = 'block';
+      const errEl = document.getElementById('card-errors');
+      errEl.textContent = 'Could not load card form: ' + (e.message || e) + '. Please refresh and try again.';
+      errEl.style.display = 'block';
     }
   }
 
@@ -525,18 +524,13 @@
     const phone = document.getElementById('p-phone').value.trim();
     const payload = {
       plan: selectedPlan,
-      primary: {
-        first_name: first, last_name: last, email, phone,
-        emergency_contact_name: document.getElementById('p-ecname').value.trim() || null,
-        emergency_contact_phone: document.getElementById('p-ecphone').value.trim() || null,
-      },
-      kids: (selectedPlan === 'individual' || selectedPlan === 'monthly') ? [] : getKids(),
+      primary: { first_name: first, last_name: last, email, phone },
+      kids: getKids(),
       promo_code: appliedPromo ? appliedPromo.code : undefined,
       waiver: {
         participant_1_name: `${first} ${last}`,
         guardian_name: `${first} ${last}`,
         guardian_email: email,
-        emergency_phone: document.getElementById('w-emergency-phone').value.trim(),
         signature: document.getElementById('w-signature').value.trim(),
       },
     };
