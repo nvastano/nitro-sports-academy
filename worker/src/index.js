@@ -1080,6 +1080,41 @@ var src_default = {
             if (booking.player_email) {
               try { await sendAutoConfirmedEmail({ ...booking, cage: booking.cage_assigned }, booking.id, env); } catch(e) { console.error("Player confirmation email error:", e.message); }
             }
+            // Email Pedro: guest payment received
+            try {
+              const cageLabel = CAGE_LABEL[booking.cage_assigned] ?? booking.cage_assigned;
+              const html = `<!DOCTYPE html><html><head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background:#0D1321;font-family:Arial,sans-serif;color:#C8CDD9">
+<div style="max-width:560px;margin:0 auto;padding:40px 20px">
+  <div style="font-family:Arial,sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:24px"><span style="color:#3d65cc">NITRO</span> SPORTS ACADEMY</div>
+  <div style="background:#1C2540;border-radius:8px;padding:28px;margin-bottom:20px">
+    <h2 style="color:#4ade80;font-size:18px;margin:0 0 16px">✅ Guest Payment Received</h2>
+    <table style="width:100%;border-collapse:collapse">
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Cage</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${cageLabel}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Date</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.date}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Time</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.time} (${booking.duration ?? 30} min)</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Player</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_name}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_email ?? "—"}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Phone</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_phone ?? "—"}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0">Amount Paid</td><td style="color:#4ade80;font-weight:700;text-align:right;padding:8px 0">$${(booking.price ?? 0).toFixed(2)}</td></tr>
+    </table>
+  </div>
+  <p style="color:#9AA0B4;font-size:13px;text-align:center">View bookings at <a href="https://nitrosportsacademy.com/admin-dashboard.html" style="color:#3d65cc">the admin dashboard</a>.</p>
+</div>
+</body></html>`;
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  from: "Nitro Sports Academy <pedro@nitrosportsacademy.com>",
+                  reply_to: ["coach.pedro.tn@gmail.com"],
+                  to: ["coach.pedro.tn@gmail.com"],
+                  bcc: ["nicholas.vastano@gmail.com"],
+                  subject: `💰 Payment Received — ${cageLabel} on ${booking.date} at ${booking.time}`,
+                  html
+                })
+              });
+            } catch(e) { console.error("Guest payment confirmed email error:", e.message); }
             // SMS: guest booking confirmed after payment (always send if phone provided)
             if (booking.player_phone) {
               try {
