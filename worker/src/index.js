@@ -584,7 +584,7 @@ async function sendBookingRequestNotification(booking, env, autoConfirmed = fals
     <table style="width:100%;border-collapse:collapse">
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Cage</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${cageLabel}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Date</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.date}</td></tr>
-      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Time</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.time} (30 min)</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Time</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.time} (${booking.duration ?? 30} min)</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Player</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_name}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_email ?? "—"}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Phone</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_phone ?? "—"}</td></tr>
