@@ -504,10 +504,10 @@
       }
       squarePayments = Square.payments(cfg.square_app_id, cfg.square_location_id);
       squareCard = await squarePayments.card({ style: {
-        '.input-container': { borderColor: 'transparent', borderRadius: '6px', backgroundColor: '#1C2540' },
-        '.input-container.is-focus': { borderColor: '#3d65cc', borderWidth: '2px' },
+        '.input-container': { borderColor: 'rgba(255,255,255,0.2)', borderRadius: '6px' },
+        '.input-container.is-focus': { borderColor: '#3d65cc' },
         '.input-container.is-error': { borderColor: '#ff7b7b' },
-        input: { color: '#ffffff', fontSize: '15px', backgroundColor: '#1C2540' },
+        input: { color: '#0D1321', fontSize: '15px' },
         'input::placeholder': { color: '#9AA0B4' },
       }});
       await squareCard.attach('#card-container');
