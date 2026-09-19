@@ -248,7 +248,7 @@
       <!-- Card capture for monthly plan -->
       <div id="monthlyCardSection" style="display:none;margin-top:20px">
         <div style="font-size:0.85rem;font-weight:600;color:var(--silver);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Card Details</div>
-        <div id="card-container" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:14px;min-height:56px"></div>
+        <div id="card-container" style="border-radius:6px;min-height:56px"></div>
         <div id="card-errors" style="color:#ff7b7b;font-size:0.85rem;margin-top:8px;display:none"></div>
         <div style="color:var(--silver);font-size:0.78rem;margin-top:8px">Your card will be charged $40 today and automatically each month. Cancel anytime by contacting us.</div>
       </div>
@@ -504,9 +504,10 @@
       }
       squarePayments = Square.payments(cfg.square_app_id, cfg.square_location_id);
       squareCard = await squarePayments.card({ style: {
-        '.input-container': { borderColor: 'rgba(255,255,255,0.15)', borderRadius: '6px' },
-        '.input-container.is-focus': { borderColor: '#3d65cc' },
-        input: { color: '#ffffff', fontSize: '15px' },
+        '.input-container': { borderColor: 'transparent', borderRadius: '6px', backgroundColor: '#1C2540' },
+        '.input-container.is-focus': { borderColor: '#3d65cc', borderWidth: '2px' },
+        '.input-container.is-error': { borderColor: '#ff7b7b' },
+        input: { color: '#ffffff', fontSize: '15px', backgroundColor: '#1C2540' },
         'input::placeholder': { color: '#9AA0B4' },
       }});
       await squareCard.attach('#card-container');
