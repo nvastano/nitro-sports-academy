@@ -31,7 +31,7 @@
     .step-title { font-family: 'Oswald', sans-serif; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
     .step-sub { color: var(--silver); font-size: 0.9rem; margin-bottom: 28px; }
 
-    .plan-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 8px; }
+    .plan-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 8px; }
     @media (max-width: 640px) { .plan-grid { grid-template-columns: 1fr; } }
     .plan-card { border: 2px solid rgba(255,255,255,0.12); border-radius: 8px; padding: 20px 16px; cursor: pointer; text-align: center; transition: border-color 0.2s, background 0.2s; }
     .plan-card:hover { border-color: rgba(232,184,75,0.4); }
@@ -160,6 +160,11 @@
           <div class="plan-price">$645</div>
           <div class="plan-period">/ 12-month contract</div>
         </div>
+        <div class="plan-card" data-plan="monthly" onclick="selectPlan('monthly')">
+          <div class="plan-name">Monthly</div>
+          <div class="plan-price">$40</div>
+          <div class="plan-period">/ month · cancel anytime</div>
+        </div>
       </div>
       <div class="btn-row">
         <button class="btn-nav btn-next" id="step1NextBtn" onclick="goToStep(2)" disabled>Continue →</button>
@@ -239,13 +244,21 @@
       <div class="step-sub">Double check your info, then proceed to payment.</div>
       <div id="reviewBox"></div>
 
-      <div style="margin-top:20px;background:rgba(43,79,168,0.1);border:1px solid rgba(43,79,168,0.3);border-radius:8px;padding:16px">
+      <div id="promoSection" style="margin-top:20px;background:rgba(43,79,168,0.1);border:1px solid rgba(43,79,168,0.3);border-radius:8px;padding:16px">
         <div style="font-size:0.85rem;font-weight:600;color:var(--silver);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Promo Code (optional)</div>
         <div style="display:flex;gap:10px">
           <input id="promoCodeInput" type="text" placeholder="Enter code" style="flex:1;background:var(--dark-mid);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:10px 14px;color:var(--white);font-size:0.95rem;outline:none;text-transform:uppercase">
           <button onclick="applyPromoCode()" style="background:var(--blue);border:none;border-radius:6px;padding:10px 18px;color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:0.85rem;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;white-space:nowrap">Apply</button>
         </div>
         <div id="promoMsg" style="font-size:0.85rem;margin-top:8px;display:none"></div>
+      </div>
+
+      <!-- Card capture for monthly plan -->
+      <div id="monthlyCardSection" style="display:none;margin-top:20px">
+        <div style="font-size:0.85rem;font-weight:600;color:var(--silver);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:10px">Card Details</div>
+        <div id="card-container" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);border-radius:6px;padding:14px;min-height:56px"></div>
+        <div id="card-errors" style="color:#ff7b7b;font-size:0.85rem;margin-top:8px;display:none"></div>
+        <div style="color:var(--silver);font-size:0.78rem;margin-top:8px">Your card will be charged $40 today and automatically each month. Cancel anytime by contacting us.</div>
       </div>
 
       <div class="btn-row">
@@ -303,6 +316,8 @@
   let selectedPlan = null;
   let appliedPromo = null;
   let kidCount = 0;
+  let squareCard = null;
+  let squarePayments = null;
 
   function selectPlan(plan) {
     selectedPlan = plan;
@@ -320,8 +335,8 @@
   }
 
   function goToStep(n) {
-    // Skip the kids step entirely for individual plans
-    if (n === 3 && selectedPlan === 'individual') { n = 4; }
+    // Skip the kids step for individual and monthly plans
+    if (n === 3 && (selectedPlan === 'individual' || selectedPlan === 'monthly')) { n = 4; }
     if (n === 2) {
       document.getElementById('step2Sub').textContent = selectedPlan === 'individual'
         ? 'Tell us about yourself.'
@@ -410,8 +425,8 @@
     showStep(5);
   }
 
-  const PLAN_LABELS = { individual: 'Individual', family_2: 'Family (up to 2 siblings)', family_3plus: 'Family (3+ siblings)' };
-  const PLAN_PRICES = { individual: 395, family_2: 595, family_3plus: 645 };
+  const PLAN_LABELS = { individual: 'Individual', family_2: 'Family (up to 2 siblings)', family_3plus: 'Family (3+ siblings)', monthly: 'Monthly' };
+  const PLAN_PRICES = { individual: 395, family_2: 595, family_3plus: 645, monthly: 40 };
   function renderReview() {
     const first = document.getElementById('p-first').value.trim();
     const last = document.getElementById('p-last').value.trim();
@@ -432,8 +447,17 @@
       html += `<div class="review-row"><span class="review-label">Original Price</span><span class="review-value">$${basePrice}</span></div>`;
       html += `<div class="review-row"><span class="review-label">Promo (${appliedPromo.code})</span><span class="review-value" style="color:#4caf6e">-$${appliedPromo.discount.toFixed(2)}</span></div>`;
     }
-    html += `<div class="review-total"><span class="label">Total Due Today</span><span class="amount">$${finalPrice}</span></div>`;
+    const isMonthly = selectedPlan === 'monthly';
+    const totalLabel = isMonthly ? 'Due Today' : 'Total Due Today';
+    const totalAmount = isMonthly ? '$40/mo' : `$${finalPrice}`;
+    html += `<div class="review-total"><span class="label">${totalLabel}</span><span class="amount">${totalAmount}</span></div>`;
     document.getElementById('reviewBox').innerHTML = html;
+
+    // Show/hide promo section and card capture based on plan
+    document.getElementById('promoSection').style.display = isMonthly ? 'none' : 'block';
+    document.getElementById('monthlyCardSection').style.display = isMonthly ? 'block' : 'none';
+    document.getElementById('payBtn').textContent = isMonthly ? 'Start Membership →' : 'Proceed to Payment →';
+    if (isMonthly) initSquareCard();
   }
 
   async function applyPromoCode() {
@@ -468,31 +492,74 @@
     renderReview();
   }
 
+  async function initSquareCard() {
+    if (squareCard) return;
+    try {
+      const cfg = await (await fetch(`${API}/public-config`)).json();
+      if (!window.Square) {
+        await new Promise((res, rej) => {
+          const s = document.createElement('script');
+          s.src = 'https://web.squarecdn.com/v1/square.js';
+          s.onload = res; s.onerror = rej;
+          document.head.appendChild(s);
+        });
+      }
+      squarePayments = Square.payments(cfg.square_app_id, cfg.square_location_id);
+      squareCard = await squarePayments.card({ style: {
+        '.input-container': { borderColor: 'rgba(255,255,255,0.15)', borderRadius: '6px' },
+        '.input-container.is-focus': { borderColor: '#3d65cc' },
+        input: { color: '#ffffff', fontFamily: 'Barlow, sans-serif', fontSize: '15px' },
+        'input::placeholder': { color: '#9AA0B4' },
+      }});
+      await squareCard.attach('#card-container');
+    } catch(e) {
+      document.getElementById('card-errors').textContent = 'Could not load card form. Please refresh and try again.';
+      document.getElementById('card-errors').style.display = 'block';
+    }
+  }
+
   async function submitSignup() {
+    const first = document.getElementById('p-first').value.trim();
+    const last = document.getElementById('p-last').value.trim();
+    const email = document.getElementById('p-email').value.trim();
+    const phone = document.getElementById('p-phone').value.trim();
     const payload = {
       plan: selectedPlan,
       primary: {
-        first_name: document.getElementById('p-first').value.trim(),
-        last_name: document.getElementById('p-last').value.trim(),
-        email: document.getElementById('p-email').value.trim(),
-        phone: document.getElementById('p-phone').value.trim(),
+        first_name: first, last_name: last, email, phone,
         emergency_contact_name: document.getElementById('p-ecname').value.trim() || null,
         emergency_contact_phone: document.getElementById('p-ecphone').value.trim() || null,
       },
-      kids: selectedPlan === 'individual' ? [] : getKids(),
+      kids: (selectedPlan === 'individual' || selectedPlan === 'monthly') ? [] : getKids(),
       promo_code: appliedPromo ? appliedPromo.code : undefined,
       waiver: {
-        participant_1_name: `${document.getElementById('p-first').value.trim()} ${document.getElementById('p-last').value.trim()}`,
-        guardian_name: `${document.getElementById('p-first').value.trim()} ${document.getElementById('p-last').value.trim()}`,
-        guardian_email: document.getElementById('p-email').value.trim(),
+        participant_1_name: `${first} ${last}`,
+        guardian_name: `${first} ${last}`,
+        guardian_email: email,
         emergency_phone: document.getElementById('w-emergency-phone').value.trim(),
         signature: document.getElementById('w-signature').value.trim(),
       },
     };
-    if (selectedPlan !== 'individual') {
+    if (selectedPlan !== 'individual' && selectedPlan !== 'monthly') {
       const kids = getKids();
       if (kids[0]) { payload.waiver.participant_2_name = kids[0].first_name; }
       if (kids[1]) { payload.waiver.participant_3_name = kids[1].first_name; }
+    }
+
+    // Monthly: tokenize card first
+    if (selectedPlan === 'monthly') {
+      if (!squareCard) { showError('Card form not ready. Please refresh and try again.'); return; }
+      const errEl = document.getElementById('card-errors');
+      errEl.style.display = 'none';
+      document.getElementById('payBtn').disabled = true;
+      const result = await squareCard.tokenize();
+      if (result.status !== 'OK') {
+        errEl.textContent = result.errors?.map(e => e.message).join(', ') || 'Card error. Please check your details.';
+        errEl.style.display = 'block';
+        document.getElementById('payBtn').disabled = false;
+        return;
+      }
+      payload.source_id = result.token;
     }
 
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
@@ -500,18 +567,25 @@
 
     try {
       const res = await fetch(`${API}/membership-signup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Server error');
       document.getElementById('loadingBox').style.display = 'none';
-      document.getElementById('successBox').style.display = 'block';
-      document.getElementById('payLink').href = data.payment_link_url;
-      window.location.href = data.payment_link_url;
+      if (selectedPlan === 'monthly') {
+        // Monthly is active immediately — no redirect to Square needed
+        document.getElementById('successBox').style.display = 'block';
+        document.getElementById('successBox').querySelector('p').textContent =
+          'Your monthly membership is active! Pedro will be in touch shortly with your facility access code.';
+      } else {
+        document.getElementById('successBox').style.display = 'block';
+        document.getElementById('payLink').href = data.payment_link_url;
+        window.location.href = data.payment_link_url;
+      }
     } catch (e) {
       document.getElementById('loadingBox').style.display = 'none';
+      document.getElementById('payBtn').disabled = false;
       showStep(5);
       showError((e.message && e.message !== 'Server error') ? e.message : 'Something went wrong setting up your membership. Please try again or contact us directly.');
     }

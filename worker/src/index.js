@@ -81,8 +81,8 @@ async function assertAccessCodeAvailable(code, env, excludeClientId) {
   if (existing && existing.id !== excludeClientId) throw new Error("That access code is already in use by another client");
 }
 __name(assertAccessCodeAvailable, "assertAccessCodeAvailable");
-var MEMBERSHIP_PRICES = { individual: 395, family_2: 595, family_3plus: 645 };
-var MEMBERSHIP_TYPE_LABEL = { individual: "Individual", family_2: "Family (2 siblings)", family_3plus: "Family (3+ siblings)" };
+var MEMBERSHIP_PRICES = { individual: 395, family_2: 595, family_3plus: 645, monthly: 40 };
+var MEMBERSHIP_TYPE_LABEL = { individual: "Individual", family_2: "Family (2 siblings)", family_3plus: "Family (3+ siblings)", monthly: "Monthly" };
 
 function computeMembershipDue(m) {
   if (!m || !m.renewal_date || m.status !== "active") return 0;
@@ -243,6 +243,77 @@ async function createMembershipPaymentLink(membershipId, planLabel, price, email
   return { url: data.payment_link.url, orderId: data.payment_link.order_id };
 }
 __name(createMembershipPaymentLink, "createMembershipPaymentLink");
+
+async function getOrCreateMonthlyPlanVariationId(env) {
+  const cached = await env.DB.prepare("SELECT value FROM settings WHERE key='square_monthly_plan_variation_id'").first();
+  if (cached) return cached.value;
+  const res = await fetch(`${squareBase(env)}/v2/catalog/object`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
+    body: JSON.stringify({
+      idempotency_key: "nitro-monthly-plan-v1",
+      object: {
+        type: "SUBSCRIPTION_PLAN",
+        id: "#nitro-monthly-plan",
+        subscription_plan_data: {
+          name: "Nitro Sports Academy Monthly",
+          subscription_plan_variations: [{
+            type: "SUBSCRIPTION_PLAN_VARIATION",
+            id: "#nitro-monthly-variation",
+            subscription_plan_variation_data: {
+              name: "Monthly $40",
+              phases: [{ cadence: "MONTHLY", pricing: { type: "STATIC", price_money: { amount: 4000, currency: "USD" } } }]
+            }
+          }]
+        }
+      }
+    })
+  });
+  if (!res.ok) throw new Error(`Square plan create error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const variationId = data.id_mappings?.find(m => m.client_object_id === "#nitro-monthly-variation")?.object_id;
+  if (!variationId) throw new Error("Could not determine plan variation ID from Square response");
+  await env.DB.prepare("INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)").bind("square_monthly_plan_variation_id", variationId).run();
+  return variationId;
+}
+
+async function createSquareCustomer(first_name, last_name, email, phone, env) {
+  const res = await fetch(`${squareBase(env)}/v2/customers`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
+    body: JSON.stringify({ idempotency_key: uuid(), given_name: first_name, family_name: last_name, email_address: email, phone_number: phone ?? undefined })
+  });
+  if (!res.ok) throw new Error(`Square customer error ${res.status}: ${await res.text()}`);
+  return (await res.json()).customer.id;
+}
+
+async function createSquareCardOnFile(customerId, sourceId, env) {
+  const res = await fetch(`${squareBase(env)}/v2/cards`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
+    body: JSON.stringify({ idempotency_key: uuid(), source_id: sourceId, card: { customer_id: customerId } })
+  });
+  if (!res.ok) throw new Error(`Square card error ${res.status}: ${await res.text()}`);
+  return (await res.json()).card.id;
+}
+
+async function createSquareSubscription(customerId, cardId, planVariationId, env) {
+  const res = await fetch(`${squareBase(env)}/v2/subscriptions`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
+    body: JSON.stringify({
+      idempotency_key: uuid(),
+      location_id: env.SQUARE_LOCATION_ID,
+      plan_variation_id: planVariationId,
+      customer_id: customerId,
+      card_id: cardId,
+      start_date: new Date().toISOString().slice(0, 10)
+    })
+  });
+  if (!res.ok) throw new Error(`Square subscription error ${res.status}: ${await res.text()}`);
+  return (await res.json()).subscription.id;
+}
+
 async function sendMembershipActiveNotification(client, membership, env) {
   const typeLabel = MEMBERSHIP_TYPE_LABEL[membership.type] ?? membership.type;
   const adminHtml = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0D1321;font-family:Arial,sans-serif;color:#C8CDD9">
@@ -771,6 +842,9 @@ var src_default = {
 
       return json({ id, is_member: false, payment_required: true, price, payment_link_url: paymentLinkUrl }, 201);
     }
+    if (method === "GET" && path === "/public-config") {
+      return json({ square_app_id: env.SQUARE_APP_ID, square_location_id: env.SQUARE_LOCATION_ID });
+    }
     if (method === "POST" && path === "/membership-signup") {
       const b = await request.json();
       const plan = b.plan;
@@ -802,6 +876,43 @@ var src_default = {
         waiverInput.emergency_phone, waiverInput.signature,
         request.headers.get("CF-Connecting-IP") ?? null, new Date().toISOString()
       ).run();
+
+      // ── Monthly subscription path (card on file via Square SDK) ──────────────
+      if (plan === "monthly") {
+        const sourceId = b.source_id;
+        if (!sourceId) return err("Payment source required for monthly plan");
+        const membershipId = uuid();
+        const primaryClientId = uuid();
+        const startDate = new Date().toISOString().slice(0, 10);
+        const nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1);
+        const renewalDate = nextMonth.toISOString().slice(0, 10);
+        try {
+          const existingClient = await env.DB.prepare("SELECT id FROM clients WHERE trim(lower(email))=?").bind(email).first();
+          const clientId = existingClient ? existingClient.id : primaryClientId;
+          if (!existingClient) {
+            await env.DB.prepare(`
+              INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
+              VALUES (?,?,?,?,?,?,?,?)
+            `).bind(clientId, primary.first_name, primary.last_name, email, primary.phone,
+              primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted").run();
+          }
+          const squareCustomerId = await createSquareCustomer(primary.first_name, primary.last_name, email, primary.phone, env);
+          await env.DB.prepare("UPDATE clients SET square_customer_id=? WHERE id=?").bind(squareCustomerId, clientId).run();
+          const squareCardId = await createSquareCardOnFile(squareCustomerId, sourceId, env);
+          const planVariationId = await getOrCreateMonthlyPlanVariationId(env);
+          const squareSubscriptionId = await createSquareSubscription(squareCustomerId, squareCardId, planVariationId, env);
+          await env.DB.prepare(`
+            INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+          `).bind(membershipId, clientId, "monthly", startDate, renewalDate, 40, 0, "active", "Monthly subscription. Signed up online.", squareSubscriptionId).run();
+          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email }, { type: "monthly", amount_paid: 40, amount_due: 0 }, env); } catch(e) { console.error("Monthly activation email error:", e.message); }
+          return json({ membership_id: membershipId, status: "active" }, 201);
+        } catch(e) {
+          console.error("Monthly signup error:", e.message);
+          return err(e.message || "Could not set up subscription. Please contact us directly.", 500);
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────────
 
       let price = MEMBERSHIP_PRICES[plan];
       let promoId = null;
@@ -1602,6 +1713,20 @@ var src_default = {
         "INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes) VALUES (?,?,?,?,?,?,?,?,?)"
       ).bind(id, clientId, b.type, b.start_date ?? null, b.renewal_date ?? null, b.amount_paid ?? 0, amountDue, b.status ?? "active", b.notes ?? null).run();
       return json(await env.DB.prepare("SELECT * FROM memberships WHERE id = ?").bind(id).first(), 201);
+    }
+    const cancelSubMatch = path.match(/^\/memberships\/([^/]+)\/cancel-subscription$/);
+    if (cancelSubMatch && method === "POST") {
+      const mid = cancelSubMatch[1];
+      const m = await env.DB.prepare("SELECT * FROM memberships WHERE id=?").bind(mid).first();
+      if (!m) return err("Membership not found", 404);
+      if (!m.square_subscription_id) return err("No active subscription to cancel", 400);
+      const res = await fetch(`${squareBase(env)}/v2/subscriptions/${m.square_subscription_id}/cancel`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" }
+      });
+      if (!res.ok) throw new Error(`Square cancel error ${res.status}: ${await res.text()}`);
+      await env.DB.prepare("UPDATE memberships SET status='expired', square_subscription_id=NULL WHERE id=?").bind(mid).run();
+      return json({ ok: true });
     }
     const markPaidMatch = path.match(/^\/memberships\/([^/]+)\/mark-paid$/);
     if (markPaidMatch && method === "POST") {

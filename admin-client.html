@@ -455,6 +455,7 @@ function renderMembership(m) {
         <button class="btn-gold" id="renewalLinkBtn" onclick="openRenewalEmailCompose('${m.id}')">Send Payment Email</button>
         ${(m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
         <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
+        ${m.square_subscription_id ? `<button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="cancelSubscription('${m.id}')">Cancel Subscription</button>` : ''}
         <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteMembership('${m.id}')">Delete</button>
       </div>
       <div id="renewalLinkPanel"></div>
@@ -824,6 +825,19 @@ async function deleteClient() {
   const res = await fetch(`${API}/clients/${clientId}`, { method: 'DELETE', headers: authHeaders() });
   if (!res.ok) { showToast('Error deleting client', 'error'); return; }
   window.location.href = 'admin-dashboard.html';
+}
+
+async function cancelSubscription(membershipId) {
+  if (!confirm('Cancel this monthly subscription? The membership will be marked expired and no further charges will occur.')) return;
+  try {
+    const res = await fetch(`${API}/memberships/${membershipId}/cancel-subscription`, { method: 'POST', headers: authHeaders() });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Failed to cancel subscription');
+    showToast('Subscription cancelled.');
+    await loadClient();
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
 }
 
 async function deleteMembership(membershipId) {
