@@ -470,13 +470,18 @@ function slotStart(date, time) {
 }
 __name(slotStart, "slotStart");
 function add30Min(date, startISO) {
-  const h = parseInt(startISO.slice(11, 13));
-  const m = parseInt(startISO.slice(14, 16));
-  const endH = m === 30 ? h + 1 : h;
-  const endM = m === 30 ? 0 : 30;
-  return `${date}T${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
+  return addMinutes(date, startISO, 30);
 }
 __name(add30Min, "add30Min");
+function addMinutes(date, startISO, minutes) {
+  const h = parseInt(startISO.slice(11, 13));
+  const m = parseInt(startISO.slice(14, 16));
+  const totalMin = h * 60 + m + minutes;
+  const endH = Math.floor(totalMin / 60) % 24;
+  const endM = totalMin % 60;
+  return `${date}T${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}:00`;
+}
+__name(addMinutes, "addMinutes");
 function generateICS(booking, id) {
   const cageLabel = CAGE_LABEL[booking.cage] ?? booking.cage;
   const [t, ap] = booking.time.split(" ");
@@ -550,7 +555,7 @@ async function pickCage(db, date, time, discipline) {
 __name(pickCage, "pickCage");
 async function createScheduleCalendarEvent(token, calId, booking) {
   const start = slotStart(booking.date, booking.time);
-  const end = add30Min(booking.date, start);
+  const end = addMinutes(booking.date, start, booking.duration ?? 30);
   const res = await fetch(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calId)}/events`, {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
