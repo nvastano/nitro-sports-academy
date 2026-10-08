@@ -357,8 +357,9 @@ async function sendMembershipActiveNotification(client, membership, env) {
       <h3 style="color:#E8B84B;font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.05em">📅 How to Book a Cage</h3>
       <p style="color:#9AA0B4;font-size:14px;margin:0 0 12px">As a member you can book cage time day-of through our online schedule. Here's how it works:</p>
       <ul style="color:#9AA0B4;font-size:14px;margin:0 0 16px;padding-left:20px;line-height:1.8">
-        <li>Bookings open each day at <strong style="color:#fff">1:00 PM</strong> for that same day only</li>
-        <li>Sessions are <strong style="color:#fff">30 minutes</strong> — book as many back-to-back slots as you need</li>
+        <li><strong style="color:#fff">Monday–Friday:</strong> Bookings open at <strong style="color:#fff">1:00 PM</strong> for that same day only</li>
+        <li><strong style="color:#fff">Saturday &amp; Sunday:</strong> Book any time during the day</li>
+        <li>One <strong style="color:#fff">30-minute session</strong> per day per member</li>
         <li>Pick your cage, date, and time and you're confirmed instantly</li>
       </ul>
       <div style="background:#0D1321;border:1px solid #2B3558;border-radius:6px;padding:16px;margin-bottom:16px">
