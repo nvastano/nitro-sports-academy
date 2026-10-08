@@ -352,8 +352,24 @@ async function sendMembershipActiveNotification(client, membership, env) {
   <div style="background:#1C2540;border-radius:8px;padding:28px;margin-bottom:20px">
     <h2 style="color:#fff;font-size:20px;margin:0 0 6px">Welcome to the Nitro Family, ${client.first_name}! 🎉</h2>
     <p style="color:#9AA0B4;font-size:14px;margin:0 0 16px">Your <strong style="color:#fff">${typeLabel}</strong> membership payment has been received and your membership is officially <strong style="color:#fff">active</strong>. We're pumped to have you training with us!</p>
-    <p style="color:#9AA0B4;font-size:14px;margin:0 0 16px">The owner of Nitro Sports Academy will be reaching out to you soon with your personal facility access code — this is what gets you in the door, so keep an eye on your phone and email over the next few days.</p>
-    <p style="color:#9AA0B4;font-size:14px;margin:0">If you'd like a tour before your first visit, Pedro is happy to show you around the facility and walk you through the cages — just reply to this email or give him a call to set up a time.</p>
+    <p style="color:#9AA0B4;font-size:14px;margin:0 0 24px">The owner of Nitro Sports Academy will be reaching out to you soon with your personal facility access code — this is what gets you in the door, so keep an eye on your phone and email over the next few days.</p>
+    <div style="border-top:1px solid #2B3558;padding-top:20px;margin-top:4px">
+      <h3 style="color:#E8B84B;font-size:15px;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.05em">📅 How to Book a Cage</h3>
+      <p style="color:#9AA0B4;font-size:14px;margin:0 0 12px">As a member you can book cage time day-of through our online schedule. Here's how it works:</p>
+      <ul style="color:#9AA0B4;font-size:14px;margin:0 0 16px;padding-left:20px;line-height:1.8">
+        <li>Bookings open each day at <strong style="color:#fff">1:00 PM</strong> for that same day only</li>
+        <li>Sessions are <strong style="color:#fff">30 minutes</strong> — book as many back-to-back slots as you need</li>
+        <li>Pick your cage, date, and time and you're confirmed instantly</li>
+      </ul>
+      <div style="background:#0D1321;border:1px solid #2B3558;border-radius:6px;padding:16px;margin-bottom:16px">
+        <div style="font-size:12px;color:#9AA0B4;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Member Booking Password</div>
+        <div style="font-size:22px;font-weight:700;color:#E8B84B;letter-spacing:0.08em;font-family:monospace">nitromembersonly</div>
+      </div>
+      <a href="https://nitrosportsacademy.com/schedule.html" style="display:inline-block;background:#2B4FA8;color:#fff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 24px;border-radius:6px;letter-spacing:0.05em">Book a Cage →</a>
+    </div>
+    <div style="border-top:1px solid #2B3558;padding-top:20px;margin-top:20px">
+      <p style="color:#9AA0B4;font-size:14px;margin:0">If you'd like a tour before your first visit, Pedro is happy to show you around the facility and walk you through the cages — just reply to this email or give him a call to set up a time.</p>
+    </div>
   </div>
   <p style="color:#9AA0B4;font-size:13px;text-align:center">Questions? Reply to this email or call Pedro at <a href="tel:6158708077" style="color:#3d65cc;">(615) 870-8077</a>.</p>
   <div style="text-align:center;margin-top:24px;font-size:12px;color:#6B7189">Nitro Sports Academy &middot; nitrosportsacademy.com</div>
