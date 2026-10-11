@@ -659,11 +659,6 @@ async function sendAutoConfirmedEmail(booking, id, env) {
     <p style="color:#9AA0B4;font-size:13px;margin:0 0 16px;">Save this event to your calendar. A .ics file is attached, or use the button below:</p>
     <a href="${gcalLink}" target="_blank" style="display:inline-block;background:#2B4FA8;color:#fff;text-decoration:none;padding:12px 28px;border-radius:5px;font-family:Arial,sans-serif;font-size:14px;font-weight:700;">Add to Google Calendar</a>
   </div>
-  <div style="background:#1C2540;border-radius:8px;padding:24px;margin-bottom:20px;text-align:center;border:1px solid rgba(232,184,75,0.4)">
-    <p style="color:#9AA0B4;font-size:13px;margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Building Access Code</p>
-    <p style="color:#E8B84B;font-size:28px;font-weight:700;margin:0 0 8px;letter-spacing:0.05em;">${env.GUEST_ACCESS_CODE}</p>
-    <p style="color:#9AA0B4;font-size:13px;margin:0;">Enter this code at the door to get into the building for your reserved time.</p>
-  </div>
   <div style="background:#1C2540;border-radius:8px;padding:20px;margin-bottom:20px">
     <p style="color:#9AA0B4;font-size:13px;margin:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">Location</p>
     <p style="color:#fff;font-size:14px;margin:0;">3710 John Lunn Rd, Ste 2<br>Spring Hill, TN 37174</p>
@@ -822,7 +817,7 @@ var src_default = {
         if (b.player_phone) {
           try {
             await sendSMS(env, b.player_phone,
-              `Nitro Sports Academy: You're booked! ${cageLabel} on ${b.date} at ${b.time}. Building access code: ${env.GUEST_ACCESS_CODE}. Questions? Text Pedro at 615-870-8077. Reply STOP to opt out.`
+              `Nitro Sports Academy: You're booked! ${cageLabel} on ${b.date} at ${b.time}. Questions? Text Pedro at 615-870-8077. Reply STOP to opt out.`
             );
           } catch(e) { console.error("SMS member confirm error:", e.message); }
         }
