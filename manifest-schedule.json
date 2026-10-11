@@ -1,0 +1,21 @@
+{
+  "name": "Nitro Cage Schedule",
+  "short_name": "Nitro Cages",
+  "description": "Book batting cage time at Nitro Sports Academy.",
+  "start_url": "/schedule.html",
+  "display": "standalone",
+  "background_color": "#0f1624",
+  "theme_color": "#3d65cc",
+  "icons": [
+    {
+      "src": "/images/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
