@@ -362,10 +362,6 @@ async function sendMembershipActiveNotification(client, membership, env) {
         <li>One <strong style="color:#fff">30-minute session</strong> per day per member</li>
         <li>Pick your cage, date, and time and you're confirmed instantly</li>
       </ul>
-      <div style="background:#0D1321;border:1px solid #2B3558;border-radius:6px;padding:16px;margin-bottom:16px">
-        <div style="font-size:12px;color:#9AA0B4;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px">Member Booking Password</div>
-        <div style="font-size:22px;font-weight:700;color:#E8B84B;letter-spacing:0.08em;font-family:monospace">nitromembersonly</div>
-      </div>
       <a href="https://nitrosportsacademy.com/schedule.html" style="display:inline-block;background:#2B4FA8;color:#fff;font-weight:700;font-size:14px;text-decoration:none;padding:12px 24px;border-radius:6px;letter-spacing:0.05em">Book a Cage →</a>
     </div>
     <div style="border-top:1px solid #2B3558;padding-top:20px;margin-top:20px">

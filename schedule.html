@@ -462,14 +462,6 @@ function selectDuration(mins) {
   document.getElementById('dur-60').style.background = mins === 60 ? 'var(--blue)' : 'rgba(255,255,255,0.07)';
   document.getElementById('dur-60').style.borderColor = mins === 60 ? 'rgba(61,101,204,0.5)' : 'rgba(255,255,255,0.15)';
 }
-function bookAsGuest() {
-  closePwModal();
-  if (window._pendingSlot) {
-    const { cageName, h, m } = window._pendingSlot;
-    window._pendingSlot = null;
-    openModal(cageName, h, m, true);
-  }
-}
 function closeModal() {
   document.getElementById('modal-overlay').style.display = 'none';
   document.body.style.overflow = '';
@@ -562,66 +554,13 @@ async function submitRequest() {
 }
 
 function requestSlot(cageName, h, m) {
-  if (sessionStorage.getItem('nitro-auth') === '1') {
-    openModal(cageName, h, m);
-  } else {
-    showPasswordPrompt(cageName, h, m);
-  }
-}
-
-function showPasswordPrompt(cageName, h, m) {
-  document.getElementById('pw-modal').style.display = 'flex';
-  document.getElementById('pw-input').value = '';
-  document.getElementById('pw-error').style.display = 'none';
-  document.body.style.overflow = 'hidden';
-  // Store pending slot for after auth
-  window._pendingSlot = { cageName, h, m };
-}
-
-function closePwModal() {
-  document.getElementById('pw-modal').style.display = 'none';
-  document.body.style.overflow = '';
-}
-
-function submitPassword() {
-  const val = document.getElementById('pw-input').value;
-  if (val === 'nitromembersonly') {
-    sessionStorage.setItem('nitro-auth', '1');
-    closePwModal();
-    if (window._pendingSlot) {
-      const { cageName, h, m } = window._pendingSlot;
-      window._pendingSlot = null;
-      openModal(cageName, h, m);
-    }
-  } else {
-    document.getElementById('pw-error').style.display = 'block';
-    document.getElementById('pw-input').value = '';
-  }
+  openModal(cageName, h, m);
 }
 
 updateDateDisplay();
 loadAll();
 </script>
 
-<!-- Password modal -->
-<div id="pw-modal" onclick="if(event.target===this)closePwModal()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:1001; align-items:center; justify-content:center; padding:20px;">
-  <div style="background:#1a1f2e; border:1px solid rgba(61,101,204,0.4); border-radius:10px; max-width:380px; width:100%; padding:36px 32px; position:relative; text-align:center;">
-    <button onclick="closePwModal()" style="position:absolute; top:14px; right:16px; background:none; border:none; color:#888; font-size:1.5rem; cursor:pointer; line-height:1;">&times;</button>
-    <div style="font-size:1.8rem; margin-bottom:12px;">🔒</div>
-    <h3 style="font-family:var(--font-condensed); font-size:1.3rem; color:#fff; margin:0 0 6px;">Members Only</h3>
-    <p style="color:var(--silver-dark); font-size:0.88rem; margin:0 0 20px;">Enter your member password to request this slot.</p>
-    <div style="display:flex; gap:10px;">
-      <input id="pw-input" type="password" placeholder="Password" onkeydown="if(event.key==='Enter')submitPassword()"
-        style="flex:1; padding:10px 14px; background:rgba(255,255,255,0.07); border:1px solid rgba(255,255,255,0.15); border-radius:5px; color:#fff; font-size:0.95rem; font-family:sans-serif;" />
-      <button onclick="submitPassword()" style="background:var(--blue); border:none; color:#fff; padding:10px 18px; border-radius:5px; font-family:var(--font-condensed); font-weight:700; font-size:0.9rem; text-transform:uppercase; cursor:pointer;">Go</button>
-    </div>
-    <p id="pw-error" style="display:none; color:#ff6b6b; font-size:0.82rem; margin:10px 0 0;">Incorrect password. Please try again.</p>
-    <div style="margin:18px 0 0; padding-top:16px; border-top:1px solid rgba(255,255,255,0.1);">
-      <p style="color:var(--silver-dark); font-size:0.82rem; margin:0 0 10px;">Not a member?</p>
-      <button onclick="bookAsGuest()" style="width:100%; background:rgba(232,184,75,0.15); border:1px solid rgba(232,184,75,0.4); color:var(--gold); padding:10px; border-radius:5px; font-family:var(--font-condensed); font-weight:700; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.05em; cursor:pointer;">Book as a Guest →</button>
-    </div>
-  </div>
-</div>
 
 <script src="js/main.js"></script>
   <script>
