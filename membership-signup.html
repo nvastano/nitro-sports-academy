@@ -511,7 +511,10 @@
         'input::placeholder': { color: '#9AA0B4' },
       }});
       await squareCard.attach('#card-container');
+      const errEl = document.getElementById('card-errors');
+      errEl.textContent = ''; errEl.style.display = 'none';
     } catch(e) {
+      squareCard = null;
       const errEl = document.getElementById('card-errors');
       errEl.textContent = 'Could not load card form: ' + (e.message || e) + '. Please refresh and try again.';
       errEl.style.display = 'block';
