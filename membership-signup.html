@@ -455,7 +455,7 @@
     document.getElementById('promoSection').style.display = isMonthly ? 'none' : 'block';
     document.getElementById('monthlyCardSection').style.display = isMonthly ? 'block' : 'none';
     document.getElementById('payBtn').textContent = isMonthly ? 'Start Membership →' : 'Proceed to Payment →';
-    if (isMonthly) initSquareCard();
+    if (isMonthly) requestAnimationFrame(() => initSquareCard());
   }
 
   async function applyPromoCode() {
@@ -515,6 +515,13 @@
       errEl.textContent = ''; errEl.style.display = 'none';
     } catch(e) {
       squareCard = null;
+      // Retry once after a short delay — Square sometimes needs the container fully painted
+      if (!initSquareCard._retried) {
+        initSquareCard._retried = true;
+        setTimeout(() => { initSquareCard._retried = false; initSquareCard(); }, 800);
+        return;
+      }
+      initSquareCard._retried = false;
       const errEl = document.getElementById('card-errors');
       errEl.textContent = 'Could not load card form: ' + (e.message || e) + '. Please refresh and try again.';
       errEl.style.display = 'block';
