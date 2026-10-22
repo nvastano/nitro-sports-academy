@@ -867,8 +867,8 @@ var src_default = {
         return err("Primary member name, email, and phone are required");
       }
       const waiverInput = b.waiver ?? {};
-      if (!waiverInput.signature || !waiverInput.emergency_phone || !waiverInput.participant_1_name) {
-        return err("Waiver signature and emergency phone are required");
+      if (!waiverInput.signature || !waiverInput.participant_1_name) {
+        return err("Waiver signature and participant name are required");
       }
       const kids = plan === "individual" ? [] : (b.kids ?? []);
       const email = primary.email.trim().toLowerCase();
@@ -886,7 +886,7 @@ var src_default = {
         waiverInput.participant_3_name ?? null, waiverInput.participant_3_age ?? null,
         waiverInput.guardian_name ?? `${primary.first_name} ${primary.last_name}`,
         waiverInput.guardian_email ?? email,
-        waiverInput.emergency_phone, waiverInput.signature,
+        waiverInput.emergency_phone ?? null, waiverInput.signature,
         request.headers.get("CF-Connecting-IP") ?? null, new Date().toISOString()
       ).run();
 
@@ -1025,7 +1025,7 @@ var src_default = {
     if (method === "POST" && path === "/waivers") {
       const b = await request.json();
       if (!b.participant_1_name) return err("participant_1_name is required", 400);
-      if (!b.emergency_phone) return err("emergency_phone is required", 400);
+      // emergency_phone is optional
       const id = crypto.randomUUID();
       const ip = request.headers.get("CF-Connecting-IP") ?? null;
       const signed_at = new Date().toISOString();
@@ -1042,7 +1042,7 @@ var src_default = {
         b.participant_2_name ?? null, b.participant_2_age ?? null,
         b.participant_3_name ?? null, b.participant_3_age ?? null,
         b.guardian_name ?? null, b.guardian_email ?? null,
-        b.emergency_phone, b.signature ?? null, ip, signed_at
+        b.emergency_phone ?? null, b.signature ?? null, ip, signed_at
       ).run();
       return json({ id, signed_at }, 201);
     }
