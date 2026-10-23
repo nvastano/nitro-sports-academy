@@ -883,21 +883,26 @@ var src_default = {
       const email = primary.email.trim().toLowerCase();
 
       const waiverId = uuid();
-      await env.DB.prepare(`
-        INSERT INTO waivers
-          (id, participant_1_name, participant_1_age, participant_2_name, participant_2_age,
-           participant_3_name, participant_3_age, guardian_name, guardian_email, emergency_phone,
-           signature, ip_address, signed_at)
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-      `).bind(
-        waiverId, waiverInput.participant_1_name, waiverInput.participant_1_age ?? null,
-        waiverInput.participant_2_name ?? null, waiverInput.participant_2_age ?? null,
-        waiverInput.participant_3_name ?? null, waiverInput.participant_3_age ?? null,
-        waiverInput.guardian_name ?? `${primary.first_name} ${primary.last_name}`,
-        waiverInput.guardian_email ?? email,
-        waiverInput.emergency_phone ?? null, waiverInput.signature,
-        request.headers.get("CF-Connecting-IP") ?? null, new Date().toISOString()
-      ).run();
+      try {
+        await env.DB.prepare(`
+          INSERT INTO waivers
+            (id, participant_1_name, participant_1_age, participant_2_name, participant_2_age,
+             participant_3_name, participant_3_age, guardian_name, guardian_email, emergency_phone,
+             signature, ip_address, signed_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        `).bind(
+          waiverId, waiverInput.participant_1_name, waiverInput.participant_1_age ?? null,
+          waiverInput.participant_2_name ?? null, waiverInput.participant_2_age ?? null,
+          waiverInput.participant_3_name ?? null, waiverInput.participant_3_age ?? null,
+          waiverInput.guardian_name ?? `${primary.first_name} ${primary.last_name}`,
+          waiverInput.guardian_email ?? email,
+          waiverInput.emergency_phone ?? null, waiverInput.signature,
+          request.headers.get("CF-Connecting-IP") ?? null, new Date().toISOString()
+        ).run();
+      } catch(e) {
+        console.error("Waiver INSERT error:", e.message);
+        return err("Could not save waiver. Please try again or contact us directly.", 500);
+      }
 
       // ── Monthly subscription path (card on file via Square SDK) ──────────────
       if (plan === "monthly") {
@@ -1211,7 +1216,7 @@ var src_default = {
       if (!env.IMAGES) return err("Image storage not configured", 501);
       const { value, metadata } = await env.IMAGES.getWithMetadata(imgMatch[1], { type: "arrayBuffer" });
       if (!value) return err("Not found", 404);
-      return new Response(value, { headers: { ...CORS_HEADERS, "Content-Type": metadata?.type ?? "image/jpeg", "Cache-Control": "public, max-age=31536000" } });
+      return new Response(value, { headers: { ...corsHeaders(), "Content-Type": metadata?.type ?? "image/jpeg", "Cache-Control": "public, max-age=31536000" } });
     }
 
     // POST /marketplace/listings/:id/interest — "I'm interested" notification
