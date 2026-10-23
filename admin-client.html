@@ -411,7 +411,8 @@ async function loadCageBookings() {
     </table>`;
 }
 
-function membershipLabel(type) {
+function membershipLabel(type, isMonthly) {
+  if (isMonthly) return 'Monthly Membership';
   return { individual: 'Individual', family_2: 'Family (2 siblings)', family_3plus: 'Family (3+ siblings)' }[type] ?? '—';
 }
 function badgeHtml(status) {
@@ -430,32 +431,42 @@ function renderMembership(m) {
   const card = document.getElementById('memCard');
   const prices = { individual: 395, family_2: 595, family_3plus: 645 };
   if (!m) { card.innerHTML = '<div class="empty">No membership on file. Click "Add / Renew Membership" below.</div>'; return; }
+  const isMonthly = !!m.square_subscription_id;
   const price = prices[m.type] ?? 0;
   const isHhMembership = !!m.household_id;
   card.innerHTML = `
     <div class="mem-type">
-      ${membershipLabel(m.type)}
+      ${membershipLabel(m.type, isMonthly)}
       <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
         ${isHhMembership ? `<span class="badge badge-household">Household Membership</span>` : ''}
         ${badgeHtml(m.status)}
       </div>
     </div>
+    ${isMonthly ? `
+    <div class="mem-row"><span class="mem-label">Monthly Rate</span><span class="mem-value">$40.00/mo</span></div>
+    <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
+    <div class="mem-row"><span class="mem-label">Next Billing Date</span><span class="mem-value">${m.renewal_date ?? '—'}</span></div>
+    <div class="mem-row"><span class="mem-label">Billing</span><span class="mem-value" style="color:#4caf6e">Managed by Square</span></div>
+    ` : `
     <div class="mem-row"><span class="mem-label">Annual Price</span><span class="mem-value">$${price.toFixed(2)}</span></div>
     <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
     <div class="mem-row"><span class="mem-label">Renewal Date</span><span class="mem-value">${m.renewal_date ?? '—'}</span></div>
     <div class="mem-row"><span class="mem-label">Amount Paid</span><span class="mem-value" style="color:#4caf6e">$${(m.amount_paid ?? 0).toFixed(2)}</span></div>
-    <div class="mem-row"><span class="mem-label">Balance Due</span><span class="mem-value" style="color:var(--gold)">$${(m.amount_due ?? 0).toFixed(2)}</span></div>
+    <div class="mem-row"><span class="mem-label">Balance Due</span><span class="mem-value" style="color:${(m.amount_due ?? 0) > 0 ? 'var(--gold)' : 'inherit'}">$${(m.amount_due ?? 0).toFixed(2)}</span></div>
+    `}
     ${m.promo_code ? `<div class="mem-row"><span class="mem-label">Promo Code</span><span class="mem-value" style="font-family:monospace;color:var(--blue-light)">${m.promo_code}</span></div>` : ''}
     ${m.notes ? `<div class="mem-row"><span class="mem-label">Notes</span><span class="mem-value">${m.notes}</span></div>` : ''}
-    ${m.last_renewal_email_sent ? `<div class="mem-row"><span class="mem-label">Renewal Email Sent</span><span class="mem-value" style="color:#4caf6e">${new Date(m.last_renewal_email_sent).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>` : ''}
+    ${!isMonthly && m.last_renewal_email_sent ? `<div class="mem-row"><span class="mem-label">Renewal Email Sent</span><span class="mem-value" style="color:#4caf6e">${new Date(m.last_renewal_email_sent).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})}</span></div>` : ''}
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
+      ${isMonthly ? `` : `
       <p style="color:var(--silver);font-size:0.8rem;margin-bottom:8px">BALANCE DUE</p>
       <div class="mem-due">$${(m.amount_due ?? 0).toFixed(2)}</div>
+      `}
       <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
-        <button class="btn-gold" id="renewalLinkBtn" onclick="openRenewalEmailCompose('${m.id}')">Send Payment Email</button>
-        ${(m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
+        ${!isMonthly ? `<button class="btn-gold" id="renewalLinkBtn" onclick="openRenewalEmailCompose('${m.id}')">Send Payment Email</button>` : ''}
+        ${!isMonthly && (m.amount_due ?? 0) > 0 ? `<button class="btn-primary" onclick="markMembershipPaid('${m.id}')">Mark Paid</button>` : ''}
         <button class="btn-primary" onclick='openEditMembershipModal(${JSON.stringify(m)})'>Edit</button>
-        ${m.square_subscription_id ? `<button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="cancelSubscription('${m.id}')">Cancel Subscription</button>` : ''}
+        ${isMonthly ? `<button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="cancelSubscription('${m.id}')">Cancel Subscription</button>` : ''}
         <button class="btn-sm" style="border-color:rgba(220,50,50,0.4);color:#ff7b7b" onclick="deleteMembership('${m.id}')">Delete</button>
       </div>
       <div id="renewalLinkPanel"></div>
