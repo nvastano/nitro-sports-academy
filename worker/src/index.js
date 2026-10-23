@@ -900,7 +900,7 @@ var src_default = {
           waiverInput.participant_3_name ?? null, waiverInput.participant_3_age ?? null,
           waiverInput.guardian_name ?? `${primary.first_name} ${primary.last_name}`,
           waiverInput.guardian_email ?? email,
-          waiverInput.emergency_phone ?? null, waiverInput.signature,
+          waiverInput.emergency_phone ?? primary.phone, waiverInput.signature,
           new Date().toISOString()
         ).run();
       } catch(e) {
@@ -1060,7 +1060,7 @@ var src_default = {
         b.participant_2_name ?? null, b.participant_2_age ?? null,
         b.participant_3_name ?? null, b.participant_3_age ?? null,
         b.guardian_name ?? null, b.guardian_email ?? null,
-        b.emergency_phone ?? null, b.signature ?? null, ip, signed_at
+        b.emergency_phone ?? 'N/A', b.signature ?? null, ip, signed_at
       ).run();
       return json({ id, signed_at }, 201);
     }
