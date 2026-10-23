@@ -94,6 +94,7 @@ var MEMBERSHIP_TYPE_LABEL = { individual: "Individual", family_2: "Family (2 sib
 
 function computeMembershipDue(m) {
   if (!m || !m.renewal_date || m.status !== "active") return 0;
+  if (m.square_subscription_id) return 0; // Square handles monthly billing automatically
   const price = m.custom_price ?? MEMBERSHIP_PRICES[m.type] ?? 0;
   const dueFrom = new Date(m.renewal_date);
   dueFrom.setMonth(dueFrom.getMonth() - 1);
