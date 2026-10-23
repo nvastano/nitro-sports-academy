@@ -2081,12 +2081,16 @@ var src_default = {
         const { results } = await env.DB.prepare(
           "SELECT * FROM payments WHERE client_id = ? ORDER BY date DESC"
         ).bind(clientId).all();
-        // Also pull Square subscription payments for this client
-        const client = await env.DB.prepare("SELECT square_customer_id FROM clients WHERE id = ?").bind(clientId).first();
+        // Also pull Square payments for this client
+        const client = await env.DB.prepare(
+          "SELECT c.square_customer_id, m.square_order_id, m.pending_renewal_order_id FROM clients c LEFT JOIN memberships m ON m.client_id = c.id WHERE c.id = ? ORDER BY m.created_at DESC LIMIT 1"
+        ).bind(clientId).first();
         let squarePayments = [];
+        const squareOrderIds = [client?.square_order_id, client?.pending_renewal_order_id].filter(Boolean);
+        // Fetch by customer_id (subscription members)
         if (client?.square_customer_id) {
           try {
-            const sqRes = await fetch(`${squareBase(env)}/v2/payments?customer_id=${client.square_customer_id}&sort_order=DESC&limit=20`, {
+            const sqRes = await fetch(`${squareBase(env)}/v2/payments?customer_id=${client.square_customer_id}&sort_order=DESC&limit=50`, {
               headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Square-Version": "2024-01-18" }
             });
             if (sqRes.ok) {
@@ -2099,13 +2103,39 @@ var src_default = {
                   amount: (p.amount_money?.amount ?? 0) / 100,
                   date: p.created_at?.slice(0, 10) ?? null,
                   method: "square",
-                  notes: p.status === "FAILED" ? (p.processing_fee_money ? "Payment failed" : "Payment failed") : "Square subscription payment",
+                  notes: p.status === "FAILED" ? "Payment failed" : "Square subscription payment",
                   venmo_reference: null,
                   source: "square",
                   payment_status: p.status
                 }));
             }
           } catch(e) { console.error("Square payments fetch error:", e.message); }
+        }
+        // Fetch by order_id (annual payment-link members)
+        for (const orderId of squareOrderIds) {
+          try {
+            const sqRes = await fetch(`${squareBase(env)}/v2/payments?order_id=${orderId}&sort_order=DESC`, {
+              headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Square-Version": "2024-01-18" }
+            });
+            if (sqRes.ok) {
+              const sqData = await sqRes.json();
+              for (const p of (sqData.payments ?? [])) {
+                if (!["COMPLETED", "FAILED"].includes(p.status)) continue;
+                if (squarePayments.some(sp => sp.id === `sq_${p.id}`)) continue;
+                squarePayments.push({
+                  id: `sq_${p.id}`,
+                  client_id: clientId,
+                  amount: (p.amount_money?.amount ?? 0) / 100,
+                  date: p.created_at?.slice(0, 10) ?? null,
+                  method: "square",
+                  notes: p.status === "FAILED" ? "Payment failed" : "Membership payment",
+                  venmo_reference: null,
+                  source: "square",
+                  payment_status: p.status
+                });
+              }
+            }
+          } catch(e) { console.error("Square order payment fetch error:", e.message); }
         }
         // Merge, deduplicate by date+amount, local records take precedence
         const merged = [...results];
