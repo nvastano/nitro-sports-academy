@@ -564,7 +564,22 @@
         document.getElementById('payBtn').disabled = false;
         return;
       }
+      // Buyer verification required by Square when saving a card on file
+      let verificationToken;
+      try {
+        const verificationResult = await squarePayments.verifyBuyer(result.token, {
+          intent: 'STORE',
+          billingContact: { givenName: first, familyName: last },
+        });
+        verificationToken = verificationResult.token;
+      } catch(ve) {
+        errEl.textContent = 'Card verification failed: ' + (ve.message || ve) + '. Please try again.';
+        errEl.style.display = 'block';
+        document.getElementById('payBtn').disabled = false;
+        return;
+      }
       payload.source_id = result.token;
+      payload.verification_token = verificationToken;
     }
 
     document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));

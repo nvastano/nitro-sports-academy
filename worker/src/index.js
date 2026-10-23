@@ -295,11 +295,13 @@ async function createSquareCustomer(first_name, last_name, email, phone, env) {
   return (await res.json()).customer.id;
 }
 
-async function createSquareCardOnFile(customerId, sourceId, env) {
+async function createSquareCardOnFile(customerId, sourceId, verificationToken, env) {
+  const body = { idempotency_key: uuid(), source_id: sourceId, card: { customer_id: customerId } };
+  if (verificationToken) body.verification_token = verificationToken;
   const res = await fetch(`${squareBase(env)}/v2/cards`, {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
-    body: JSON.stringify({ idempotency_key: uuid(), source_id: sourceId, card: { customer_id: customerId } })
+    body: JSON.stringify(body)
   });
   if (!res.ok) throw new Error(`Square card error ${res.status}: ${await res.text()}`);
   return (await res.json()).card.id;
@@ -931,7 +933,7 @@ var src_default = {
           const squarePhoneE164 = squarePhone.length === 10 ? `+1${squarePhone}` : undefined;
           const squareCustomerId = await createSquareCustomer(primary.first_name, primary.last_name, email, squarePhoneE164, env);
           await env.DB.prepare("UPDATE clients SET square_customer_id=? WHERE id=?").bind(squareCustomerId, clientId).run();
-          const squareCardId = await createSquareCardOnFile(squareCustomerId, sourceId, env);
+          const squareCardId = await createSquareCardOnFile(squareCustomerId, sourceId, b.verification_token ?? null, env);
           const planVariationId = await getOrCreateMonthlyPlanVariationId(env);
           const squareSubscriptionId = await createSquareSubscription(squareCustomerId, squareCardId, planVariationId, env);
           await env.DB.prepare(`
