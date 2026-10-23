@@ -927,7 +927,9 @@ var src_default = {
             `).bind(clientId, primary.first_name, primary.last_name, email, primary.phone,
               primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted").run();
           }
-          const squareCustomerId = await createSquareCustomer(primary.first_name, primary.last_name, email, primary.phone, env);
+          const squarePhone = normalizePhone(primary.phone);
+          const squarePhoneE164 = squarePhone.length === 10 ? `+1${squarePhone}` : undefined;
+          const squareCustomerId = await createSquareCustomer(primary.first_name, primary.last_name, email, squarePhoneE164, env);
           await env.DB.prepare("UPDATE clients SET square_customer_id=? WHERE id=?").bind(squareCustomerId, clientId).run();
           const squareCardId = await createSquareCardOnFile(squareCustomerId, sourceId, env);
           const planVariationId = await getOrCreateMonthlyPlanVariationId(env);
