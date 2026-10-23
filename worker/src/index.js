@@ -864,6 +864,10 @@ var src_default = {
 
       return json({ id, is_member: false, payment_required: true, price, payment_link_url: paymentLinkUrl }, 201);
     }
+    if (method === "GET" && path === "/debug-waiver-schema") {
+      const { results } = await env.DB.prepare("PRAGMA table_info(waivers)").all();
+      return json(results);
+    }
     if (method === "GET" && path === "/public-config") {
       return json({ square_app_id: env.SQUARE_APP_ID, square_location_id: env.SQUARE_LOCATION_ID });
     }
