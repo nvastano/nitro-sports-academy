@@ -888,8 +888,8 @@ var src_default = {
           INSERT INTO waivers
             (id, participant_1_name, participant_1_age, participant_2_name, participant_2_age,
              participant_3_name, participant_3_age, guardian_name, guardian_email, emergency_phone,
-             signature, ip_address, signed_at)
-          VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+             signature, signed_at)
+          VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
         `).bind(
           waiverId, waiverInput.participant_1_name, waiverInput.participant_1_age ?? null,
           waiverInput.participant_2_name ?? null, waiverInput.participant_2_age ?? null,
@@ -897,11 +897,11 @@ var src_default = {
           waiverInput.guardian_name ?? `${primary.first_name} ${primary.last_name}`,
           waiverInput.guardian_email ?? email,
           waiverInput.emergency_phone ?? null, waiverInput.signature,
-          request.headers.get("CF-Connecting-IP") ?? null, new Date().toISOString()
+          new Date().toISOString()
         ).run();
       } catch(e) {
         console.error("Waiver INSERT error:", e.message);
-        return err("Could not save waiver. Please try again or contact us directly.", 500);
+        return err(`Waiver error: ${e.message}`, 500);
       }
 
       // ── Monthly subscription path (card on file via Square SDK) ──────────────
