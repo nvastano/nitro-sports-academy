@@ -1198,6 +1198,53 @@ var src_default = {
           }
         }
       }
+      if (payload.type === "subscription.updated") {
+        const sub = payload.data?.object?.subscription;
+        if (sub?.status === "DELINQUENT" && sub.id) {
+          const membership = await env.DB.prepare(
+            "SELECT m.*, c.first_name, c.last_name, c.email, c.phone FROM memberships m LEFT JOIN clients c ON c.id = m.client_id WHERE m.square_subscription_id = ?"
+          ).bind(sub.id).first();
+          if (membership) {
+            await env.DB.prepare("UPDATE memberships SET status='past_due' WHERE id=?").bind(membership.id).run();
+            // Email alert
+            try {
+              await fetch("https://api.resend.com/emails", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  from: "Nitro Sports Academy <pedro@nitrosportsacademy.com>",
+                  reply_to: ["coach.pedro.tn@gmail.com"],
+                  to: ["coach.pedro.tn@gmail.com"],
+                  bcc: ["nicholas.vastano@gmail.com"],
+                  subject: `⚠️ Subscription Payment Failed — ${membership.first_name} ${membership.last_name}`,
+                  html: `<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;background:#0D1321;color:#C8CDD9;padding:40px 20px">
+<div style="max-width:560px;margin:0 auto">
+  <div style="font-size:1.1rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:24px"><span style="color:#3d65cc">NITRO</span> SPORTS ACADEMY</div>
+  <div style="background:#1C2540;border-radius:8px;padding:28px">
+    <h2 style="color:#ff7b7b;font-size:18px;margin:0 0 16px">⚠️ Subscription Payment Failed</h2>
+    <p style="color:#C8CDD9">Square was unable to charge the card on file for the monthly subscription.</p>
+    <table style="width:100%;border-collapse:collapse;margin-top:16px">
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Member</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${membership.first_name} ${membership.last_name}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${membership.email ?? '—'}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Phone</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${membership.phone ?? '—'}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0">Amount</td><td style="color:#ff7b7b;font-weight:700;text-align:right;padding:8px 0">$40.00</td></tr>
+    </table>
+    <p style="color:#9AA0B4;font-size:13px;margin-top:20px">Square will retry automatically. The membership has been marked <strong style="color:#ff7b7b">Past Due</strong> in the admin.</p>
+  </div>
+</div>
+</body></html>`
+                })
+              });
+            } catch(e) { console.error("Subscription failed email error:", e.message); }
+            // SMS alert to Pedro
+            try {
+              await sendSMS(env, "6158708077",
+                `Nitro: Monthly payment FAILED for ${membership.first_name} ${membership.last_name} (${membership.phone ?? membership.email}). Square will retry. Check admin.`
+              );
+            } catch(e) { console.error("Subscription failed SMS error:", e.message); }
+          }
+        }
+      }
       return json({ ok: true });
     }
     // POST /promo-codes/validate — public, check a code and return discount
@@ -2045,16 +2092,17 @@ var src_default = {
             if (sqRes.ok) {
               const sqData = await sqRes.json();
               squarePayments = (sqData.payments ?? [])
-                .filter(p => p.status === "COMPLETED")
+                .filter(p => ["COMPLETED", "FAILED"].includes(p.status))
                 .map(p => ({
                   id: `sq_${p.id}`,
                   client_id: clientId,
                   amount: (p.amount_money?.amount ?? 0) / 100,
                   date: p.created_at?.slice(0, 10) ?? null,
                   method: "square",
-                  notes: `Square subscription payment`,
+                  notes: p.status === "FAILED" ? (p.processing_fee_money ? "Payment failed" : "Payment failed") : "Square subscription payment",
                   venmo_reference: null,
-                  source: "square"
+                  source: "square",
+                  payment_status: p.status
                 }));
             }
           } catch(e) { console.error("Square payments fetch error:", e.message); }

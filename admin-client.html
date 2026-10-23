@@ -623,15 +623,22 @@ async function loadPayments() {
   const payments = await res.json();
   const tbody = document.getElementById('payTable');
   if (!payments.length) { tbody.innerHTML = '<tr><td colspan="5" class="empty">No payments recorded.</td></tr>'; return; }
-  tbody.innerHTML = payments.map(p => `
-    <tr>
+  tbody.innerHTML = payments.map(p => {
+    const failed = p.payment_status === 'FAILED';
+    return `
+    <tr style="${failed ? 'opacity:0.75' : ''}">
       <td style="color:var(--silver-light)">${p.date}</td>
-      <td style="color:#4caf6e;font-weight:600">$${parseFloat(p.amount).toFixed(2)}</td>
-      <td style="text-transform:capitalize">${p.source === 'square' ? '<span style="color:#4caf6e;font-size:0.75rem;border:1px solid #4caf6e;border-radius:4px;padding:1px 6px">Square</span>' : (p.method ?? 'venmo')}</td>
+      <td style="${failed ? 'color:#ff7b7b' : 'color:#4caf6e'};font-weight:600">${failed ? '✕ ' : ''}$${parseFloat(p.amount).toFixed(2)}</td>
+      <td>${p.source === 'square'
+        ? failed
+          ? '<span style="color:#ff7b7b;font-size:0.75rem;border:1px solid rgba(255,123,123,0.5);border-radius:4px;padding:1px 6px">Failed</span>'
+          : '<span style="color:#4caf6e;font-size:0.75rem;border:1px solid #4caf6e;border-radius:4px;padding:1px 6px">Square</span>'
+        : `<span style="text-transform:capitalize">${p.method ?? 'venmo'}</span>`}</td>
       <td style="color:var(--silver)">${p.venmo_reference ?? '—'}</td>
-      <td style="color:var(--silver)">${p.notes ?? '—'}</td>
+      <td style="color:${failed ? '#ff7b7b' : 'var(--silver)'}">${failed ? 'Payment failed — Square will retry' : (p.notes ?? '—')}</td>
       <td>${p.source === 'square' ? '' : `<button onclick="deletePayment('${p.id}')" style="background:transparent;border:none;color:#ff7b7b;cursor:pointer;font-size:1rem;padding:4px 8px" title="Delete payment">✕</button>`}</td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 }
 
 async function addPayment() {
