@@ -869,7 +869,7 @@ var src_default = {
       return json(results);
     }
     if (method === "GET" && path === "/public-config") {
-      return json({ square_app_id: env.SQUARE_APP_ID, square_location_id: env.SQUARE_LOCATION_ID });
+      return json({ square_app_id: env.SQUARE_APP_ID, square_location_id: env.SQUARE_LOCATION_ID, square_env: env.SQUARE_ENV ?? "sandbox" });
     }
     if (method === "POST" && path === "/membership-signup") {
       const b = await request.json();
