@@ -2110,32 +2110,28 @@ var src_default = {
             }
           } catch(e) { console.error("Square payments fetch error:", e.message); }
         }
-        // Annual members: fetch only their specific membership order(s)
-        const squareOrderIds = [clientRow?.square_order_id, clientRow?.pending_renewal_order_id].filter(Boolean);
-        for (const orderId of squareOrderIds) {
-          try {
-            const sqRes = await fetch(`${squareBase(env)}/v2/payments?order_id=${orderId}&sort_order=DESC`, {
-              headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Square-Version": "2024-01-18" }
-            });
-            if (sqRes.ok) {
-              const sqData = await sqRes.json();
-              for (const p of (sqData.payments ?? [])) {
-                if (!["COMPLETED", "FAILED"].includes(p.status)) continue;
-                if (squarePayments.some(sp => sp.id === `sq_${p.id}`)) continue;
-                squarePayments.push({
-                  id: `sq_${p.id}`,
-                  client_id: clientId,
-                  amount: (p.amount_money?.amount ?? 0) / 100,
-                  date: p.created_at?.slice(0, 10) ?? null,
-                  method: "square",
-                  notes: p.status === "FAILED" ? "Payment failed" : "Membership payment",
-                  venmo_reference: null,
-                  source: "square",
-                  payment_status: p.status
-                });
-              }
+        // Annual members: synthesize a payment row from the membership record itself
+        // (Square order_id can be shared with cage bookings so we avoid the API)
+        if (!clientRow?.square_subscription_id) {
+          const memberships = await env.DB.prepare(
+            "SELECT id, amount_paid, start_date, promo_code FROM memberships WHERE client_id = ? AND amount_paid > 0 ORDER BY start_date DESC"
+          ).bind(clientId).all();
+          for (const m of memberships.results ?? []) {
+            const syntheticId = `mem_${m.id}`;
+            if (!squarePayments.some(sp => sp.id === syntheticId) && !results.some(r => r.date === m.start_date && Math.abs((r.amount ?? 0) - m.amount_paid) < 0.01)) {
+              squarePayments.push({
+                id: syntheticId,
+                client_id: clientId,
+                amount: m.amount_paid,
+                date: m.start_date,
+                method: "square",
+                notes: m.promo_code ? `Membership payment (promo: ${m.promo_code})` : "Membership payment",
+                venmo_reference: null,
+                source: "square",
+                payment_status: "COMPLETED"
+              });
             }
-          } catch(e) { console.error("Square order payment fetch error:", e.message); }
+          }
         }
         // Merge, deduplicate by date+amount, local records take precedence
         const merged = [...results];
