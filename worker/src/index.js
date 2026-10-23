@@ -2082,15 +2082,14 @@ var src_default = {
           "SELECT * FROM payments WHERE client_id = ? ORDER BY date DESC"
         ).bind(clientId).all();
         // Also pull Square payments for this client
-        const client = await env.DB.prepare(
-          "SELECT c.square_customer_id, m.square_order_id, m.pending_renewal_order_id FROM clients c LEFT JOIN memberships m ON m.client_id = c.id WHERE c.id = ? ORDER BY m.created_at DESC LIMIT 1"
+        const clientRow = await env.DB.prepare(
+          "SELECT c.square_customer_id, m.square_order_id, m.pending_renewal_order_id, m.square_subscription_id FROM clients c LEFT JOIN memberships m ON m.client_id = c.id WHERE c.id = ? ORDER BY m.created_at DESC LIMIT 1"
         ).bind(clientId).first();
         let squarePayments = [];
-        const squareOrderIds = [client?.square_order_id, client?.pending_renewal_order_id].filter(Boolean);
-        // Fetch by customer_id (subscription members)
-        if (client?.square_customer_id) {
+        // Subscription members: fetch by customer_id (recurring billing, no fixed order_id per charge)
+        if (clientRow?.square_subscription_id && clientRow?.square_customer_id) {
           try {
-            const sqRes = await fetch(`${squareBase(env)}/v2/payments?customer_id=${client.square_customer_id}&sort_order=DESC&limit=50`, {
+            const sqRes = await fetch(`${squareBase(env)}/v2/payments?customer_id=${clientRow.square_customer_id}&sort_order=DESC&limit=50`, {
               headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Square-Version": "2024-01-18" }
             });
             if (sqRes.ok) {
@@ -2111,7 +2110,8 @@ var src_default = {
             }
           } catch(e) { console.error("Square payments fetch error:", e.message); }
         }
-        // Fetch by order_id (annual payment-link members)
+        // Annual members: fetch only their specific membership order(s)
+        const squareOrderIds = [clientRow?.square_order_id, clientRow?.pending_renewal_order_id].filter(Boolean);
         for (const orderId of squareOrderIds) {
           try {
             const sqRes = await fetch(`${squareBase(env)}/v2/payments?order_id=${orderId}&sort_order=DESC`, {
