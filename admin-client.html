@@ -627,10 +627,10 @@ async function loadPayments() {
     <tr>
       <td style="color:var(--silver-light)">${p.date}</td>
       <td style="color:#4caf6e;font-weight:600">$${parseFloat(p.amount).toFixed(2)}</td>
-      <td style="text-transform:capitalize">${p.method ?? 'venmo'}</td>
+      <td style="text-transform:capitalize">${p.source === 'square' ? '<span style="color:#4caf6e;font-size:0.75rem;border:1px solid #4caf6e;border-radius:4px;padding:1px 6px">Square</span>' : (p.method ?? 'venmo')}</td>
       <td style="color:var(--silver)">${p.venmo_reference ?? '—'}</td>
       <td style="color:var(--silver)">${p.notes ?? '—'}</td>
-      <td><button onclick="deletePayment('${p.id}')" style="background:transparent;border:none;color:#ff7b7b;cursor:pointer;font-size:1rem;padding:4px 8px" title="Delete payment">✕</button></td>
+      <td>${p.source === 'square' ? '' : `<button onclick="deletePayment('${p.id}')" style="background:transparent;border:none;color:#ff7b7b;cursor:pointer;font-size:1rem;padding:4px 8px" title="Delete payment">✕</button>`}</td>
     </tr>`).join('');
 }
 

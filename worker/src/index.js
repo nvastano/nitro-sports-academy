@@ -2033,7 +2033,39 @@ var src_default = {
         const { results } = await env.DB.prepare(
           "SELECT * FROM payments WHERE client_id = ? ORDER BY date DESC"
         ).bind(clientId).all();
-        return json(results);
+        // Also pull Square subscription payments for this client
+        const client = await env.DB.prepare("SELECT square_customer_id FROM clients WHERE id = ?").bind(clientId).first();
+        let squarePayments = [];
+        if (client?.square_customer_id) {
+          try {
+            const sqRes = await fetch(`${squareBase(env)}/v2/payments?customer_id=${client.square_customer_id}&sort_order=DESC&limit=20`, {
+              headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Square-Version": "2024-01-18" }
+            });
+            if (sqRes.ok) {
+              const sqData = await sqRes.json();
+              squarePayments = (sqData.payments ?? [])
+                .filter(p => p.status === "COMPLETED")
+                .map(p => ({
+                  id: `sq_${p.id}`,
+                  client_id: clientId,
+                  amount: (p.amount_money?.amount ?? 0) / 100,
+                  date: p.created_at?.slice(0, 10) ?? null,
+                  method: "square",
+                  notes: `Square subscription payment`,
+                  venmo_reference: null,
+                  source: "square"
+                }));
+            }
+          } catch(e) { console.error("Square payments fetch error:", e.message); }
+        }
+        // Merge, deduplicate by date+amount, local records take precedence
+        const merged = [...results];
+        for (const sp of squarePayments) {
+          const alreadyRecorded = results.some(r => r.date === sp.date && Math.abs((r.amount ?? 0) - sp.amount) < 0.01);
+          if (!alreadyRecorded) merged.push(sp);
+        }
+        merged.sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+        return json(merged);
       }
       if (method === "POST") {
         const b = await request.json();
