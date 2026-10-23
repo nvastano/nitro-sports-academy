@@ -2,15 +2,23 @@ var __defProp = Object.defineProperty;
 var __name = (target, value) => __defProp(target, "name", { value, configurable: true });
 
 // src/index.js
-var CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://nitrosportsacademy.com",
-  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization"
-};
+var ALLOWED_ORIGINS = [
+  "https://nitrosportsacademy.com",
+  "https://www.nitrosportsacademy.com"
+];
+var _currentRequestOrigin = null;
+function corsHeaders() {
+  const allowed = ALLOWED_ORIGINS.includes(_currentRequestOrigin) ? _currentRequestOrigin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization"
+  };
+}
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...CORS_HEADERS, "Content-Type": "application/json" }
+    headers: { ...corsHeaders(), "Content-Type": "application/json" }
   });
 }
 __name(json, "json");
@@ -722,10 +730,11 @@ async function sendCancellationEmail(booking, env) {
 __name(sendCancellationEmail, "sendCancellationEmail");
 var src_default = {
   async fetch(request, env) {
+    _currentRequestOrigin = request.headers.get("Origin");
     const url = new URL(request.url);
     const method = request.method;
     const path = url.pathname;
-    if (method === "OPTIONS") return new Response(null, { status: 204, headers: CORS_HEADERS });
+    if (method === "OPTIONS") return new Response(null, { status: 204, headers: corsHeaders() });
     if (method === "POST" && path === "/auth/login") {
       const { username, password } = await request.json();
       if (username !== env.ADMIN_USERNAME || password !== env.ADMIN_PASSWORD)
