@@ -1608,7 +1608,7 @@ var src_default = {
            ${MEMBERSHIP_JOIN}
            WHERE c.household_id = ? ORDER BY c.household_role DESC, c.first_name`
         ).bind(hid).all();
-        members.forEach(r => { if (r.membership_id) r.amount_due = computeMembershipDue({ custom_price: r.custom_price, type: r.membership_type, renewal_date: r.renewal_date, status: r.membership_status }); });
+        members.forEach(r => { if (r.membership_id) r.amount_due = computeMembershipDue({ custom_price: r.custom_price, type: r.membership_type, renewal_date: r.renewal_date, status: r.membership_status, square_subscription_id: r.square_subscription_id }); });
         const membership = await env.DB.prepare(
           "SELECT * FROM memberships WHERE household_id = ? ORDER BY (status = 'active') DESC, created_at DESC LIMIT 1"
         ).bind(hid).first();
@@ -1645,7 +1645,8 @@ var src_default = {
         SELECT c.*, h.name as household_name,
           m.type as membership_type, m.status as membership_status,
           m.start_date as membership_start_date,
-          m.renewal_date, m.amount_due, m.amount_paid, m.custom_price, m.id as membership_id
+          m.renewal_date, m.amount_due, m.amount_paid, m.custom_price, m.id as membership_id,
+          m.square_subscription_id
         FROM clients c
         LEFT JOIN households h ON h.id = c.household_id
         ${MEMBERSHIP_JOIN}
@@ -1662,7 +1663,7 @@ var src_default = {
       q += ` ORDER BY c.last_name, c.first_name`;
       const stmt = params.length ? env.DB.prepare(q).bind(...params) : env.DB.prepare(q);
       const { results } = await stmt.all();
-      results.forEach(r => { if (r.membership_id) r.amount_due = computeMembershipDue({ custom_price: r.custom_price, type: r.membership_type, renewal_date: r.renewal_date, status: r.membership_status }); });
+      results.forEach(r => { if (r.membership_id) r.amount_due = computeMembershipDue({ custom_price: r.custom_price, type: r.membership_type, renewal_date: r.renewal_date, status: r.membership_status, square_subscription_id: r.square_subscription_id }); });
       return json(results);
     }
     if (method === "GET" && path === "/leads") {

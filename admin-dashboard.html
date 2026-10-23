@@ -438,7 +438,8 @@ function setupAddressAutocomplete(inputId, suggestionsId) {
   });
 }
 
-function membershipLabel(type) {
+function membershipLabel(type, squareSubscriptionId) {
+  if (squareSubscriptionId) return 'Monthly';
   return { individual: 'Individual', family_2: 'Family (2)', family_3plus: 'Family (3+)' }[type] ?? '—';
 }
 function badgeHtml(status) {
@@ -898,14 +899,14 @@ function renderClientTable(clients) {
   tbody.innerHTML = clients.map(c => `
     <tr onclick="go('${c.id}')">
       <td><div class="client-name">${c.first_name} ${c.last_name}</div><div class="client-sub">${c.email ?? ''}</div></td>
-      <td>${membershipLabel(c.membership_type)}</td>
+      <td>${membershipLabel(c.membership_type, c.square_subscription_id)}</td>
       <td>${badgeHtml(c.membership_status)}</td>
       <td style="color:var(--silver-light)">${c.membership_start_date ?? '—'}</td>
       <td style="color:var(--silver-light)">${c.renewal_date ?? '—'}</td>
       <td style="color:var(--silver-light)">$${(c.amount_paid ?? 0).toFixed(2)}</td>
-      <td class="amount-due">$${(c.amount_due ?? 0).toFixed(2)}</td>
+      <td class="amount-due">${c.square_subscription_id ? '<span style="color:var(--silver);font-size:0.8rem">Auto</span>' : `$${(c.amount_due ?? 0).toFixed(2)}`}</td>
       <td style="color:var(--silver-light)">${c.access_code ?? '—'}</td>
-      <td>${(c.amount_due ?? 0) > 0 ? `<button onclick="event.stopPropagation();markMembershipPaid('${c.membership_id}')" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:6px;padding:6px 12px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer">Mark Paid</button>` : ''}</td>
+      <td>${!c.square_subscription_id && (c.amount_due ?? 0) > 0 ? `<button onclick="event.stopPropagation();markMembershipPaid('${c.membership_id}')" style="background:var(--gold);color:#1a1a1a;border:none;border-radius:6px;padding:6px 12px;font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer">Mark Paid</button>` : ''}</td>
     </tr>`).join('');
 }
 
