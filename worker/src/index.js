@@ -309,7 +309,7 @@ async function createSquareCardOnFile(customerId, sourceId, verificationToken, e
   });
   if (!res.ok) {
     const errText = await res.text();
-    throw new Error(`Square card error ${res.status} [env:${env.SQUARE_ENV ?? "unset"}, src:${(sourceId ?? "").slice(0, 20)}]: ${errText}`);
+    throw new Error(`Square card error ${res.status} [env:${env.SQUARE_ENV ?? "unset"}, app:${(env.SQUARE_APP_ID ?? "unset").slice(0, 15)}, src:${(sourceId ?? "").slice(0, 20)}]: ${errText}`);
   }
   return (await res.json()).card.id;
 }
