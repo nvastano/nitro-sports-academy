@@ -943,10 +943,12 @@ var src_default = {
           const squareCardId = await createSquareCardOnFile(squareCustomerId, sourceId, b.verification_token ?? null, env);
           const planVariationId = await getOrCreateMonthlyPlanVariationId(env);
           const squareSubscriptionId = await createSquareSubscription(squareCustomerId, squareCardId, planVariationId, env);
+          const numKids = (b.kids ?? []).filter(k => k.first_name).length;
+          const membershipType = numKids === 0 ? "individual" : numKids === 1 ? "family_2" : "family_3plus";
           await env.DB.prepare(`
             INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
             VALUES (?,?,?,?,?,?,?,?,?,?)
-          `).bind(membershipId, clientId, "monthly", startDate, renewalDate, 40, 0, "active", "Monthly subscription. Signed up online.", squareSubscriptionId).run();
+          `).bind(membershipId, clientId, membershipType, startDate, renewalDate, 40, 0, "active", "Monthly subscription. Signed up online.", squareSubscriptionId).run();
           try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email }, { type: "monthly", amount_paid: 40, amount_due: 0 }, env); } catch(e) { console.error("Monthly activation email error:", e.message); }
           return json({ membership_id: membershipId, status: "active" }, 201);
         } catch(e) {
