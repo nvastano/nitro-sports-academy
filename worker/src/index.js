@@ -298,12 +298,19 @@ async function createSquareCustomer(first_name, last_name, email, phone, env) {
 async function createSquareCardOnFile(customerId, sourceId, verificationToken, env) {
   const body = { idempotency_key: uuid(), source_id: sourceId, card: { customer_id: customerId } };
   if (verificationToken) body.verification_token = verificationToken;
-  const res = await fetch(`${squareBase(env)}/v2/cards`, {
+  const endpoint = `${squareBase(env)}/v2/cards`;
+  console.log("Cards API endpoint:", endpoint);
+  console.log("source_id prefix:", (sourceId ?? "null").slice(0, 30));
+  console.log("has verification_token:", !!verificationToken);
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
     body: JSON.stringify(body)
   });
-  if (!res.ok) throw new Error(`Square card error ${res.status}: ${await res.text()}`);
+  if (!res.ok) {
+    const errText = await res.text();
+    throw new Error(`Square card error ${res.status} [env:${env.SQUARE_ENV ?? "unset"}, src:${(sourceId ?? "").slice(0, 20)}]: ${errText}`);
+  }
   return (await res.json()).card.id;
 }
 
