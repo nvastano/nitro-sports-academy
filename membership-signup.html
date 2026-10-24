@@ -146,9 +146,14 @@
       <div class="step-sub">Select the membership that fits your family.</div>
       <div class="plan-grid">
         <div class="plan-card" data-plan="monthly" onclick="selectPlan('monthly')">
-          <div class="plan-name">Monthly</div>
+          <div class="plan-name">Monthly — Individual</div>
           <div class="plan-price">$40</div>
           <div class="plan-period">/ month · cancel anytime</div>
+        </div>
+        <div class="plan-card" data-plan="monthly-family" onclick="selectPlan('monthly-family')">
+          <div class="plan-name">Monthly — Family</div>
+          <div class="plan-price">$60</div>
+          <div class="plan-period">/ month · up to 4 members</div>
         </div>
         <div class="plan-card" data-plan="individual" onclick="selectPlan('individual')">
           <div class="plan-name">Individual</div>
@@ -335,11 +340,14 @@
     }
     if (n === 3) {
       const isFamily = selectedPlan === 'family_2' || selectedPlan === 'family_3plus';
-      document.getElementById('step3Title').textContent = isFamily ? 'Player Information' : 'Player Information';
-      document.getElementById('step3Sub').textContent = isFamily
+      const isMonthlyFamily = selectedPlan === 'monthly-family';
+      document.getElementById('step3Sub').textContent = isMonthlyFamily
+        ? 'Add up to 3 additional family members (primary account holder is already included).'
+        : isFamily
         ? 'Add each child who will be using the membership.'
         : 'Tell us about the athlete who will be using this membership.';
-      document.getElementById('addPlayerBtn').style.display = isFamily ? 'block' : 'none';
+      document.getElementById('addPlayerBtn').style.display = (isFamily || isMonthlyFamily) ? 'block' : 'none';
+      document.getElementById('addPlayerBtn').textContent = isMonthlyFamily ? '+ Add Family Member' : '+ Add Another Player';
       if (!document.querySelectorAll('.kid-card').length) addKid();
     }
     showStep(n);
@@ -348,14 +356,22 @@
   function prevStepFrom4() { return 3; }
 
   function addKid() {
+    const isMonthlyFamily = selectedPlan === 'monthly-family';
+    const maxExtra = isMonthlyFamily ? 3 : 99;
+    if (document.querySelectorAll('.kid-card').length >= maxExtra) {
+      alert(isMonthlyFamily ? 'Monthly Family plan covers up to 4 members total (primary + 3 additional).' : 'Maximum members reached.');
+      return;
+    }
     kidCount++;
     const id = kidCount;
+    const currentCount = document.querySelectorAll('.kid-card').length + 1;
+    const label = isMonthlyFamily ? `Family Member ${currentCount}` : `Child ${currentCount}`;
     const div = document.createElement('div');
     div.className = 'kid-card';
     div.id = `kid-${id}`;
     div.innerHTML = `
       <button class="remove-kid" onclick="removeKid(${id})">Remove</button>
-      <div class="kid-title">Child ${id}</div>
+      <div class="kid-title">${label}</div>
       <div class="form-row-2">
         <div><label>First Name *</label><input type="text" class="kid-first" required></div>
         <div><label>Last Name</label><input type="text" class="kid-last"></div>
@@ -421,8 +437,8 @@
     showStep(5);
   }
 
-  const PLAN_LABELS = { individual: 'Individual', family_2: 'Family (up to 2 siblings)', family_3plus: 'Family (3+ siblings)', monthly: 'Monthly' };
-  const PLAN_PRICES = { individual: 395, family_2: 595, family_3plus: 645, monthly: 40 };
+  const PLAN_LABELS = { individual: 'Individual', family_2: 'Family (up to 2 siblings)', family_3plus: 'Family (3+ siblings)', monthly: 'Monthly', 'monthly-family': 'Monthly Family' };
+  const PLAN_PRICES = { individual: 395, family_2: 595, family_3plus: 645, monthly: 40, 'monthly-family': 60 };
   function renderReview() {
     const first = document.getElementById('p-first').value.trim();
     const last = document.getElementById('p-last').value.trim();
@@ -446,16 +462,19 @@
       html += `<div class="review-row"><span class="review-label">Promo (${appliedPromo.code})</span><span class="review-value" style="color:#4caf6e">-$${appliedPromo.discount.toFixed(2)}</span></div>`;
     }
     const isMonthly = selectedPlan === 'monthly';
-    const totalLabel = isMonthly ? 'Due Today' : 'Total Due Today';
-    const totalAmount = isMonthly ? '$40/mo' : `$${finalPrice}`;
+    const isMonthlyFamily = selectedPlan === 'monthly-family';
+    const isAnyMonthly = isMonthly || isMonthlyFamily;
+    const totalLabel = isAnyMonthly ? 'Due Today' : 'Total Due Today';
+    const totalAmount = isMonthlyFamily ? '$60/mo' : isMonthly ? '$40/mo' : `$${finalPrice}`;
     html += `<div class="review-total"><span class="label">${totalLabel}</span><span class="amount">${totalAmount}</span></div>`;
+    if (isMonthlyFamily) html += `<div style="font-size:0.8rem;color:#888;text-align:center;margin-top:4px;">Covers up to 4 family members · Access code provided by Pedro</div>`;
     document.getElementById('reviewBox').innerHTML = html;
 
     // Show/hide promo section and card capture based on plan
-    document.getElementById('promoSection').style.display = isMonthly ? 'none' : 'block';
-    document.getElementById('monthlyCardSection').style.display = isMonthly ? 'block' : 'none';
-    document.getElementById('payBtn').textContent = isMonthly ? 'Start Membership →' : 'Proceed to Payment →';
-    if (isMonthly) requestAnimationFrame(() => initSquareCard());
+    document.getElementById('promoSection').style.display = isAnyMonthly ? 'none' : 'block';
+    document.getElementById('monthlyCardSection').style.display = isAnyMonthly ? 'block' : 'none';
+    document.getElementById('payBtn').textContent = isAnyMonthly ? 'Start Membership →' : 'Proceed to Payment →';
+    if (isAnyMonthly) requestAnimationFrame(() => initSquareCard());
   }
 
   async function applyPromoCode() {
@@ -545,14 +564,18 @@
         signature: document.getElementById('w-signature').value.trim(),
       },
     };
-    if (selectedPlan !== 'individual' && selectedPlan !== 'monthly') {
+    if (selectedPlan !== 'individual' && selectedPlan !== 'monthly' && selectedPlan !== 'monthly-family') {
+      const kids = getKids();
+      if (kids[0]) { payload.waiver.participant_2_name = kids[0].first_name; }
+      if (kids[1]) { payload.waiver.participant_3_name = kids[1].first_name; }
+    } else if (selectedPlan === 'monthly-family') {
       const kids = getKids();
       if (kids[0]) { payload.waiver.participant_2_name = kids[0].first_name; }
       if (kids[1]) { payload.waiver.participant_3_name = kids[1].first_name; }
     }
 
-    // Monthly: tokenize card first
-    if (selectedPlan === 'monthly') {
+    // Monthly / Monthly-Family: tokenize card first
+    if (selectedPlan === 'monthly' || selectedPlan === 'monthly-family') {
       if (!squareCard) { showError('Card form not ready. Please refresh and try again.'); return; }
       const errEl = document.getElementById('card-errors');
       errEl.style.display = 'none';
@@ -593,11 +616,12 @@
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Server error');
       document.getElementById('loadingBox').style.display = 'none';
-      if (selectedPlan === 'monthly') {
-        // Monthly is active immediately — no redirect to Square needed
+      if (selectedPlan === 'monthly' || selectedPlan === 'monthly-family') {
+        // Monthly plans are active immediately — no redirect to Square needed
         document.getElementById('successBox').style.display = 'block';
-        document.getElementById('successBox').querySelector('p').textContent =
-          'Your monthly membership is active! Pedro will be in touch shortly with your facility access code.';
+        document.getElementById('successBox').querySelector('p').textContent = selectedPlan === 'monthly-family'
+          ? 'Your Monthly Family membership is active! Pedro will be in touch shortly with your family\'s facility access code.'
+          : 'Your monthly membership is active! Pedro will be in touch shortly with your facility access code.';
       } else {
         document.getElementById('successBox').style.display = 'block';
         document.getElementById('payLink').href = data.payment_link_url;

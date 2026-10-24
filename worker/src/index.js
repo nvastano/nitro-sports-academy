@@ -951,6 +951,46 @@ var src_default = {
         return err(`Waiver error: ${e.message}`, 500);
       }
 
+      // ── Monthly Family subscription path ─────────────────────────────────────
+      if (plan === "monthly-family") {
+        const sourceId = b.source_id;
+        if (!sourceId) return err("Payment source required for monthly-family plan");
+        const membershipId = uuid();
+        const primaryClientId = uuid();
+        const startDate = new Date().toISOString().slice(0, 10);
+        const nextMonth = new Date(); nextMonth.setMonth(nextMonth.getMonth() + 1);
+        const renewalDate = nextMonth.toISOString().slice(0, 10);
+        try {
+          const existingClient = await env.DB.prepare("SELECT id FROM clients WHERE trim(lower(email))=?").bind(email).first();
+          const clientId = existingClient ? existingClient.id : primaryClientId;
+          if (!existingClient) {
+            await env.DB.prepare(`
+              INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
+              VALUES (?,?,?,?,?,?,?,?)
+            `).bind(clientId, primary.first_name, primary.last_name, email, primary.phone,
+              primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted").run();
+          }
+          const squarePhone = normalizePhone(primary.phone);
+          const squarePhoneE164 = squarePhone.length === 10 ? `+1${squarePhone}` : undefined;
+          const squareCustomerId = await createSquareCustomer(primary.first_name, primary.last_name, email, squarePhoneE164, env);
+          await env.DB.prepare("UPDATE clients SET square_customer_id=? WHERE id=?").bind(squareCustomerId, clientId).run();
+          const squareCardId = await createSquareCardOnFile(squareCustomerId, sourceId, b.verification_token ?? null, env);
+          const planVariationId = await getOrCreateFamilyMonthlyPlanVariationId(env);
+          const squareSubscriptionId = await createSquareSubscription(squareCustomerId, squareCardId, planVariationId, env);
+          // family_3plus covers any family size (up to 4 members)
+          await env.DB.prepare(`
+            INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
+            VALUES (?,?,?,?,?,?,?,?,?,?)
+          `).bind(membershipId, clientId, "family_3plus", startDate, renewalDate, 60, 0, "active", "Monthly Family subscription ($60/mo, up to 4 members). Signed up online.", squareSubscriptionId).run();
+          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email }, { type: "monthly-family", amount_paid: 60, amount_due: 0 }, env); } catch(e) { console.error("Monthly family activation email error:", e.message); }
+          return json({ membership_id: membershipId, status: "active" }, 201);
+        } catch(e) {
+          console.error("Monthly family signup error:", e.message);
+          return err(e.message || "Could not set up subscription. Please contact us directly.", 500);
+        }
+      }
+      // ─────────────────────────────────────────────────────────────────────────
+
       // ── Monthly subscription path (card on file via Square SDK) ──────────────
       if (plan === "monthly") {
         const sourceId = b.source_id;

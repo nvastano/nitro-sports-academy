@@ -126,16 +126,34 @@
         <div class="tier-badge" style="background:rgba(43,79,168,0.15);color:#7ca3f5;border:1px solid rgba(43,79,168,0.3);">🗓️ Monthly</div>
         <h3 style="font-size:1.2rem;">Monthly Membership</h3>
         <p class="desc" style="font-size:0.88rem;">No long commitment. Train month-to-month and cancel whenever you need to.</p>
-        <div class="big-price" style="font-size:2.4rem;"><span>$</span>40</div>
+        <div style="display:flex;gap:8px;margin:12px 0;">
+          <button id="monthlyToggleIndividual" onclick="setMonthlyType('individual')" style="flex:1;padding:7px 10px;border-radius:6px;border:2px solid #7ca3f5;background:#7ca3f5;color:#fff;font-weight:700;cursor:pointer;font-size:0.82rem;">Individual</button>
+          <button id="monthlyToggleFamily" onclick="setMonthlyType('family')" style="flex:1;padding:7px 10px;border-radius:6px;border:2px solid #7ca3f5;background:transparent;color:#7ca3f5;font-weight:700;cursor:pointer;font-size:0.82rem;">Family</button>
+        </div>
+        <div class="big-price" style="font-size:2.4rem;"><span>$</span><span id="monthlyPriceNum">40</span></div>
         <div class="big-price-period">/ month · cancel anytime</div>
+        <div id="monthlyFamilyNote" style="display:none;font-size:0.82rem;color:#7ca3f5;margin:4px 0 8px;">Up to 4 family members on one plan</div>
         <ul class="feature-list" style="font-size:0.88rem;">
           <li>Unlimited batting cage use during open hours</li>
           <li>Access to all 3 batting cages (baseball &amp; softball)</li>
           <li>Month-to-month — no annual contract</li>
-          <li>One guest allowed per visit ($20 guest fee)</li>
+          <li id="monthlyGuestNote">One guest allowed per visit ($20 guest fee)</li>
           <li>Signed waiver required to enter cages</li>
         </ul>
-        <a href="membership-signup.html?plan=monthly" class="btn btn-primary">Get Started →</a>
+        <a id="monthlyGetStartedBtn" href="membership-signup.html?plan=monthly" class="btn btn-primary">Get Started →</a>
+        <script>
+          function setMonthlyType(type) {
+            var isFamily = type === 'family';
+            document.getElementById('monthlyPriceNum').textContent = isFamily ? '60' : '40';
+            document.getElementById('monthlyFamilyNote').style.display = isFamily ? 'block' : 'none';
+            document.getElementById('monthlyGuestNote').textContent = isFamily ? 'All family members share one access code' : 'One guest allowed per visit ($20 guest fee)';
+            document.getElementById('monthlyGetStartedBtn').href = isFamily ? 'membership-signup.html?plan=monthly-family' : 'membership-signup.html?plan=monthly';
+            document.getElementById('monthlyToggleIndividual').style.background = isFamily ? 'transparent' : '#7ca3f5';
+            document.getElementById('monthlyToggleIndividual').style.color = isFamily ? '#7ca3f5' : '#fff';
+            document.getElementById('monthlyToggleFamily').style.background = isFamily ? '#7ca3f5' : 'transparent';
+            document.getElementById('monthlyToggleFamily').style.color = isFamily ? '#fff' : '#7ca3f5';
+          }
+        </script>
       </div>
 
       <div class="membership-full-card" style="padding:28px 24px;">
