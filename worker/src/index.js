@@ -89,8 +89,8 @@ async function assertAccessCodeAvailable(code, env, excludeClientId) {
   if (existing && existing.id !== excludeClientId) throw new Error("That access code is already in use by another client");
 }
 __name(assertAccessCodeAvailable, "assertAccessCodeAvailable");
-var MEMBERSHIP_PRICES = { individual: 395, family_2: 595, family_3plus: 645, monthly: 40 };
-var MEMBERSHIP_TYPE_LABEL = { individual: "Individual", family_2: "Family (2 siblings)", family_3plus: "Family (3+ siblings)", monthly: "Monthly" };
+var MEMBERSHIP_PRICES = { individual: 395, family_2: 595, family_3plus: 645, monthly: 40, "monthly-family": 60 };
+var MEMBERSHIP_TYPE_LABEL = { individual: "Individual", family_2: "Family (2 siblings)", family_3plus: "Family (3+ siblings)", monthly: "Monthly", "monthly-family": "Monthly Family" };
 
 function computeMembershipDue(m) {
   if (!m || !m.renewal_date || m.status !== "active") return 0;
@@ -283,6 +283,39 @@ async function getOrCreateMonthlyPlanVariationId(env) {
   const variationId = data.id_mappings?.find(m => m.client_object_id === "#nitro-monthly-variation")?.object_id;
   if (!variationId) throw new Error("Could not determine plan variation ID from Square response");
   await env.DB.prepare("INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)").bind("square_monthly_plan_variation_id", variationId).run();
+  return variationId;
+}
+
+async function getOrCreateFamilyMonthlyPlanVariationId(env) {
+  const cached = await env.DB.prepare("SELECT value FROM settings WHERE key='square_monthly_family_plan_variation_id'").first();
+  if (cached) return cached.value;
+  const res = await fetch(`${squareBase(env)}/v2/catalog/object`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
+    body: JSON.stringify({
+      idempotency_key: "nitro-monthly-family-plan-v1",
+      object: {
+        type: "SUBSCRIPTION_PLAN",
+        id: "#nitro-monthly-family-plan",
+        subscription_plan_data: {
+          name: "Nitro Sports Academy Monthly Family",
+          subscription_plan_variations: [{
+            type: "SUBSCRIPTION_PLAN_VARIATION",
+            id: "#nitro-monthly-family-variation",
+            subscription_plan_variation_data: {
+              name: "Monthly Family $60",
+              phases: [{ cadence: "MONTHLY", pricing: { type: "STATIC", price_money: { amount: 6000, currency: "USD" } } }]
+            }
+          }]
+        }
+      }
+    })
+  });
+  if (!res.ok) throw new Error(`Square family plan create error ${res.status}: ${await res.text()}`);
+  const data = await res.json();
+  const variationId = data.id_mappings?.find(m => m.client_object_id === "#nitro-monthly-family-variation")?.object_id;
+  if (!variationId) throw new Error("Could not determine family plan variation ID from Square response");
+  await env.DB.prepare("INSERT OR REPLACE INTO settings (key,value) VALUES (?,?)").bind("square_monthly_family_plan_variation_id", variationId).run();
   return variationId;
 }
 
