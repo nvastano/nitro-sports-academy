@@ -365,20 +365,31 @@ async function createSquareSubscription(customerId, cardId, planVariationId, env
   return (await res.json()).subscription.id;
 }
 
-async function sendMembershipActiveNotification(client, membership, env) {
+async function sendMembershipActiveNotification(client, membership, env, kids = []) {
   const typeLabel = MEMBERSHIP_TYPE_LABEL[membership.type] ?? membership.type;
+  const isMonthly = membership.type === "monthly" || membership.type === "monthly-family";
+  const price = membership.amount_paid ?? MEMBERSHIP_PRICES[membership.type] ?? 0;
+  const priceDisplay = isMonthly ? `$${price}/mo` : `$${price}`;
+  const kidsRows = kids.filter(k => k?.first_name).map(k =>
+    `<tr><td style="color:#9AA0B4;padding:6px 0;border-bottom:1px solid #2B3558;padding-left:16px">↳ ${k.first_name} ${k.last_name ?? ""}</td><td style="color:#9AA0B4;font-size:12px;text-align:right;padding:6px 0;border-bottom:1px solid #2B3558">family member</td></tr>`
+  ).join("");
   const adminHtml = `<!DOCTYPE html><html><body style="margin:0;padding:0;background:#0D1321;font-family:Arial,sans-serif;color:#C8CDD9">
 <div style="max-width:560px;margin:0 auto;padding:40px 20px">
   <div style="font-family:Arial,sans-serif;font-size:1.1rem;font-weight:700;text-transform:uppercase;color:#fff;margin-bottom:24px"><span style="color:#3d65cc">NITRO</span> SPORTS ACADEMY</div>
-  <div style="background:#1C2540;border-radius:8px;padding:28px;margin-bottom:20px">
-    <h2 style="color:#fff;font-size:18px;margin:0 0 16px">💰 New Membership Payment Received</h2>
-    <p style="color:#9AA0B4;font-size:14px;margin:0 0 16px">Send this member their facility access code.</p>
+  <div style="background:#1C2540;border-radius:8px;padding:28px;margin-bottom:16px">
+    <h2 style="color:#fff;font-size:18px;margin:0 0 20px">💰 New Membership Payment Received</h2>
     <table style="width:100%;border-collapse:collapse">
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Name</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${client.first_name} ${client.last_name}</td></tr>
+      ${kidsRows}
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Plan</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${typeLabel}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Amount Paid</td><td style="color:#4ADE80;font-weight:700;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${priceDisplay}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${client.email ?? "—"}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0">Phone</td><td style="color:#fff;text-align:right;padding:8px 0">${client.phone ?? "—"}</td></tr>
     </table>
+  </div>
+  <div style="background:#1E3A1E;border:1px solid #2D5A2D;border-radius:8px;padding:20px;margin-bottom:16px">
+    <p style="color:#4ADE80;font-weight:700;font-size:15px;margin:0 0 6px">⚡ Action Required</p>
+    <p style="color:#A7F3A7;font-size:14px;margin:0">Send <strong>${client.first_name}</strong> their facility access code so they can get in the door. Reply to their email or text them at the number above.</p>
   </div>
   <p style="color:#9AA0B4;font-size:13px;text-align:center">View this member at <a href="https://nitrosportsacademy.com/admin-dashboard.html" style="color:#3d65cc">the admin dashboard</a>.</p>
 </div>
@@ -982,7 +993,7 @@ var src_default = {
             INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
             VALUES (?,?,?,?,?,?,?,?,?,?)
           `).bind(membershipId, clientId, "family_3plus", startDate, renewalDate, 60, 0, "active", "Monthly Family subscription ($60/mo, up to 4 members). Signed up online.", squareSubscriptionId).run();
-          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email }, { type: "monthly-family", amount_paid: 60, amount_due: 0 }, env); } catch(e) { console.error("Monthly family activation email error:", e.message); }
+          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email, phone: primary.phone }, { type: "monthly-family", amount_paid: 60, amount_due: 0 }, env, b.kids ?? []); } catch(e) { console.error("Monthly family activation email error:", e.message); }
           return json({ membership_id: membershipId, status: "active" }, 201);
         } catch(e) {
           console.error("Monthly family signup error:", e.message);
@@ -1023,7 +1034,7 @@ var src_default = {
             INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
             VALUES (?,?,?,?,?,?,?,?,?,?)
           `).bind(membershipId, clientId, membershipType, startDate, renewalDate, 40, 0, "active", "Monthly subscription. Signed up online.", squareSubscriptionId).run();
-          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email }, { type: "monthly", amount_paid: 40, amount_due: 0 }, env); } catch(e) { console.error("Monthly activation email error:", e.message); }
+          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email, phone: primary.phone }, { type: "monthly", amount_paid: 40, amount_due: 0 }, env, b.kids ?? []); } catch(e) { console.error("Monthly activation email error:", e.message); }
           return json({ membership_id: membershipId, status: "active" }, 201);
         } catch(e) {
           console.error("Monthly signup error:", e.message);
