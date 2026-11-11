@@ -159,15 +159,19 @@
   <h1>Dashboard</h1>
 
   <div class="stats">
-    <button class="stat" onclick="goToClients()"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Total Clients<span class="go-arrow">→</span></div></button>
-
-    <button class="stat" onclick="goToRenewals()"><div class="stat-num" id="stat-renewals">—</div><div class="stat-label">Renewals This Month<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToActiveClients()"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Active Members<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToMonthlyClients()"><div class="stat-num" id="stat-monthly">—</div><div class="stat-label">Monthly<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToExpiredClients()"><div class="stat-num" id="stat-expired">—</div><div class="stat-label">Expired<span class="go-arrow">→</span></div></button>
+    <button class="stat" onclick="goToRenewals()"><div class="stat-num" id="stat-renewals">—</div><div class="stat-label">Unpaid / Due Soon<span class="go-arrow">→</span></div></button>
     <button class="stat" onclick="goToBalanceOwed()"><div class="stat-num" id="stat-due">—</div><div class="stat-label">Balance Owed<span class="go-arrow">→</span></div></button>
   </div>
 
   <div class="renewals" id="renewals-section">
-    <h2>⚠ Unpaid Balances &amp; Renewals Due in Next 30 Days</h2>
-    <div id="renewals-list"><div class="loading">Loading…</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none" onclick="toggleRenewals()">
+      <h2 style="margin-bottom:0">⚠ Unpaid Balances &amp; Renewals Due Soon <span id="renewals-count-badge" style="display:none;background:rgba(220,50,50,0.2);color:#ff7b7b;border:1px solid rgba(220,50,50,0.3);border-radius:12px;font-size:0.7rem;font-weight:700;padding:2px 8px;margin-left:8px;font-family:'Barlow',sans-serif;letter-spacing:0.04em;text-transform:none;vertical-align:middle"></span></h2>
+      <span id="renewals-toggle-icon" style="color:var(--gold);font-size:1rem;transition:transform 0.2s">▼</span>
+    </div>
+    <div id="renewals-list" style="margin-top:16px"><div class="loading">Loading…</div></div>
   </div>
 
   <div class="view-tabs">
@@ -190,14 +194,15 @@
       <select id="statusFilter" onchange="filterClients()">
         <option value="">All Statuses</option>
         <option value="active">Active</option>
-        <option value="expired">Expired</option>
+        <option value="expired">Inactive</option>
         <option value="pending">Pending</option>
       </select>
       <select id="membershipFilter" onchange="filterClients()">
         <option value="">All Membership Types</option>
-        <option value="individual">Individual</option>
-        <option value="family_2">Family (2)</option>
-        <option value="family_3plus">Family (3+)</option>
+        <option value="monthly">Monthly (Auto-pay)</option>
+        <option value="individual">Individual (Annual)</option>
+        <option value="family_2">Family (2) Annual</option>
+        <option value="family_3plus">Family (3+) Annual</option>
       </select>
       <button class="btn-add" onclick="openNewMemberModal()">+ New Member</button>
     </div>
@@ -444,7 +449,8 @@ function membershipLabel(type, squareSubscriptionId) {
 }
 function badgeHtml(status) {
   const cls = { active: 'badge-active', expired: 'badge-expired', pending: 'badge-pending' }[status] ?? 'badge-pending';
-  return `<span class="badge ${cls}">${status ?? 'none'}</span>`;
+  const label = { active: 'Active', expired: 'Inactive', pending: 'Pending' }[status] ?? (status ?? 'None');
+  return `<span class="badge ${cls}">${label}</span>`;
 }
 
 function switchView(name) {
@@ -522,9 +528,32 @@ async function loadUsage() {
 
 function goToClients() {
   switchView('clients');
+  document.getElementById('statusFilter').value = '';
+  filterClients();
   document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+function goToActiveClients() {
+  switchView('clients');
+  document.getElementById('statusFilter').value = 'active';
+  filterClients();
+  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToMonthlyClients() {
+  switchView('clients');
+  document.getElementById('statusFilter').value = 'active';
+  document.getElementById('membershipFilter').value = 'monthly';
+  filterClients();
+  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function goToExpiredClients() {
+  switchView('clients');
+  document.getElementById('statusFilter').value = 'expired';
+  filterClients();
+  document.querySelector('.view-tabs').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function goToBalanceOwed() {
   switchView('clients');
@@ -537,9 +566,22 @@ function goToBalanceOwed() {
 
 function goToRenewals() {
   const el = document.getElementById('renewals-section');
+  expandRenewals();
   el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   el.classList.add('flash');
   setTimeout(() => el.classList.remove('flash'), 1200);
+}
+
+let _renewalsExpanded = true;
+function toggleRenewals() {
+  _renewalsExpanded = !_renewalsExpanded;
+  document.getElementById('renewals-list').style.display = _renewalsExpanded ? '' : 'none';
+  document.getElementById('renewals-toggle-icon').style.transform = _renewalsExpanded ? '' : 'rotate(-90deg)';
+}
+function expandRenewals() {
+  _renewalsExpanded = true;
+  document.getElementById('renewals-list').style.display = '';
+  document.getElementById('renewals-toggle-icon').style.transform = '';
 }
 
 async function loadLeads() {
@@ -583,9 +625,13 @@ async function loadRenewals() {
   if (res.status === 401) { logout(); return; }
   const data = await res.json();
   document.getElementById('stat-renewals').textContent = data.length;
+  const badge = document.getElementById('renewals-count-badge');
+  if (data.length > 0) { badge.textContent = data.length; badge.style.display = 'inline'; } else { badge.style.display = 'none'; }
+  // Auto-collapse if many items and user hasn't expanded
+  if (data.length > 5 && _renewalsExpanded) { toggleRenewals(); }
   const el = document.getElementById('renewals-list');
   const today = new Date().toISOString().slice(0,10);
-  if (!data.length) { el.innerHTML = '<div style="color:var(--silver);font-size:0.9rem">No renewals past due or due in the next 30 days.</div>'; return; }
+  if (!data.length) { el.innerHTML = '<div style="color:var(--silver);font-size:0.9rem">No unpaid balances or renewals due in the next 30 days. ✓</div>'; return; }
   el.innerHTML = data.map(r => {
     const isPastDue = r.renewal_date < today;
     return `
@@ -831,7 +877,12 @@ async function loadClients() {
   if (res.status === 401) { logout(); return; }
   allClients = await res.json();
   const clients = allClients.filter(c => !!c.membership_type);
-  document.getElementById('stat-total').textContent = clients.length;
+  const activeClients = clients.filter(c => c.membership_status === 'active');
+  const monthlyClients = activeClients.filter(c => c.square_subscription_id);
+  const expiredClients = clients.filter(c => c.membership_status === 'expired');
+  document.getElementById('stat-total').textContent = activeClients.length;
+  document.getElementById('stat-monthly').textContent = monthlyClients.length;
+  document.getElementById('stat-expired').textContent = expiredClients.length;
   const totalDue = clients.reduce((s, c) => s + (c.amount_due ?? 0), 0);
   document.getElementById('stat-due').textContent = `$${totalDue.toFixed(0)}`;
   filterClients();
@@ -853,7 +904,9 @@ function filterClients() {
   let filtered = allClients.filter(c => {
     if (!c.membership_type) return false;
     const match = !s || [c.first_name, c.last_name, c.email, c.current_team, c.household_name].some(v => (v ?? '').toLowerCase().includes(s));
-    return match && (!status || c.membership_status === status) && (!membershipType || c.membership_type === membershipType);
+    const typeMatch = !membershipType ||
+      (membershipType === 'monthly' ? !!c.square_subscription_id : (c.membership_type === membershipType && !c.square_subscription_id));
+    return match && (!status || c.membership_status === status) && typeMatch;
   });
   filtered = applyClientSort(filtered);
   renderClientTable(filtered);
