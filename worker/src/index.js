@@ -1480,18 +1480,15 @@ var src_default = {
 
     // ── Temp debug (no auth) ─────────────────────────────────────────────────
     if (method === "GET" && path === "/debug/square-subscription-id") {
-      const email = url.searchParams.get("email");
-      if (!email) return err("email param required");
-      const client = await env.DB.prepare("SELECT id, square_customer_id FROM clients WHERE trim(lower(email))=?").bind(email.trim().toLowerCase()).first();
-      if (!client) return json({ error: "client not found in D1" });
-      if (!client.square_customer_id) return json({ error: "no square_customer_id on this client", client_id: client.id });
+      const customerId = url.searchParams.get("customer_id") ?? "664YFWDZZ0FH8K242C6JKRMVEW";
       const res = await fetch(`${squareBase(env)}/v2/subscriptions/search`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
-        body: JSON.stringify({ query: { filter: { customer_ids: [client.square_customer_id] } } })
+        body: JSON.stringify({ query: { filter: { customer_ids: [customerId] } } })
       });
       const data = await res.json();
-      return json({ client_id: client.id, square_customer_id: client.square_customer_id, subscriptions: data.subscriptions ?? [] });
+      const subs = (data.subscriptions ?? []).map(s => ({ id: s.id, status: s.status, plan_variation_id: s.plan_variation_id, start_date: s.start_date }));
+      return json({ customer_id: customerId, subscriptions: subs, raw_errors: data.errors ?? null });
     }
 
     // ── Marketplace (admin-only below) ──────────────────────────────────────
