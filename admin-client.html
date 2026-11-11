@@ -443,7 +443,7 @@ function renderMembership(m) {
       </div>
     </div>
     ${isMonthly ? `
-    <div class="mem-row"><span class="mem-label">Monthly Rate</span><span class="mem-value">$40.00/mo</span></div>
+    <div class="mem-row"><span class="mem-label">Monthly Rate</span><span class="mem-value">$${(m.amount_paid ?? 40).toFixed(2)}/mo</span></div>
     <div class="mem-row"><span class="mem-label">Start Date</span><span class="mem-value">${m.start_date ?? '—'}</span></div>
     <div class="mem-row"><span class="mem-label">Next Billing Date</span><span class="mem-value">${m.renewal_date ?? '—'}</span></div>
     <div class="mem-row"><span class="mem-label">Billing</span><span class="mem-value" style="color:#4caf6e">Managed by Square</span></div>
