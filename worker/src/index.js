@@ -1929,16 +1929,20 @@ var src_default = {
     const cancelSubMatch = path.match(/^\/memberships\/([^/]+)\/cancel-subscription$/);
     if (cancelSubMatch && method === "POST") {
       const mid = cancelSubMatch[1];
-      const m = await env.DB.prepare("SELECT * FROM memberships WHERE id=?").bind(mid).first();
-      if (!m) return err("Membership not found", 404);
-      if (!m.square_subscription_id) return err("No active subscription to cancel", 400);
-      const res = await fetch(`${squareBase(env)}/v2/subscriptions/${m.square_subscription_id}/cancel`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" }
-      });
-      if (!res.ok) throw new Error(`Square cancel error ${res.status}: ${await res.text()}`);
-      await env.DB.prepare("UPDATE memberships SET status='expired', square_subscription_id=NULL WHERE id=?").bind(mid).run();
-      return json({ ok: true });
+      try {
+        const m = await env.DB.prepare("SELECT * FROM memberships WHERE id=?").bind(mid).first();
+        if (!m) return err("Membership not found", 404);
+        if (!m.square_subscription_id) return err("No active subscription to cancel", 400);
+        const res = await fetch(`${squareBase(env)}/v2/subscriptions/${m.square_subscription_id}/cancel`, {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" }
+        });
+        if (!res.ok) return err(`Square cancel error ${res.status}: ${await res.text()}`, 502);
+        await env.DB.prepare("UPDATE memberships SET status='expired', square_subscription_id=NULL WHERE id=?").bind(mid).run();
+        return json({ ok: true });
+      } catch(e) {
+        return err(e.message || "Failed to cancel subscription", 500);
+      }
     }
     const markPaidMatch = path.match(/^\/memberships\/([^/]+)\/mark-paid$/);
     if (markPaidMatch && method === "POST") {
