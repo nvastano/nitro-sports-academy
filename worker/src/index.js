@@ -1478,19 +1478,6 @@ var src_default = {
     // ── Promo Codes (admin-only) ────────────────────────────────────────────
     // Note: validate endpoint is public (above); CRUD is admin-only (below auth gate)
 
-    // ── Temp debug (no auth) ─────────────────────────────────────────────────
-    if (method === "GET" && path === "/debug/square-subscription-id") {
-      const customerId = url.searchParams.get("customer_id") ?? "664YFWDZZ0FH8K242C6JKRMVEW";
-      const res = await fetch(`${squareBase(env)}/v2/subscriptions/search`, {
-        method: "POST",
-        headers: { "Authorization": `Bearer ${env.SQUARE_ACCESS_TOKEN}`, "Content-Type": "application/json", "Square-Version": "2024-01-18" },
-        body: JSON.stringify({ query: { filter: { customer_ids: [customerId] } } })
-      });
-      const data = await res.json();
-      const subs = (data.subscriptions ?? []).map(s => ({ id: s.id, status: s.status, plan_variation_id: s.plan_variation_id, start_date: s.start_date }));
-      return json({ customer_id: customerId, subscriptions: subs, raw_errors: data.errors ?? null });
-    }
-
     // ── Marketplace (admin-only below) ──────────────────────────────────────
 
     const claims = await requireAuth(request, env);
