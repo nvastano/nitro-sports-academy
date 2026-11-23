@@ -384,7 +384,8 @@ async function sendMembershipActiveNotification(client, membership, env, kids = 
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Plan</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${typeLabel}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Amount Paid</td><td style="color:#4ADE80;font-weight:700;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${priceDisplay}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${client.email ?? "—"}</td></tr>
-      <tr><td style="color:#9AA0B4;padding:8px 0">Phone</td><td style="color:#fff;text-align:right;padding:8px 0">${client.phone ?? "—"}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Phone</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${client.phone ?? "—"}</td></tr>
+      ${client.heard_about ? `<tr><td style="color:#9AA0B4;padding:8px 0">How They Heard</td><td style="color:#fff;text-align:right;padding:8px 0">${client.heard_about}</td></tr>` : ''}
     </table>
   </div>
   <div style="background:#1E3A1E;border:1px solid #2D5A2D;border-radius:8px;padding:20px;margin-bottom:16px">
@@ -668,7 +669,8 @@ async function sendBookingRequestNotification(booking, env, autoConfirmed = fals
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Player</td><td style="color:#fff;font-weight:600;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_name}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Email</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_email ?? "—"}</td></tr>
       <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">Phone</td><td style="color:#fff;text-align:right;padding:8px 0;border-bottom:1px solid #2B3558">${booking.player_phone ?? "—"}</td></tr>
-      <tr><td style="color:#9AA0B4;padding:8px 0">SMS Confirmation</td><td style="text-align:right;padding:8px 0;font-weight:600;color:${booking.sms_consent ? '#4ade80' : '#9AA0B4'}">${booking.sms_consent ? '✅ Opted in' : 'No'}</td></tr>
+      <tr><td style="color:#9AA0B4;padding:8px 0;border-bottom:1px solid #2B3558">SMS Confirmation</td><td style="text-align:right;padding:8px 0;font-weight:600;color:${booking.sms_consent ? '#4ade80' : '#9AA0B4'};border-bottom:1px solid #2B3558">${booking.sms_consent ? '✅ Opted in' : 'No'}</td></tr>
+      ${booking.heard_about ? `<tr><td style="color:#9AA0B4;padding:8px 0">How They Heard</td><td style="color:#fff;text-align:right;padding:8px 0">${booking.heard_about}</td></tr>` : ''}
     </table>
   </div>
   <p style="color:#9AA0B4;font-size:13px;text-align:center">View bookings at <a href="https://nitrosportsacademy.com/admin-dashboard.html" style="color:#3d65cc">the admin dashboard</a>.</p>
@@ -993,7 +995,7 @@ var src_default = {
             INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
             VALUES (?,?,?,?,?,?,?,?,?,?)
           `).bind(membershipId, clientId, "family_3plus", startDate, renewalDate, 60, 0, "active", "Monthly Family subscription ($60/mo, up to 4 members). Signed up online.", squareSubscriptionId).run();
-          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email, phone: primary.phone }, { type: "monthly-family", amount_paid: 60, amount_due: 0 }, env, b.kids ?? []); } catch(e) { console.error("Monthly family activation email error:", e.message); }
+          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email, phone: primary.phone, heard_about: b.heard_about ?? null }, { type: "monthly-family", amount_paid: 60, amount_due: 0 }, env, b.kids ?? []); } catch(e) { console.error("Monthly family activation email error:", e.message); }
           return json({ membership_id: membershipId, status: "active" }, 201);
         } catch(e) {
           console.error("Monthly family signup error:", e.message);
@@ -1034,7 +1036,7 @@ var src_default = {
             INSERT INTO memberships (id,client_id,type,start_date,renewal_date,amount_paid,amount_due,status,notes,square_subscription_id)
             VALUES (?,?,?,?,?,?,?,?,?,?)
           `).bind(membershipId, clientId, membershipType, startDate, renewalDate, 40, 0, "active", "Monthly subscription. Signed up online.", squareSubscriptionId).run();
-          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email, phone: primary.phone }, { type: "monthly", amount_paid: 40, amount_due: 0 }, env, b.kids ?? []); } catch(e) { console.error("Monthly activation email error:", e.message); }
+          try { await sendMembershipActiveNotification({ first_name: primary.first_name, last_name: primary.last_name, email, phone: primary.phone, heard_about: b.heard_about ?? null }, { type: "monthly", amount_paid: 40, amount_due: 0 }, env, b.kids ?? []); } catch(e) { console.error("Monthly activation email error:", e.message); }
           return json({ membership_id: membershipId, status: "active" }, 201);
         } catch(e) {
           console.error("Monthly signup error:", e.message);

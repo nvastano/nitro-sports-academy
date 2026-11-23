@@ -162,6 +162,10 @@
           <div class="full"><button type="submit" class="btn-primary">Save Profile</button></div>
         </div>
       </form>
+      <div id="heardAboutRow" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08)">
+        <span style="font-size:0.78rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--silver)">How They Heard About Us</span>
+        <div id="heardAboutValue" style="margin-top:4px;font-weight:600;color:#fff;font-size:0.95rem"></div>
+      </div>
     </div>
   </div>
 
@@ -424,6 +428,13 @@ function fillProfile(client) {
   const form = document.getElementById('profileForm');
   ['first_name','last_name','email','phone']
     .forEach(k => { if (form[k]) form[k].value = client[k] ?? ''; });
+  const row = document.getElementById('heardAboutRow');
+  if (client.heard_about) {
+    document.getElementById('heardAboutValue').textContent = client.heard_about;
+    row.style.display = 'block';
+  } else {
+    row.style.display = 'none';
+  }
 }
 
 function renderMembership(m) {
