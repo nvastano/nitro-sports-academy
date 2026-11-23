@@ -893,9 +893,9 @@ var src_default = {
 
       const price = GUEST_CAGE_PRICES[duration] ?? GUEST_CAGE_PRICES[30];
       await env.DB.prepare(
-        `INSERT INTO bookings (id,date,time,discipline,player_name,player_email,player_phone,status,cage_assigned,booking_type,duration,is_member,price,payment_status,sms_consent)
-         VALUES (?,?,?,'cage_request',?,?,?,'pending_payment',?,'cage_request',?,0,?,'unpaid',?)`
-      ).bind(id, b.date, b.time, b.player_name.trim(), b.player_email?.trim() || null, b.player_phone?.trim() || null, b.cage, duration, price, smsConsent).run();
+        `INSERT INTO bookings (id,date,time,discipline,player_name,player_email,player_phone,status,cage_assigned,booking_type,duration,is_member,price,payment_status,sms_consent,heard_about)
+         VALUES (?,?,?,'cage_request',?,?,?,'pending_payment',?,'cage_request',?,0,?,'unpaid',?,?)`
+      ).bind(id, b.date, b.time, b.player_name.trim(), b.player_email?.trim() || null, b.player_phone?.trim() || null, b.cage, duration, price, smsConsent, b.heard_about ?? null).run();
       try { await upsertGuestLead(b, env); } catch(e) { console.error("Guest lead error:", e.message); }
 
       let paymentLinkUrl = null;
@@ -976,10 +976,10 @@ var src_default = {
           const clientId = existingClient ? existingClient.id : primaryClientId;
           if (!existingClient) {
             await env.DB.prepare(`
-              INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
-              VALUES (?,?,?,?,?,?,?,?)
+              INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status,heard_about)
+              VALUES (?,?,?,?,?,?,?,?,?)
             `).bind(clientId, primary.first_name, primary.last_name, email, primary.phone,
-              primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted").run();
+              primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted", b.heard_about ?? null).run();
           }
           const squarePhone = normalizePhone(primary.phone);
           const squarePhoneE164 = squarePhone.length === 10 ? `+1${squarePhone}` : undefined;
@@ -1016,10 +1016,10 @@ var src_default = {
           const clientId = existingClient ? existingClient.id : primaryClientId;
           if (!existingClient) {
             await env.DB.prepare(`
-              INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
-              VALUES (?,?,?,?,?,?,?,?)
+              INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status,heard_about)
+              VALUES (?,?,?,?,?,?,?,?,?)
             `).bind(clientId, primary.first_name, primary.last_name, email, primary.phone,
-              primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted").run();
+              primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted", b.heard_about ?? null).run();
           }
           const squarePhone = normalizePhone(primary.phone);
           const squarePhoneE164 = squarePhone.length === 10 ? `+1${squarePhone}` : undefined;
@@ -1076,11 +1076,11 @@ var src_default = {
       try {
         if (!existingClient) {
           await env.DB.prepare(`
-            INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status)
-            VALUES (?,?,?,?,?,?,?,?)
+            INSERT INTO clients (id,first_name,last_name,email,phone,emergency_contact_name,emergency_contact_phone,lead_status,heard_about)
+            VALUES (?,?,?,?,?,?,?,?,?)
           `).bind(
             clientId, primary.first_name, primary.last_name, email, primary.phone,
-            primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted"
+            primary.emergency_contact_name ?? null, primary.emergency_contact_phone ?? null, "converted", b.heard_about ?? null
           ).run();
         }
         // Build notes: include kids' names for family plans

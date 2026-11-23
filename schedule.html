@@ -140,6 +140,19 @@
         </label>
       </div>
 
+      <div id="heard-about-row" style="display:none;">
+        <label style="display:block; font-family:var(--font-condensed); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--silver-dark); margin-bottom:5px;">How did you hear about us? *</label>
+        <select id="f-heard" style="width:100%; background:#1a1f2e; border:1px solid rgba(255,255,255,0.15); border-radius:5px; padding:11px 14px; color:#fff; font-size:0.95rem; outline:none; appearance:none; -webkit-appearance:none; cursor:pointer;">
+          <option value="">— Select one —</option>
+          <option value="Google Search">Google Search</option>
+          <option value="Social Media (Instagram/Facebook)">Social Media (Instagram/Facebook)</option>
+          <option value="Friend or Family Referral">Friend or Family Referral</option>
+          <option value="Drove By / Saw the Location">Drove By / Saw the Location</option>
+          <option value="Youth League or Team">Youth League or Team</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
       <div id="duration-row" style="display:none;">
         <label style="display:block; font-family:var(--font-condensed); font-size:0.78rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--silver-dark); margin-bottom:5px;">Session Length *</label>
         <div style="display:flex; gap:10px;">
@@ -443,7 +456,9 @@ function openModal(cageName, h, m, isGuest) {
   document.getElementById('f-name').value  = '';
   document.getElementById('f-email').value = '';
   document.getElementById('f-phone').value = '';
+  document.getElementById('f-heard').value = '';
   document.getElementById('modal-error').style.display = 'none';
+  document.getElementById('heard-about-row').style.display = isGuest ? 'block' : 'none';
   document.getElementById('duration-row').style.display = isGuest ? 'block' : 'none';
   document.getElementById('guest-notice').style.display = isGuest ? 'block' : 'none';
   document.getElementById('modal-footnote').textContent = isGuest
@@ -482,7 +497,8 @@ async function submitRequest() {
   const email = document.getElementById('f-email').value.trim();
   const phone = document.getElementById('f-phone').value.trim();
   const errEl = document.getElementById('modal-error');
-  if (!name || !email || !phone) {
+  const heard = pendingSlot.isGuest ? document.getElementById('f-heard').value : null;
+  if (!name || !email || !phone || (pendingSlot.isGuest && !heard)) {
     errEl.textContent = 'Please fill in all fields.';
     errEl.style.display = 'block';
     return;
@@ -505,6 +521,7 @@ async function submitRequest() {
         time:  pendingSlot.time,
         duration: pendingSlot.isGuest ? pendingSlot.duration : 30,
         sms_consent: document.getElementById('f-sms-consent')?.checked ? 1 : 0,
+        heard_about: heard || undefined,
       }),
     });
     if (res.status === 409) {
